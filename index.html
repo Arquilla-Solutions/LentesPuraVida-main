@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="es-CR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#13162a" />
+    <meta name="color-scheme" content="light" />
+
+    <!-- Default SEO (overridden per-route by react-helmet-async) -->
+    <title>Lentes Pura Vida | Lentes Recetados y Anteojos Graduados en Costa Rica</title>
+    <meta name="description" content="Lentes recetados premium desde $30 con envío a toda Costa Rica. Anteojos graduados, armazones y monturas hechas en EE.UU. por optómetras certificados. Hasta 60% más baratos que ópticas locales. Cotización por WhatsApp." />
+    <meta name="author" content="Lentes Pura Vida" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1" />
+
+    <!-- Geo / locale -->
+    <meta name="geo.region" content="CR" />
+    <meta name="geo.placename" content="Costa Rica" />
+    <meta name="language" content="Spanish" />
+
+    <!-- Performance: preconnect to CDNs we hit on first paint -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://img.ebdcdn.com" crossorigin />
+    <link rel="dns-prefetch" href="https://img.ebdcdn.com" />
+
+    <!-- Fonts: load only the weights we actually use to reduce CR latency -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet" />
+
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+
+    <!-- Structured data: Organization / LocalBusiness covering all 7 CR provinces -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": ["Organization", "OnlineStore", "Optician"],
+      "@id": "https://lentespuravida.com/#business",
+      "name": "Lentes Pura Vida",
+      "alternateName": ["Pura Vida Lentes", "Lentes Pura Vida Costa Rica"],
+      "description": "Lentes recetados y anteojos graduados con envío a toda Costa Rica. Armazones premium hechos en Estados Unidos por optómetras certificados.",
+      "url": "https://lentespuravida.com/",
+      "image": "https://lentespuravida.com/og-image.png",
+      "logo": "https://lentespuravida.com/favicon.png",
+      "priceRange": "$30 - $45",
+      "currenciesAccepted": "USD, CRC",
+      "paymentAccepted": "SINPE Móvil, Transferencia bancaria, Tarjeta de crédito",
+      "knowsLanguage": ["es-CR", "es"],
+      "knowsAbout": [
+        "Lentes recetados",
+        "Anteojos graduados",
+        "Armazones de plástico",
+        "Armazones de metal",
+        "Lentes monofocales",
+        "Lentes bifocales",
+        "Lentes progresivos",
+        "Filtro azul",
+        "Tratamiento antirreflejo"
+      ],
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "CR"
+      },
+      "areaServed": [
+        { "@type": "Country", "name": "Costa Rica" },
+        { "@type": "AdministrativeArea", "name": "San José", "containedInPlace": { "@type": "Country", "name": "Costa Rica" } },
+        { "@type": "AdministrativeArea", "name": "Alajuela", "containedInPlace": { "@type": "Country", "name": "Costa Rica" } },
+        { "@type": "AdministrativeArea", "name": "Cartago", "containedInPlace": { "@type": "Country", "name": "Costa Rica" } },
+        { "@type": "AdministrativeArea", "name": "Heredia", "containedInPlace": { "@type": "Country", "name": "Costa Rica" } },
+        { "@type": "AdministrativeArea", "name": "Guanacaste", "containedInPlace": { "@type": "Country", "name": "Costa Rica" } },
+        { "@type": "AdministrativeArea", "name": "Puntarenas", "containedInPlace": { "@type": "Country", "name": "Costa Rica" } },
+        { "@type": "AdministrativeArea", "name": "Limón", "containedInPlace": { "@type": "Country", "name": "Costa Rica" } }
+      ],
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.9",
+        "reviewCount": "127",
+        "bestRating": "5",
+        "worstRating": "1"
+      },
+      "sameAs": []
+    }
+    </script>
+
+    <!-- Structured data: WebSite (enables sitelinks search box if/when search is added) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "@id": "https://lentespuravida.com/#website",
+      "name": "Lentes Pura Vida",
+      "url": "https://lentespuravida.com/",
+      "inLanguage": "es-CR",
+      "publisher": { "@id": "https://lentespuravida.com/#business" }
+    }
+    </script>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
