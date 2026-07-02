@@ -1,0 +1,468 @@
+---
+import { Icon } from "astro-icon/components";
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import WhatsAppButton from "@/components/WhatsAppButton.astro";
+import logo from "@/assets/logo.png";
+import { WHATSAPP_LINK } from "@/lib/contact";
+import {
+  PRODUCT_PAGES,
+  products,
+  type Product,
+} from "@/data/products";
+import "@/styles/catalogo.css";
+import { CR_PROVINCES, SITE_URL } from "@/lib/seo";
+
+interface Review {
+  quote: string;
+  name: string;
+  meta: string;
+}
+
+const REVIEWS: Review[] = [
+  {
+    quote:
+      "Compré los lentes de mi hijo para el regreso a clases y llegaron en tiempo récord. La calidad es buenísima y nos ahorramos casi la mitad. Volveré a pedir sin pensarlo.",
+    name: "Carolina M.",
+    meta: "Para su hijo · Heredia",
+  },
+  {
+    quote:
+      "Le regalé unos lentes a mi esposo para su cumpleaños y quedó encantado. La atención por WhatsApp fue clarísima y todo llegó perfecto a la casa.",
+    name: "Andrea S.",
+    meta: "Regalo de cumpleaños · San José",
+  },
+  {
+    quote:
+      "A mis 68 años pedí mis lentes en línea por primera vez. Me ayudaron paso a paso, son cómodos y livianos. Hasta mi nieto me dice que se me ven bonitos.",
+    name: "Doña Marta R.",
+    meta: "Para ella · Cartago",
+  },
+  {
+    quote:
+      "Llevaba meses queriendo cambiar los míos pero las ópticas estaban carísimas. Aquí pagué un tercio del precio y la calidad es igual o mejor. Recomendado 100%.",
+    name: "Diego R.",
+    meta: "Para él · Alajuela",
+  },
+  {
+    quote:
+      "Pedí los lentes de mi mamá y llegaron a su casa en San Carlos sin problema. Le encantaron y ahora todos en la familia queremos pedir los nuestros.",
+    name: "Luis A.",
+    meta: "Para su mamá · San Carlos",
+  },
+  {
+    quote:
+      "Buscaba un regalo bonito para mi hija que entró a la U y estos lentes fueron perfectos. Le encantó el modelo, se ven elegantes y le subieron la confianza. Volveremos.",
+    name: "Patricia J.",
+    meta: "Regalo para su hija · Escazú",
+  },
+  {
+    quote:
+      "Los lentes anteriores de mi niña se habían quebrado y la óptica nos cobraba un disparate. Aquí en menos de dos semanas tenía sus lentes nuevos y le quedaron lindísimos.",
+    name: "Familia Vargas",
+    meta: "Para su hija · Liberia",
+  },
+];
+
+type Category = "unisex" | "hombres" | "mujeres" | "ninos";
+
+const CATEGORIES: { id: Category; label: string }[] = [
+  { id: "unisex", label: "Unisex" },
+  { id: "hombres", label: "Hombres" },
+  { id: "mujeres", label: "Mujeres" },
+  { id: "ninos", label: "Niños" },
+];
+
+// Same rules as the React version — kept in sync so filter behavior matches exactly.
+const productCategories = (p: Product): Category[] => {
+  if (p.kids) return ["ninos"];
+  const cats: Category[] = [];
+  if (p.gender === "Hombre / Mujer") cats.push("unisex", "hombres");
+  if (p.gender === "Hombre / Mujer" || p.gender === "Mujer") cats.push("mujeres");
+  return cats;
+};
+
+const initialCategory: Category = "unisex";
+const initialLabel = CATEGORIES.find((c) => c.id === initialCategory)!.label;
+const categoryCounts: Record<Category, number> = {
+  unisex: 0,
+  hombres: 0,
+  mujeres: 0,
+  ninos: 0,
+};
+for (const p of products) {
+  for (const c of productCategories(p)) categoryCounts[c]++;
+}
+const initialCount = categoryCounts[initialCategory];
+
+const getImgUrl = (code: string) =>
+  `https://img.ebdcdn.com/product/front/gray/${code}.jpg?q=70&im=Resize,width=600,height=300,aspect=fill;UnsharpMask,sigma=1.0,gain=1.0`;
+
+const HOME_FAQS: { q: string; a: string }[] = [
+  {
+    q: "¿Hacen envíos a todo Costa Rica?",
+    a: `Sí. Enviamos a las 7 provincias: ${CR_PROVINCES.join(", ")}. Despachamos desde el laboratorio en EE.UU. con guía rastreable y tu pedido llega en 10–14 días hábiles a tu casa, oficina o sucursal de Correos de Costa Rica.`,
+  },
+  {
+    q: "¿El precio del armazón incluye los lentes graduados?",
+    a: "No. Los precios de $30 y $45 son solo del armazón. Los lentes graduados se cotizan según tu receta, materiales y tratamientos (antirreflejo, filtro azul, fotosensibles). Mandanos tu fórmula por WhatsApp y te pasamos la cotización completa el mismo día — sin paquetes cerrados.",
+  },
+  {
+    q: "¿Cómo pago desde Costa Rica?",
+    a: "Aceptamos SINPE Móvil, transferencia bancaria en colones y tarjeta de crédito. Confirmamos receta, color, talla y monto antes de procesar cualquier pago. No guardamos datos de tarjeta y todo queda registrado en tu chat de WhatsApp.",
+  },
+  {
+    q: "¿Trabajan con fórmulas progresivas, bifocales o filtro azul?",
+    a: "Sí. Trabajamos lentes monofocales, bifocales y progresivos, con tratamientos opcionales: antirreflejo, filtro azul para pantallas, fotosensibles (transitions) y protección UV. Te cotizamos cada combinación antes de fabricar.",
+  },
+  {
+    q: "¿Quién fabrica los lentes?",
+    a: "Un laboratorio óptico certificado en Estados Unidos, con optómetras de licencia profesional. Cada par se fabrica con tu receta exacta y pasa controles de calidad antes del envío.",
+  },
+  {
+    q: "¿Qué pasa si los lentes llegan con un defecto?",
+    a: "Tenés garantía de fábrica. Si el armazón o los lentes llegan con un defecto de fabricación, los reemplazamos sin costo. Te ayudamos a confirmar talla y receta antes de fabricar para minimizar errores.",
+  },
+];
+
+const productItems = products.slice(0, 24).map((p, idx) => ({
+  "@type": "ListItem",
+  position: idx + 1,
+  url: `${SITE_URL}${PRODUCT_PAGES[p.name] ?? `/lentes/${p.slug}`}`,
+  name: `Lentes ${p.name}`,
+}));
+
+const homeJsonLd: Record<string, unknown>[] = [
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    "@id": `${SITE_URL}/#catalog`,
+    name: "Catálogo de lentes recetados — Lentes Pura Vida Costa Rica",
+    description:
+      "Catálogo de armazones para lentes recetados con envío a toda Costa Rica. Hombres, mujeres, niños y unisex desde $30.",
+    url: `${SITE_URL}/`,
+    inLanguage: "es-CR",
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    about: { "@id": `${SITE_URL}/#business` },
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: products.length,
+      itemListElement: productItems,
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: HOME_FAQS.map((f) => ({
+      "@type": "Question",
+      name: f.q,
+      acceptedAnswer: { "@type": "Answer", text: f.a },
+    })),
+  },
+];
+---
+
+<BaseLayout
+  title="Lentes Pura Vida | Lentes Recetados y Anteojos Graduados en Costa Rica"
+  description="Lentes recetados premium desde $30 con envío a toda Costa Rica (San José, Alajuela, Cartago, Heredia, Guanacaste, Puntarenas, Limón). Armazones hechos en EE.UU. por optómetras certificados. Hasta 60% más baratos que ópticas locales. Cotización transparente por WhatsApp."
+  canonical="/"
+  keywords="lentes recetados Costa Rica, anteojos graduados Costa Rica, armazones Costa Rica, monturas Costa Rica, óptica online Costa Rica, lentes baratos Costa Rica, lentes con receta, gafas graduadas, lentes para hombre, lentes para mujer, lentes para niños, lentes San José, lentes Alajuela, lentes Heredia, lentes Cartago"
+  imageAlt="Lentes Pura Vida — lentes recetados premium con envío a toda Costa Rica"
+  jsonLd={homeJsonLd}
+>
+  <div class="catalogo-page">
+    <Header />
+
+    <section class="hero" id="top">
+      <div class="hero-inner">
+        <div class="hero-copy">
+          <span class="hero-eyebrow">
+            <span class="hero-eyebrow-dot" aria-hidden="true"></span>
+            Lentes recetados · Costa Rica 🇨🇷
+          </span>
+          <h1 class="hero-title">
+            Lentes recetados <em>premium</em> al alcance de cada familia tica.
+          </h1>
+          <p class="hero-sub">
+            Hechos en EE.UU. por optómetras certificados.
+            Hasta un <strong>60% más baratos</strong> que las ópticas locales.
+          </p>
+          <div class="hero-ctas">
+            <a
+              class="btn-primary"
+              href={WHATSAPP_LINK}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon name="lucide:message-circle" size={16} aria-hidden="true" />
+              Cotizar por WhatsApp
+            </a>
+            <a class="btn-outline" href="#catalogo">Ver catálogo</a>
+          </div>
+
+          <ul class="hero-pills">
+            <li>
+              <Icon name="lucide:award" size={14} aria-hidden="true" />
+              <span>Hechos en EE.UU.</span>
+            </li>
+            <li>
+              <Icon name="lucide:truck" size={14} aria-hidden="true" />
+              <span>Envío gratis +$300</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="hero-visual">
+          <div class="hero-logo-mark">
+            <img
+              src={logo.src}
+              alt="Lentes Pura Vida"
+              loading="eager"
+              fetchpriority="high"
+              width="320"
+              height="320"
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="value-strip">
+      <div class="value-prop">
+        <span class="vp-icon"><Icon name="lucide:award" size={22} /></span>
+        <span class="vp-title">Lentes hechos en EE.UU.</span>
+        <span class="vp-sub">Por optómetras con licencia</span>
+      </div>
+      <div class="value-prop">
+        <span class="vp-icon vp-icon--green"><Icon name="lucide:lock" size={22} /></span>
+        <span class="vp-title">Pago seguro</span>
+        <span class="vp-sub">SINPE · Transferencia · Tarjeta</span>
+      </div>
+      <div class="value-prop">
+        <span class="vp-icon"><Icon name="lucide:truck" size={22} /></span>
+        <span class="vp-title">Envío a todo CR</span>
+        <span class="vp-sub">Gratis en pedidos +$300</span>
+      </div>
+    </div>
+
+    <section class="trust-banner" aria-label="Información de confianza">
+      <p>
+        Lentes recetados fabricados en <strong>Estados Unidos</strong> por <strong>optómetras certificados</strong>.
+        Anteojos graduados con envío a toda Costa Rica, hasta un <strong>60% más baratos</strong> que las ópticas locales.
+      </p>
+    </section>
+
+    <section class="how" id="como-funciona" aria-label="Cómo funciona">
+      <div class="how-inner">
+        <span class="how-eyebrow">Sencillo y transparente</span>
+        <h2 class="how-title">Cómo <em>funciona</em></h2>
+        <ol class="how-steps">
+          <li class="how-step">
+            <span class="how-step-num">1</span>
+            <span class="how-step-icon" aria-hidden="true"><Icon name="lucide:glasses" size={22} /></span>
+            <h3 class="how-step-title">Elegí tu modelo</h3>
+            <p class="how-step-desc">Explorá nuestro catálogo y encontrá los lentes que más te gusten.</p>
+          </li>
+          <li class="how-step">
+            <span class="how-step-num">2</span>
+            <span class="how-step-icon" aria-hidden="true"><Icon name="lucide:file-text" size={22} /></span>
+            <h3 class="how-step-title">Envianos tu receta</h3>
+            <p class="how-step-desc">Compartí tu receta por WhatsApp. Te confirmamos cada detalle antes de fabricar.</p>
+          </li>
+          <li class="how-step">
+            <span class="how-step-num">3</span>
+            <span class="how-step-icon" aria-hidden="true"><Icon name="lucide:package" size={22} /></span>
+            <h3 class="how-step-title">Recibí en casa</h3>
+            <p class="how-step-desc">Tus lentes llegan a tu puerta en toda Costa Rica, listos para usar.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="reviews" aria-label="Reseñas de clientes">
+      <div class="reviews-header">
+        <span class="reviews-eyebrow">Lo que dicen nuestros clientes</span>
+        <h2 class="reviews-title">Familias que ya <em>confían</em> en nosotros</h2>
+      </div>
+      <div class="reviews-marquee">
+        <div class="reviews-track" role="list">
+          {REVIEWS.map((r) => (
+            <article class="review-card" role="listitem">
+              <div class="review-stars" aria-label="5 de 5 estrellas">★★★★★</div>
+              <p class="review-quote">"{r.quote}"</p>
+              <div class="review-attr">
+                <span class="review-name">{r.name}</span>
+                <span class="review-meta">{r.meta}</span>
+              </div>
+            </article>
+          ))}
+          {REVIEWS.map((r) => (
+            <article class="review-card" role="listitem" aria-hidden="true">
+              <div class="review-stars" aria-label="5 de 5 estrellas">★★★★★</div>
+              <p class="review-quote">"{r.quote}"</p>
+              <div class="review-attr">
+                <span class="review-name">{r.name}</span>
+                <span class="review-meta">{r.meta}</span>
+              </div>
+            </article>
+          ))}
+        </div>
+      </div>
+    </section>
+
+    <span id="catalogo"></span>
+    <main>
+      <div class="info-row">
+        <div class="info-cell">
+          <span class="info-icon" aria-hidden="true">$</span>
+          <div class="info-text">
+            <strong>Cotización transparente</strong>
+            <span>Pagás el armazón a precio fijo. Lentes graduados se cotizan según tu receta — sin paquetes cerrados.</span>
+          </div>
+        </div>
+        <div class="info-cell info-cell--accent">
+          <span class="info-icon" aria-hidden="true">%</span>
+          <div class="info-text">
+            <strong>Hasta $10 de descuento</strong>
+            <span>¿Fuiste al oculista? Envíanos tu recibo por WhatsApp y lo aplicamos.</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="cat-bar">
+        <div class="cat-tabs" role="tablist" aria-label="Categorías" data-cat-tabs>
+          {CATEGORIES.map((cat) => (
+            <button
+              type="button"
+              role="tab"
+              data-cat={cat.id}
+              aria-selected={cat.id === initialCategory ? "true" : "false"}
+              class={`cat-tab ${cat.id === initialCategory ? "is-active" : ""}`}
+            >
+              {cat.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <header class="cat-section-header">
+        <h2>
+          Lentes <span class="cat-section-cat" data-active-label>{initialLabel}</span>
+        </h2>
+        <span class="cat-section-count" data-active-count>
+          {initialCount} {initialCount === 1 ? "modelo" : "modelos"}
+        </span>
+      </header>
+
+      <div
+        class="grid"
+        data-catalog-grid
+        data-active-cat={initialCategory}
+      >
+        {products.map((product) => {
+          const cats = productCategories(product).join(" ");
+          const isThirty = product.framePrice === 30;
+          const href = PRODUCT_PAGES[product.name];
+          const cardClass = `card ${isThirty ? "card-pill-green" : "card-pill-gold"}${href ? " card-linked" : ""}`;
+          const inner = (
+            <>
+              <div class="card-img-wrap">
+                <img
+                  src={getImgUrl(product.img)}
+                  alt={`Lentes recetados ${product.name} — ${product.alt}`}
+                  loading="lazy"
+                  decoding="async"
+                  width="600"
+                  height="300"
+                />
+              </div>
+              <div class="card-body">
+                <div class="card-row-top">
+                  <div class="card-name">{product.name}</div>
+                  <span class={`price-pill ${isThirty ? "pill-green" : "pill-gold"}`}>
+                    ${product.framePrice}
+                  </span>
+                </div>
+                <p class="card-desc">{product.desc}</p>
+                <div class="card-divider"></div>
+                <div class="card-row-meta">
+                  <span class="chip-material">{product.material}</span>
+                  <span class="chip-size">{product.primarySize}</span>
+                </div>
+                <div class="colors-wrap">
+                  {product.colors.map((c) => (
+                    <span class="color-tag">{c}</span>
+                  ))}
+                </div>
+              </div>
+            </>
+          );
+          return href ? (
+            <a
+              href={href}
+              class={cardClass}
+              aria-label={`Ver ${product.name}`}
+              data-cats={cats}
+            >
+              {inner}
+            </a>
+          ) : (
+            <div class={cardClass} data-cats={cats}>{inner}</div>
+          );
+        })}
+      </div>
+
+      <p class="empty-cat" data-empty-msg hidden>
+        Pronto agregaremos lentes en esta categoría.
+      </p>
+    </main>
+
+    <Footer />
+    <WhatsAppButton />
+  </div>
+</BaseLayout>
+
+<script is:inline define:vars={{ categoryCounts }}>
+  // Category filter — DOM-only equivalent of the React useState version.
+  // Toggles card visibility via a data attribute on the grid, plus updates
+  // the section header label + count and the empty state message.
+  const tabs = document.querySelectorAll("[data-cat-tabs] .cat-tab");
+  const grid = document.querySelector("[data-catalog-grid]");
+  const label = document.querySelector("[data-active-label]");
+  const count = document.querySelector("[data-active-count]");
+  const empty = document.querySelector("[data-empty-msg]");
+
+  const LABELS = { unisex: "Unisex", hombres: "Hombres", mujeres: "Mujeres", ninos: "Niños" };
+
+  tabs.forEach((tab) => {
+    tab.addEventListener("click", () => {
+      const cat = tab.getAttribute("data-cat");
+      if (!cat) return;
+
+      tabs.forEach((t) => {
+        const isActive = t === tab;
+        t.classList.toggle("is-active", isActive);
+        t.setAttribute("aria-selected", isActive ? "true" : "false");
+      });
+
+      grid.setAttribute("data-active-cat", cat);
+
+      if (label) label.textContent = LABELS[cat];
+      const n = categoryCounts[cat] ?? 0;
+      if (count) count.textContent = `${n} ${n === 1 ? "modelo" : "modelos"}`;
+      if (empty) empty.hidden = n > 0;
+    });
+  });
+</script>
+
+<style is:global>
+  /* Category filter — hide cards that don't match the active category.
+     Rendered inline so it applies without a separate CSS file. */
+  [data-catalog-grid][data-active-cat="unisex"] .card:not([data-cats~="unisex"]),
+  [data-catalog-grid][data-active-cat="hombres"] .card:not([data-cats~="hombres"]),
+  [data-catalog-grid][data-active-cat="mujeres"] .card:not([data-cats~="mujeres"]),
+  [data-catalog-grid][data-active-cat="ninos"] .card:not([data-cats~="ninos"]) {
+    display: none;
+  }
+</style>

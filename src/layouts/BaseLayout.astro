@@ -1,0 +1,195 @@
+---
+import "../styles/global.css";
+import {
+  DEFAULT_OG_IMAGE,
+  SITE_LANG,
+  SITE_LOCALE,
+  SITE_NAME,
+  absoluteUrl,
+} from "@/lib/seo";
+
+export interface Props {
+  title: string;
+  description: string;
+  canonical?: string;
+  image?: string;
+  imageAlt?: string;
+  ogType?: "website" | "product" | "article";
+  noIndex?: boolean;
+  keywords?: string;
+  jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+}
+
+const {
+  title,
+  description,
+  canonical,
+  image,
+  imageAlt,
+  ogType = "website",
+  noIndex = false,
+  keywords,
+  jsonLd,
+} = Astro.props as Props;
+
+const canonicalUrl = canonical ? absoluteUrl(canonical) : undefined;
+const imageUrl = image ? absoluteUrl(image) : DEFAULT_OG_IMAGE;
+const robots = noIndex
+  ? "noindex, nofollow"
+  : "index, follow, max-image-preview:large, max-snippet:-1";
+
+const pageJsonLd = jsonLd
+  ? Array.isArray(jsonLd)
+    ? jsonLd
+    : [jsonLd]
+  : [];
+
+// Site-wide Organization + WebSite JSON-LD (previously lived in index.html).
+// Rendered on every page so SERP entity attribution stays intact.
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": ["Organization", "OnlineStore", "Optician"],
+  "@id": "https://lentespuravida.com/#business",
+  name: "Lentes Pura Vida",
+  alternateName: [
+    "Pura Vida Lentes",
+    "Lentes Pura Vida Costa Rica",
+  ],
+  description:
+    "Lentes recetados y anteojos graduados con envío a toda Costa Rica. Armazones premium hechos en Estados Unidos por optómetras certificados.",
+  url: "https://lentespuravida.com/",
+  image: "https://lentespuravida.com/og-image.png",
+  logo: "https://lentespuravida.com/favicon.png",
+  priceRange: "$30 - $45",
+  currenciesAccepted: "USD, CRC",
+  paymentAccepted:
+    "SINPE Móvil, Transferencia bancaria, Tarjeta de crédito",
+  knowsLanguage: ["es-CR", "es"],
+  knowsAbout: [
+    "Lentes recetados",
+    "Anteojos graduados",
+    "Armazones de plástico",
+    "Armazones de metal",
+    "Lentes monofocales",
+    "Lentes bifocales",
+    "Lentes progresivos",
+    "Filtro azul",
+    "Tratamiento antirreflejo",
+  ],
+  address: {
+    "@type": "PostalAddress",
+    addressCountry: "CR",
+  },
+  areaServed: [
+    { "@type": "Country", name: "Costa Rica" },
+    { "@type": "AdministrativeArea", name: "San José", containedInPlace: { "@type": "Country", name: "Costa Rica" } },
+    { "@type": "AdministrativeArea", name: "Alajuela", containedInPlace: { "@type": "Country", name: "Costa Rica" } },
+    { "@type": "AdministrativeArea", name: "Cartago", containedInPlace: { "@type": "Country", name: "Costa Rica" } },
+    { "@type": "AdministrativeArea", name: "Heredia", containedInPlace: { "@type": "Country", name: "Costa Rica" } },
+    { "@type": "AdministrativeArea", name: "Guanacaste", containedInPlace: { "@type": "Country", name: "Costa Rica" } },
+    { "@type": "AdministrativeArea", name: "Puntarenas", containedInPlace: { "@type": "Country", name: "Costa Rica" } },
+    { "@type": "AdministrativeArea", name: "Limón", containedInPlace: { "@type": "Country", name: "Costa Rica" } },
+  ],
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.9",
+    reviewCount: "127",
+    bestRating: "5",
+    worstRating: "1",
+  },
+  sameAs: [],
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "@id": "https://lentespuravida.com/#website",
+  name: "Lentes Pura Vida",
+  url: "https://lentespuravida.com/",
+  inLanguage: "es-CR",
+  publisher: { "@id": "https://lentespuravida.com/#business" },
+};
+---
+
+<!doctype html>
+<html lang={SITE_LANG}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#13162a" />
+    <meta name="color-scheme" content="light" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <meta name="author" content="Lentes Pura Vida" />
+    <meta name="robots" content={robots} />
+    {keywords && <meta name="keywords" content={keywords} />}
+
+    <meta name="geo.region" content="CR" />
+    <meta name="geo.placename" content="Costa Rica" />
+    <meta name="language" content="Spanish" />
+
+    {canonicalUrl && (
+      <>
+        <link rel="canonical" href={canonicalUrl} />
+        <link rel="alternate" hreflang="es-CR" href={canonicalUrl} />
+        <link rel="alternate" hreflang="es" href={canonicalUrl} />
+        <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
+      </>
+    )}
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preconnect" href="https://img.ebdcdn.com" crossorigin />
+    <link rel="dns-prefetch" href="https://img.ebdcdn.com" />
+
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <link rel="icon" href="/favicon.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/favicon.png" />
+
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:type" content={ogType} />
+    <meta property="og:site_name" content={SITE_NAME} />
+    <meta property="og:locale" content={SITE_LOCALE} />
+    {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
+    <meta property="og:image" content={imageUrl} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    {imageAlt && <meta property="og:image:alt" content={imageAlt} />}
+
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={imageUrl} />
+    {imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}
+
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(organizationJsonLd)}
+    />
+    <script
+      type="application/ld+json"
+      is:inline
+      set:html={JSON.stringify(websiteJsonLd)}
+    />
+    {pageJsonLd.map((obj) => (
+      <script
+        type="application/ld+json"
+        is:inline
+        set:html={JSON.stringify(obj)}
+      />
+    ))}
+  </head>
+  <body>
+    <slot />
+  </body>
+</html>

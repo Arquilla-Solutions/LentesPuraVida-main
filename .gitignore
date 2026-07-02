@@ -25,3 +25,6 @@ dist-ssr
 
 # Claude Code local config (preview server, etc.)
 .claude/
+
+# Astro
+.astro/

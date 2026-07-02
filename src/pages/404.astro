@@ -1,0 +1,53 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+---
+
+<BaseLayout
+  title="Página no encontrada | Lentes Pura Vida"
+  description="La página que buscás no existe. Volvé al inicio para ver el catálogo de lentes recetados con envío a toda Costa Rica."
+  canonical="/"
+  noIndex
+>
+  <div class="not-found">
+    <div class="not-found-inner">
+      <h1>404</h1>
+      <p>Oops! Página no encontrada</p>
+      <a href="/">Volver al inicio</a>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .not-found {
+    display: flex;
+    min-height: 100vh;
+    align-items: center;
+    justify-content: center;
+    background: #faf7f1;
+    color: #17192e;
+    font-family: Inter, system-ui, sans-serif;
+    padding: 24px;
+  }
+  .not-found-inner {
+    text-align: center;
+  }
+  .not-found-inner h1 {
+    font-size: 4rem;
+    margin: 0 0 12px;
+    font-weight: 800;
+    color: #13162a;
+  }
+  .not-found-inner p {
+    font-size: 1.25rem;
+    margin: 0 0 20px;
+    color: #6a6c85;
+  }
+  .not-found-inner a {
+    color: #c9a84c;
+    text-decoration: underline;
+    font-weight: 600;
+  }
+  .not-found-inner a:hover {
+    color: #a8892e;
+  }
+</style>

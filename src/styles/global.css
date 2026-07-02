@@ -1,0 +1,13 @@
+/* Paint the document root navy so iOS Safari's status bar / notch area
+   and any rubber-band overscroll match the marquee + hero, not white.
+   The actual page content (cream catalog background) is set on .catalogo-page. */
+html,
+body {
+  background-color: #13162a;
+  margin: 0;
+  padding: 0;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
