@@ -8,11 +8,17 @@ import logo from "@/assets/logo.png";
 import { WHATSAPP_LINK } from "@/lib/contact";
 import {
   PRODUCT_PAGES,
-  products,
+  products as allProducts,
   type Product,
 } from "@/data/products";
 import "@/styles/catalogo.css";
 import { CR_PROVINCES, SITE_URL } from "@/lib/seo";
+import { primaryThumb, scanFramePhotos } from "@/lib/photos";
+
+// Build-time scan of public/Glasses/. Frames without a photo folder are
+// hidden from the catalog entirely (per Sebastian: no supplier hotlinks).
+const framePhotos = scanFramePhotos();
+const products = allProducts.filter((p) => framePhotos[p.name]?.colors.length);
 
 interface Review {
   quote: string;
@@ -95,9 +101,6 @@ for (const p of products) {
   for (const c of productCategories(p)) categoryCounts[c]++;
 }
 const initialCount = categoryCounts[initialCategory];
-
-const getImgUrl = (code: string) =>
-  `https://img.ebdcdn.com/product/front/gray/${code}.jpg?q=70&im=Resize,width=600,height=300,aspect=fill;UnsharpMask,sigma=1.0,gain=1.0`;
 
 const HOME_FAQS: { q: string; a: string }[] = [
   {
@@ -365,17 +368,20 @@ const homeJsonLd: Record<string, unknown>[] = [
           const isThirty = product.framePrice === 30;
           const href = PRODUCT_PAGES[product.name];
           const cardClass = `card ${isThirty ? "card-pill-green" : "card-pill-gold"}${href ? " card-linked" : ""}`;
+          const thumb = primaryThumb(framePhotos[product.name]);
           const inner = (
             <>
               <div class="card-img-wrap">
-                <img
-                  src={getImgUrl(product.img)}
-                  alt={`Lentes recetados ${product.name} — ${product.alt}`}
-                  loading="lazy"
-                  decoding="async"
-                  width="600"
-                  height="300"
-                />
+                {thumb && (
+                  <img
+                    src={thumb}
+                    alt={`Lentes recetados ${product.name} — ${product.alt}`}
+                    loading="lazy"
+                    decoding="async"
+                    width="600"
+                    height="300"
+                  />
+                )}
               </div>
               <div class="card-body">
                 <div class="card-row-top">

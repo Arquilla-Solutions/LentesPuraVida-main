@@ -10,22 +10,32 @@ import {
   type Product,
 } from "@/data/products";
 import { SITE_URL } from "@/lib/seo";
+import {
+  findColorPhotos,
+  primaryThumb,
+  scanFramePhotos,
+  SPANISH_TO_ENGLISH,
+  type ColorPhotos,
+} from "@/lib/photos";
 import "@/styles/catalogo.css";
 import "@/styles/november.css";
 
 export async function getStaticPaths() {
-  return products.map((p) => ({
-    params: { slug: p.slug },
-    props: { product: p },
-  }));
+  const { scanFramePhotos } = await import("@/lib/photos");
+  const { products } = await import("@/data/products");
+  const framePhotos = scanFramePhotos();
+  // Only generate product pages for frames that have Sebastian's photos.
+  return products
+    .filter((p) => framePhotos[p.name]?.colors.length)
+    .map((p) => ({
+      params: { slug: p.slug },
+      props: { product: p },
+    }));
 }
 
 const { product } = Astro.props as { product: Product };
-
-const heroImg = (code: string) =>
-  `https://img.ebdcdn.com/product/front/gray/${code}.jpg?q=88&im=Resize,width=1200,height=600,aspect=fill;UnsharpMask,sigma=1.0,gain=1.0`;
-const thumbImg = (code: string) =>
-  `https://img.ebdcdn.com/product/front/gray/${code}.jpg?q=70&im=Resize,width=320,height=160,aspect=fill`;
+const framePhotos = scanFramePhotos();
+const frame = framePhotos[product.name];
 
 const buildWaLink = (msg: string) =>
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
@@ -60,9 +70,9 @@ const buildFaqs = (p: Product): { q: string; a: string }[] => [
 const buildProductJsonLd = (
   p: Product,
   faqs: { q: string; a: string }[],
+  imageUrl: string,
 ): Record<string, unknown>[] => {
   const url = `${SITE_URL}/lentes/${p.slug}`;
-  const imgUrl = `https://img.ebdcdn.com/product/front/gray/${p.img}.jpg?q=88&im=Resize,width=1200,height=600,aspect=fill`;
   return [
     {
       "@context": "https://schema.org",
@@ -71,9 +81,8 @@ const buildProductJsonLd = (
       name: `Armazón ${p.name} — Lentes Recetados`,
       description: `${p.desc} Material: ${p.material}. Forma: ${p.shape}. ${p.rim}. Colores disponibles: ${p.colors.join(", ")}.`,
       sku: p.slug,
-      mpn: p.img,
       url,
-      image: [imgUrl],
+      image: [imageUrl.startsWith("http") ? imageUrl : `${SITE_URL}${imageUrl}`],
       brand: { "@type": "Brand", name: "Lentes Pura Vida" },
       category: "Eyewear / Prescription Glasses Frames",
       material: p.material,
@@ -150,10 +159,26 @@ const faqs = buildFaqs(product);
 
 const seoTitle = `Lentes ${product.name} — Armazón ${product.material} desde $${product.framePrice} | Lentes Pura Vida Costa Rica`;
 const seoDescription = `${product.desc} Armazón ${product.name} desde $${product.framePrice} con envío a toda Costa Rica. Lentes graduados cotizados según tu receta por WhatsApp. Hecho en EE.UU. por optómetras certificados.`;
-const seoImage = `https://img.ebdcdn.com/product/front/gray/${product.img}.jpg?q=88&im=Resize,width=1200,height=630,aspect=fill`;
-const productJsonLd = buildProductJsonLd(product, faqs);
+const seoImage = primaryThumb(frame) ?? "/favicon.png";
+const productJsonLd = buildProductJsonLd(product, faqs, seoImage);
 
 const initialColor = product.colors[0] ?? "";
+const initialPhotos: ColorPhotos | null =
+  findColorPhotos(frame, initialColor) ?? frame?.colors[0] ?? null;
+
+// Per-color photo map used by the client script when a swatch is clicked.
+// Keyed by the exact Spanish color label so the script can look up by label.
+const colorPhotoMap: Record<string, ColorPhotos["photos"]> = {};
+for (const c of product.colors) {
+  const found = findColorPhotos(frame, c);
+  if (found) colorPhotoMap[c] = found.photos;
+}
+
+const heroImageSrc =
+  initialPhotos?.photos.front ?? initialPhotos?.photos.side ?? "";
+const thumbSideSrc = initialPhotos?.photos.side ?? heroImageSrc;
+const thumbTopSrc = initialPhotos?.photos.top ?? heroImageSrc;
+
 const waOrderInitial = buildWaLink(
   `Hola 👋 Quiero cotizar el modelo *${product.name}* en color "${initialColor}". Adjunto mi receta para que me pasen el precio total.`,
 );
@@ -201,18 +226,28 @@ const waRx = buildWaLink(
             <span class="nov-badge-premium">
               <span class="nov-badge-dot"></span> Hecho en EE.UU.
             </span>
-            <img src={heroImg(product.img)} alt={product.alt} loading="eager" />
+            <img
+              src={heroImageSrc}
+              alt={product.alt}
+              loading="eager"
+              data-gallery-hero
+            />
             <div class="nov-gallery-glow" aria-hidden="true"></div>
           </div>
           <div class="nov-thumbs" role="list">
-            {[0, 1, 2].map((i) => (
+            {[
+              { src: heroImageSrc, view: "front", label: "Vista frontal" },
+              { src: thumbSideSrc, view: "side", label: "Vista lateral" },
+              { src: thumbTopSrc, view: "top", label: "Vista superior" },
+            ].map((t, i) => (
               <button
                 type="button"
                 class={`nov-thumb ${i === 0 ? "is-active" : ""}`}
                 role="listitem"
-                aria-label={`Vista ${i + 1}`}
+                aria-label={t.label}
+                data-thumb-view={t.view}
               >
-                <img src={thumbImg(product.img)} alt="" />
+                <img src={t.src} alt="" data-gallery-thumb={t.view} />
               </button>
             ))}
           </div>
@@ -638,6 +673,7 @@ const waRx = buildWaLink(
   define:vars={{
     productName: product.name,
     waNumber: WHATSAPP_NUMBER,
+    colorPhotos: colorPhotoMap,
   }}
 >
   // Product-page interactions — mirrors the React ProductPage.tsx state hooks:
@@ -657,6 +693,39 @@ const waRx = buildWaLink(
         `Hola 👋 Quiero cotizar el modelo *${productName}* en color "${color}". Adjunto mi receta para que me pasen el precio total.`,
       );
 
+    const heroImg = document.querySelector("[data-gallery-hero]");
+    const thumbs = document.querySelectorAll("[data-gallery-thumb]");
+    const thumbButtons = document.querySelectorAll("[data-thumb-view]");
+
+    // Swap the whole gallery to a given color's photos.
+    const renderColor = (color) => {
+      const photos = colorPhotos?.[color];
+      if (!photos) return;
+      const frontUrl = photos.front || photos.side || photos.top;
+      if (heroImg && frontUrl) heroImg.setAttribute("src", frontUrl);
+      thumbs.forEach((img) => {
+        const view = img.getAttribute("data-gallery-thumb");
+        const url = photos[view] || frontUrl;
+        if (url) img.setAttribute("src", url);
+      });
+      // Reset the active thumb to Front on color change.
+      thumbButtons.forEach((btn) => {
+        const isFront = btn.getAttribute("data-thumb-view") === "front";
+        btn.classList.toggle("is-active", isFront);
+      });
+    };
+
+    // Clicking a thumbnail promotes its view to the hero image.
+    thumbButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const view = btn.getAttribute("data-thumb-view");
+        const img = btn.querySelector("img");
+        const src = img?.getAttribute("src");
+        if (src && heroImg) heroImg.setAttribute("src", src);
+        thumbButtons.forEach((b) => b.classList.toggle("is-active", b === btn));
+      });
+    });
+
     if (swatchContainer) {
       swatchContainer.querySelectorAll(".nov-swatch").forEach((btn) => {
         btn.addEventListener("click", () => {
@@ -670,6 +739,7 @@ const waRx = buildWaLink(
           if (colorActive) colorActive.textContent = color;
           const url = buildWaOrderUrl(color);
           waOrderLinks.forEach((a) => a.setAttribute("href", url));
+          renderColor(color);
         });
       });
     }
