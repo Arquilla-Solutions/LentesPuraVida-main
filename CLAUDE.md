@@ -2,7 +2,27 @@
 
 > Auto-loaded into every Claude Code session. Keep terse. Update when assumptions change.
 
-## Project at a glance
+> ⚠️ **Stack migrated to Astro 2026-07-02.** Most of this file below the "Current stack" section is pre-migration history — retained because the design system, hard rules, and business context are still accurate. Anything about routing (`react-helmet-async`, `useEffect`, React Router, Vite HMR), file locations (`src/pages/Index.tsx`, `src/components/SiteHeader.tsx`), or the deploy pipeline (auto-deploy on push, `keep-it-real-now.pages.dev`) below is **stale** — read the "Current stack" section for what's actually true. Auto-memory `lentes_pura_vida.md` has the latest session state.
+
+## Current stack (as of 2026-07-03)
+
+- **What:** Lentes Pura Vida — Costa Rica e-commerce for prescription eyewear (frames + RX lens quotes via WhatsApp). Sebastian's own business, not an Arquilla client.
+- **Stack:** Astro 7 static build, TypeScript, custom CSS (no Tailwind, no shadcn). `astro-icon` + `@iconify-json/lucide` for icons.
+- **Repo:** `https://github.com/Arquilla-Solutions/LentesPuraVida-main` · branch `main`
+- **Local:** `~/Desktop/LentesPuraVida-main`. Legacy Vite/React source preserved under `_legacy-vite/` for reference — don't touch unless doing archaeology.
+- **Routes (file-based):** `/` (home + catalog) · `/sobre-nosotros` · `/lentes/[slug]` (28 static product pages via `getStaticPaths` — 4 slugs hidden until photos land) · `/404`.
+- **Live:** <https://lentespuravida.com> served by Cloudflare Pages. **CF project name is `lentespuravida`** (not `keep-it-real-now`).
+- **Deploy path:** CF Pages GitHub integration was broken as of the migration and never reconnected. Deploys go through `npm run deploy` (wrangler CLI, authed on Sebastian's Mac). Same command rebuilds + uploads to CF Pages under `--branch=main` (production).
+- **Product images:** Self-hosted under `public/Glasses/{Frame}/{Color folder}/{Frame Color - View}.avif`. Five views per color: Front, Side, Top, On man, On woman. Scanned at build time by `src/lib/photos.ts`. **NEVER hotlink `img.ebdcdn.com` or mention the supplier anywhere public-facing.**
+- **Key files:** `src/pages/index.astro` (home), `src/pages/lentes/[slug].astro` (product template), `src/pages/sobre-nosotros.astro` (about), `src/pages/404.astro`, `src/components/Header.astro` + `Footer.astro` + `WhatsAppButton.astro`, `src/layouts/BaseLayout.astro` (head + SEO + JSON-LD org/website), `src/lib/photos.ts` (photo scanner + color dictionary), `src/data/products.ts` (32 products — auto-generated from spreadsheet, still the source of metadata but colors are folder-derived at render time), `src/styles/catalogo.css` (home + about, ~2100 lines), `src/styles/november.css` (product page, ~1500 lines including the nv2 v2 refresh block at the bottom).
+
+**Skip the rest of this file when you're just picking up work.** It's pre-migration. Read the auto-memory instead.
+
+---
+
+## HISTORICAL — pre-Astro-migration context below
+
+## Old project-at-a-glance (kept for backfill, do not treat as current)
 
 - **What:** Lentes Pura Vida — Costa Rica e-commerce for prescription eyewear (frames + RX lens quotes via WhatsApp).
 - **Stack:** Vite 5 + React 18 + TypeScript + Tailwind + shadcn (mostly unused). React Router (BrowserRouter). Lucide for icons.
