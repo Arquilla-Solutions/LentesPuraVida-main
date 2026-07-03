@@ -7,13 +7,18 @@ import WhatsAppButton from "@/components/WhatsAppButton.astro";
 import logo from "@/assets/logo.png";
 import { WHATSAPP_LINK } from "@/lib/contact";
 import {
+  getSwatch,
   PRODUCT_PAGES,
   products as allProducts,
   type Product,
 } from "@/data/products";
 import "@/styles/catalogo.css";
 import { CR_PROVINCES, SITE_URL } from "@/lib/seo";
-import { primaryThumb, scanFramePhotos } from "@/lib/photos";
+import {
+  photographedColors,
+  primaryThumb,
+  scanFramePhotos,
+} from "@/lib/photos";
 
 // Build-time scan of public/Glasses/. Frames without a photo folder are
 // hidden from the catalog entirely (per Sebastian: no supplier hotlinks).
@@ -396,10 +401,35 @@ const homeJsonLd: Record<string, unknown>[] = [
                   <span class="chip-material">{product.material}</span>
                   <span class="chip-size">{product.primarySize}</span>
                 </div>
-                <div class="colors-wrap">
-                  {product.colors.map((c) => (
-                    <span class="color-tag">{c}</span>
-                  ))}
+                <div class="colors-wrap" aria-label="Colores disponibles">
+                  {(() => {
+                    const shot = photographedColors(framePhotos[product.name]);
+                    const visible = shot.slice(0, 6);
+                    const overflow = shot.length - visible.length;
+                    return (
+                      <>
+                        {visible.map((c) => {
+                          const sw = getSwatch(c.spanish);
+                          const style = sw.ring
+                            ? `background: ${sw.bg}; color: ${sw.ring};`
+                            : `background: ${sw.bg};`;
+                          return (
+                            <span
+                              class={`color-dot${sw.ring ? " color-dot--ring" : ""}`}
+                              style={style}
+                              title={c.spanish}
+                              aria-label={c.spanish}
+                            ></span>
+                          );
+                        })}
+                        {overflow > 0 && (
+                          <span class="colors-more" aria-label={`Más ${overflow} colores`}>
+                            +{overflow}
+                          </span>
+                        )}
+                      </>
+                    );
+                  })()}
                 </div>
               </div>
             </>

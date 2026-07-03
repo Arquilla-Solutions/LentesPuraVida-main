@@ -155,6 +155,32 @@ export function findColorPhotos(
   return null;
 }
 
+/** Reverse of SPANISH_TO_ENGLISH — used to label folder colors back into Spanish for display. */
+export const ENGLISH_TO_SPANISH: Record<string, string> = (() => {
+  const out: Record<string, string> = {};
+  for (const [es, en] of Object.entries(SPANISH_TO_ENGLISH)) {
+    // Capitalize the Spanish label the way products.ts does ("Negro", "Azul marino").
+    out[en] = es[0].toUpperCase() + es.slice(1);
+  }
+  return out;
+})();
+
+/**
+ * Truth-source list of colors for a frame: only the ones actually photographed.
+ * Falls back to the English folder name if we don't have a Spanish translation
+ * (better to show something than to hide the color).
+ */
+export function photographedColors(
+  frame: FramePhotos | undefined,
+): Array<{ spanish: string; english: string; photos: ColorPhotos["photos"] }> {
+  if (!frame) return [];
+  return frame.colors.map((c) => {
+    const key = c.colorEn.toLowerCase();
+    const spanish = ENGLISH_TO_SPANISH[key] ?? c.colorEn;
+    return { spanish, english: c.colorEn, photos: c.photos };
+  });
+}
+
 /** Get the primary "card thumbnail" for a frame — first color's front view. */
 export function primaryThumb(frame: FramePhotos | undefined): string | null {
   if (!frame || frame.colors.length === 0) return null;

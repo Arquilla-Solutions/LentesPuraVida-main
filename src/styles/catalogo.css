@@ -412,8 +412,39 @@ a.card.card-linked:focus-visible {
   background: transparent;
 }
 
-/* color tags */
-.colors-wrap { display: flex; flex-wrap: wrap; gap: 5px; }
+/* color tags — compact swatch strip on catalog cards */
+.colors-wrap {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: rgba(19,22,42,.04);
+  border: 1px solid rgba(19,22,42,.08);
+}
+.color-dot {
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background-color: #ccc;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  box-shadow: inset 0 0 0 1px rgba(0,0,0,.08);
+  flex-shrink: 0;
+}
+.color-dot--ring {
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+.colors-more {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--cat-muted);
+  margin-left: 2px;
+  letter-spacing: 0.02em;
+}
+/* Legacy .color-tag kept for any lingering references — unused on cards now. */
 .color-tag {
   font-size: 10px;
   font-weight: 500;
@@ -746,14 +777,17 @@ a.card.card-linked:focus-visible {
 }
 
 /* ── TOP NAV ─────────────────────────────────────── */
+/* ── TOPNAV — restrained premium refresh ──────────
+   Reads: thin bar, breathable brand mark, subtle gold underline hover on links,
+   navy CTA that fills gold on hover (contrast punch without visual noise).      */
 .topnav {
   position: sticky;
   top: 0;
   z-index: 40;
-  background: rgba(19, 22, 42, .92);
-  backdrop-filter: saturate(160%) blur(12px);
-  -webkit-backdrop-filter: saturate(160%) blur(12px);
-  border-bottom: 1px solid rgba(201,168,76,.18);
+  background: rgba(19, 22, 42, .94);
+  backdrop-filter: saturate(160%) blur(14px);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  border-bottom: 1px solid rgba(255,255,255,.06);
   padding: 10px 18px;
   display: flex;
   align-items: center;
@@ -769,78 +803,112 @@ a.card.card-linked:focus-visible {
   -webkit-tap-highlight-color: transparent;
 }
 .topnav-logo {
-  width: 34px;
-  height: 34px;
+  width: 30px;
+  height: 30px;
   object-fit: contain;
-  border-radius: 50%;
-  background: rgba(255,255,255,.08);
-  padding: 4px;
+  border-radius: 0;
+  background: transparent;
+  padding: 0;
 }
 .topnav-wordmark {
   font-size: 15px;
-  font-weight: 800;
-  letter-spacing: -.2px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
   color: var(--white);
   line-height: 1;
 }
 .topnav-wordmark em {
   font-style: normal;
   color: var(--gold);
-  font-weight: 800;
+  font-weight: 700;
 }
 .topnav-actions {
   display: inline-flex;
   align-items: center;
-  gap: 2px;
+  gap: 0;
 }
 .topnav-actions--desktop { display: none; }
 .topnav-link {
-  color: rgba(255,255,255,.78);
-  font-size: 13.5px;
-  font-weight: 600;
-  letter-spacing: .2px;
+  color: rgba(255,255,255,.72);
+  font-size: 12.5px;
+  font-weight: 500;
+  letter-spacing: 0.04em;
   text-decoration: none;
-  padding: 8px 13px;
-  border-radius: 999px;
-  transition: color .15s, background .15s, border-color .15s;
+  padding: 6px 0;
+  margin: 0 14px;
+  border-radius: 0;
+  background: transparent;
+  position: relative;
+  transition: color .18s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.topnav-link:hover { color: var(--gold-lt); background: rgba(255,255,255,.06); }
-.topnav-link-cta {
+.topnav-link::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform .28s ease;
+}
+.topnav-link:hover,
+.topnav-link:focus-visible {
   color: var(--white);
-  border: 1px solid rgba(201,168,76,.45);
-  background: rgba(201,168,76,.08);
-  margin-left: 8px;
+  background: transparent;
+}
+.topnav-link:hover::after,
+.topnav-link:focus-visible::after {
+  transform: scaleX(1);
+}
+.topnav-link-cta {
+  color: var(--gold-lt);
+  border: 1px solid rgba(201,168,76,.55);
+  background: transparent;
+  margin-left: 18px;
+  padding: 8px 16px;
+  border-radius: 999px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 7px;
+  font-size: 12.5px;
+  letter-spacing: 0.03em;
+  transition: background .2s ease, color .2s ease, border-color .2s ease;
 }
-.topnav-link-cta:hover {
-  background: rgba(201,168,76,.18);
+.topnav-link-cta::after { display: none; }
+.topnav-link-cta:hover,
+.topnav-link-cta:focus-visible {
+  background: var(--gold);
   border-color: var(--gold);
-  color: var(--white);
+  color: var(--navy);
 }
-.topnav-link-cta svg { color: var(--gold-lt); }
+.topnav-link-cta svg { color: currentColor; transition: color .2s ease; }
 
 .topnav-burger {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
-  background: rgba(255,255,255,.06);
-  border: 1px solid rgba(201,168,76,.25);
+  width: 40px;
+  height: 40px;
+  background: transparent;
+  border: 1px solid rgba(255,255,255,.14);
   color: var(--white);
-  border-radius: 12px;
+  border-radius: 10px;
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
-  transition: background .15s, border-color .15s;
+  transition: background .18s ease, border-color .18s ease;
 }
-.topnav-burger:hover { background: rgba(201,168,76,.14); border-color: var(--gold); }
+.topnav-burger:hover {
+  background: rgba(255,255,255,.05);
+  border-color: rgba(201,168,76,.5);
+}
 
 @media (min-width: 880px) {
-  .topnav { padding: 14px 32px; }
-  .topnav-wordmark { font-size: 17px; }
+  .topnav { padding: 12px 40px; }
+  .topnav-wordmark { font-size: 16px; }
+  .topnav-logo { width: 34px; height: 34px; }
   .topnav-actions--desktop { display: inline-flex; }
   .topnav-burger { display: none; }
 }
@@ -1386,6 +1454,9 @@ a.card.card-linked:focus-visible {
   display: grid;
   grid-template-columns: 1fr;
   gap: 28px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
 }
 .how-step {
   text-align: center;

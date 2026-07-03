@@ -11,10 +11,9 @@ import {
 } from "@/data/products";
 import { SITE_URL } from "@/lib/seo";
 import {
-  findColorPhotos,
+  photographedColors,
   primaryThumb,
   scanFramePhotos,
-  SPANISH_TO_ENGLISH,
   type ColorPhotos,
 } from "@/lib/photos";
 import "@/styles/catalogo.css";
@@ -162,16 +161,18 @@ const seoDescription = `${product.desc} Armazón ${product.name} desde $${produc
 const seoImage = primaryThumb(frame) ?? "/favicon.png";
 const productJsonLd = buildProductJsonLd(product, faqs, seoImage);
 
-const initialColor = product.colors[0] ?? "";
-const initialPhotos: ColorPhotos | null =
-  findColorPhotos(frame, initialColor) ?? frame?.colors[0] ?? null;
+// Source of truth for the swatch UI: only colors we actually photographed.
+// This intentionally ignores products.ts.colors[] because that list can drift
+// (products.ts said November had 6 colors, but only 4 folders exist on disk).
+const shotColors = photographedColors(frame);
+const initialColor = shotColors[0]?.spanish ?? "";
+const initialPhotos: ColorPhotos | null = frame?.colors[0] ?? null;
 
 // Per-color photo map used by the client script when a swatch is clicked.
-// Keyed by the exact Spanish color label so the script can look up by label.
+// Keyed by the Spanish label (matches what the swatch button emits on click).
 const colorPhotoMap: Record<string, ColorPhotos["photos"]> = {};
-for (const c of product.colors) {
-  const found = findColorPhotos(frame, c);
-  if (found) colorPhotoMap[c] = found.photos;
+for (const c of shotColors) {
+  colorPhotoMap[c.spanish] = c.photos;
 }
 
 const heroImageSrc =
@@ -298,7 +299,7 @@ const waRx = buildWaLink(
             </li>
             <li>
               <Icon name="lucide:check" size={16} aria-hidden="true" />
-              {product.colors.length} color{product.colors.length === 1 ? "" : "es"} disponible{product.colors.length === 1 ? "" : "s"}
+              {shotColors.length} color{shotColors.length === 1 ? "" : "es"} disponible{shotColors.length === 1 ? "" : "s"}
             </li>
             <li>
               <Icon name="lucide:check" size={16} aria-hidden="true" />
@@ -331,18 +332,18 @@ const waRx = buildWaLink(
               aria-label="Color del armazón"
               data-color-swatches
             >
-              {product.colors.map((c, i) => {
-                const sw = getSwatch(c);
+              {shotColors.map((c, i) => {
+                const sw = getSwatch(c.spanish);
                 const isActive = i === 0;
                 return (
                   <button
                     type="button"
                     role="radio"
                     aria-checked={isActive ? "true" : "false"}
-                    aria-label={c}
-                    title={c}
+                    aria-label={c.spanish}
+                    title={c.spanish}
                     class={`nov-swatch ${isActive ? "is-active" : ""}`}
-                    data-color-name={c}
+                    data-color-name={c.spanish}
                     style={`--sw-bg: ${sw.bg}; --sw-ring: ${sw.ring ?? "transparent"};`}
                   >
                     <span class="nov-swatch-fill"></span>
