@@ -39,36 +39,8 @@ const frame = framePhotos[product.name];
 const buildWaLink = (msg: string) =>
   `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
 
-const buildFaqs = (p: Product): { q: string; a: string }[] => [
-  {
-    q: `¿El precio de $${p.framePrice} incluye los lentes graduados?`,
-    a: `No. $${p.framePrice} es el precio del armazón ${p.name}. Los lentes graduados se cotizan según tu receta, materiales y tratamientos — para que pagués exactamente lo que necesitás, sin paquetes cerrados con costos extra. Mandanos tu fórmula por WhatsApp y te pasamos la cotización completa el mismo día.`,
-  },
-  {
-    q: "¿Es seguro pagar online desde Costa Rica?",
-    a: "Sí. Aceptamos SINPE Móvil, transferencia bancaria en colones y tarjeta. Confirmamos receta, color y monto antes de procesar cualquier pago, y todo queda registrado en tu chat de WhatsApp como respaldo. No procesamos cobros automáticos ni guardamos tus datos de tarjeta.",
-  },
-  {
-    q: "¿Cuánto tarda en llegar a Costa Rica?",
-    a: "Entre 10 y 14 días hábiles desde que confirmamos receta y pago. Te enviamos número de guía para que rastreés tu pedido en todo momento. Despacho directo desde el laboratorio en EE.UU.",
-  },
-  {
-    q: "¿Cómo les envío mi receta?",
-    a: "Por WhatsApp. Podés mandar foto del papel del oculista o escribir los valores. Si tenés dudas con la fórmula, te ayudamos a interpretarla paso a paso antes de fabricar.",
-  },
-  {
-    q: "¿Sirven para fórmulas progresivas o bifocales?",
-    a: "Sí. Trabajamos lentes monofocales, bifocales y progresivos. El precio del lente varía según el tipo y los tratamientos que elijas (antirreflejo, filtro azul, fotosensibles); te lo cotizamos antes de cobrar.",
-  },
-  {
-    q: "¿Qué pasa si el armazón no me queda?",
-    a: "Tenés garantía de fábrica: si llega con algún defecto de fabricación, lo reemplazamos sin costo. Por eso te ayudamos a confirmar la talla correcta antes de hacer el pedido — mandanos las medidas de unos lentes que ya te queden bien y te confirmamos.",
-  },
-];
-
 const buildProductJsonLd = (
   p: Product,
-  faqs: { q: string; a: string }[],
   imageUrl: string,
 ): Record<string, unknown>[] => {
   const url = `${SITE_URL}/lentes/${p.slug}`;
@@ -132,15 +104,6 @@ const buildProductJsonLd = (
         { "@type": "ListItem", position: 3, name: p.name, item: url },
       ],
     },
-    {
-      "@context": "https://schema.org",
-      "@type": "FAQPage",
-      mainEntity: faqs.map((f) => ({
-        "@type": "Question",
-        name: f.q,
-        acceptedAnswer: { "@type": "Answer", text: f.a },
-      })),
-    },
   ];
 };
 
@@ -154,12 +117,11 @@ const ratingDisplay = product.rating
       count: product.rating.count.toLocaleString("es-CR"),
     }
   : null;
-const faqs = buildFaqs(product);
 
 const seoTitle = `Lentes ${product.name} — Armazón ${product.material} desde $${product.framePrice} | Lentes Pura Vida Costa Rica`;
 const seoDescription = `${product.desc} Armazón ${product.name} desde $${product.framePrice} con envío a toda Costa Rica. Lentes graduados cotizados según tu receta por WhatsApp. Hecho en EE.UU. por optómetras certificados.`;
 const seoImage = primaryThumb(frame) ?? "/favicon.png";
-const productJsonLd = buildProductJsonLd(product, faqs, seoImage);
+const productJsonLd = buildProductJsonLd(product, seoImage);
 
 // Source of truth for the swatch UI: only colors we actually photographed.
 // This intentionally ignores products.ts.colors[] because that list can drift
@@ -254,77 +216,30 @@ const waRx = buildWaLink(
           </div>
         </div>
 
-        <div class="nov-info" data-reveal>
-          <div class="nov-eyebrow">
-            <span class="nov-eyebrow-tag">Catálogo · {product.gender}</span>
-            {ratingDisplay && (
-              <span
-                class="nov-eyebrow-stars"
-                aria-label={`${ratingDisplay.score} de 5 estrellas`}
-              >
-                {[0, 1, 2, 3, 4].map(() => (
-                  <Icon name="lucide:star" size={14} fill="currentColor" stroke-width={0} />
-                ))}
-                <em>{ratingDisplay.score} ({ratingDisplay.count} reseñas)</em>
-              </span>
-            )}
-          </div>
+        <div class="nov-info nv2-info" data-reveal>
+          <span class="nv2-breadcrumb">Catálogo · {product.gender}</span>
 
-          <h1 class="nov-title">{product.name}</h1>
-          <p class="nov-subtitle">{product.desc}</p>
+          <h1 class="nv2-title">{product.name}</h1>
+          <p class="nv2-subtitle">{product.desc}</p>
 
-          <div class="nov-price-card">
-            <div class="nov-price-row">
-              <div class="nov-price-block">
-                <span class="nov-price">${product.framePrice}</span>
-                <span class="nov-price-currency">USD</span>
-              </div>
-              <span class="nov-price-tag">Solo armazón</span>
+          <div class="nv2-price">
+            <div class="nv2-price-row">
+              <span class="nv2-price-amount">${product.framePrice}</span>
+              <span class="nv2-price-currency">USD</span>
+              <span class="nv2-price-tag">solo armazón</span>
             </div>
-            <p class="nov-price-note">
-              Los <strong>lentes graduados se cotizan por WhatsApp</strong> según tu receta y tratamientos —
-              pagás solo por lo que necesitás, sin paquetes cerrados.
+            <p class="nv2-price-savings">
+              Óptica local <s>${product.comparePrice}+</s> · ahorrás <strong>${savings}</strong>
             </p>
-            <div class="nov-price-bad">
-              <span class="nov-price-bad-label">Mismo armazón en óptica local:</span>
-              <span class="nov-price-bad-value">${product.comparePrice}+</span>
-              <span class="nov-price-bad-save">Ahorrás ${savings}</span>
-            </div>
+            <p class="nv2-price-note">
+              Lentes graduados cotizados por WhatsApp según tu receta. Sin paquetes cerrados.
+            </p>
           </div>
 
-          <ul class="nov-quick-bullets">
-            <li>
-              <Icon name="lucide:check" size={16} aria-hidden="true" />
-              {product.material} · forma {product.shape.toLowerCase()} · {product.rim.toLowerCase()}
-            </li>
-            <li>
-              <Icon name="lucide:check" size={16} aria-hidden="true" />
-              {shotColors.length} color{shotColors.length === 1 ? "" : "es"} disponible{shotColors.length === 1 ? "" : "s"}
-            </li>
-            <li>
-              <Icon name="lucide:check" size={16} aria-hidden="true" />
-              Talla{product.sizes.length > 1 ? "s" : ""} {sizesLabel} {primarySize ? `· ${primarySize.lens}-${primarySize.bridge}-${primarySize.temple} mm` : ""}
-            </li>
-            <li>
-              <Icon name="lucide:check" size={16} aria-hidden="true" />
-              Garantía de fábrica contra defectos
-            </li>
-          </ul>
-
-          <div class="nov-trust-card">
-            <div class="nov-trust-card-icon" aria-hidden="true">
-              <Icon name="lucide:award" size={28} />
-            </div>
-            <div class="nov-trust-card-text">
-              <strong>Fabricado en EE.UU. por optómetras certificados</strong>
-              <span>Tu receta es procesada por profesionales con licencia, en un laboratorio óptico certificado en Estados Unidos.</span>
-            </div>
-          </div>
-
-          <div class="nov-color-section">
-            <div class="nov-color-header">
-              <span class="nov-color-label">Color:</span>
-              <span class="nov-color-active" data-color-active>{initialColor}</span>
+          <div class="nv2-color-section">
+            <div class="nv2-color-header">
+              <span class="nv2-color-label">Color</span>
+              <span class="nv2-color-active" data-color-active>{initialColor}</span>
             </div>
             <div
               class="nov-color-swatches"
@@ -353,9 +268,9 @@ const waRx = buildWaLink(
             </div>
           </div>
 
-          <div class="nov-cta-row">
+          <div class="nv2-cta-row">
             <a
-              class="nov-cta-primary"
+              class="nv2-cta-primary"
               href={waOrderInitial}
               target="_blank"
               rel="noopener noreferrer"
@@ -365,238 +280,75 @@ const waRx = buildWaLink(
               <span>Cotizar por WhatsApp</span>
             </a>
             <a
-              class="nov-cta-secondary"
+              class="nv2-cta-text"
               href={waRx}
               target="_blank"
               rel="noopener noreferrer"
             >
-              Enviar mi receta
+              Enviar mi receta →
             </a>
           </div>
 
-          <div class="nov-secure-pay">
-            <div class="nov-secure-pay-head">
-              <Icon name="lucide:lock" size={14} aria-hidden="true" />
-              <strong>Pago seguro</strong>
-              <span class="nov-secure-pay-sep" aria-hidden="true">·</span>
-              <span>Confirmamos antes de cobrar</span>
-            </div>
-            <div class="nov-secure-pay-methods">
-              <span class="nov-pay-chip">SINPE Móvil</span>
-              <span class="nov-pay-chip">Transferencia</span>
-              <span class="nov-pay-chip">Tarjeta</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="nov-section nov-includes" data-reveal>
-      <div class="nov-section-inner">
-        <span class="nov-section-eyebrow">Sin sorpresas</span>
-        <h2 class="nov-section-title">
-          Lo que recibís con tu <em>armazón {product.name}</em>
-        </h2>
-        <p class="nov-section-lead">
-          Trabajamos sin paquetes cerrados. Pedís el armazón a precio fijo y los lentes se cotizan
-          según tu receta — todo confirmado por WhatsApp antes de cobrar.
-        </p>
-        <div class="nov-includes-grid">
-          <div class="nov-include-card">
-            <span class="nov-include-icon" aria-hidden="true"><Icon name="lucide:glasses" size={22} /></span>
-            <h3>Armazón {product.name}</h3>
-            <p>{product.material} en el color que elijas. {product.features.includes("Bisagras de resorte") ? "Bisagras de resorte y peso ligero." : "Construcción ligera y duradera."}</p>
-          </div>
-          <div class="nov-include-card">
-            <span class="nov-include-icon" aria-hidden="true"><Icon name="lucide:badge-check" size={22} /></span>
-            <h3>Cotización transparente</h3>
-            <p>Lentes graduados con tu receta exacta. Te pasamos el precio antes de fabricar.</p>
-          </div>
-          <div class="nov-include-card">
-            <span class="nov-include-icon" aria-hidden="true"><Icon name="lucide:sparkles" size={22} /></span>
-            <h3>Tratamientos disponibles</h3>
-            <p>Antirreflejo, filtro azul, fotosensibles y UV — vos elegís qué incluir.</p>
-          </div>
-          <div class="nov-include-card">
-            <span class="nov-include-icon" aria-hidden="true"><Icon name="lucide:package" size={22} /></span>
-            <h3>Estuche + paño</h3>
-            <p>Estuche rígido y paño de microfibra incluidos en el envío.</p>
-          </div>
-          <div class="nov-include-card">
-            <span class="nov-include-icon" aria-hidden="true"><Icon name="lucide:truck" size={22} /></span>
-            <h3>Envío a Costa Rica</h3>
-            <p>Despacho desde EE.UU. con guía rastreable. 10–14 días hábiles a tu casa.</p>
-          </div>
-          <div class="nov-include-card nov-include-card--accent">
-            <span class="nov-include-icon" aria-hidden="true"><Icon name="lucide:shield-check" size={22} /></span>
-            <h3>Garantía de fábrica</h3>
-            <p>Si llega con defecto de fabricación, lo reemplazamos sin costo.</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="nov-section nov-compare-section" data-reveal>
-      <div class="nov-section-inner">
-        <span class="nov-section-eyebrow">¿Por qué tan accesibles?</span>
-        <h2 class="nov-section-title">Mismo lente. <em>La mitad del precio.</em></h2>
-        <p class="nov-section-lead">
-          Trabajamos directo con el laboratorio en EE.UU. — sin alquileres de óptica, sin marca de lujo,
-          sin intermediarios. Vos pagás el lente, no el local en San José.
-        </p>
-        <div class="nov-compare-grid">
-          <div class="nov-compare-card nov-compare-card--us">
-            <div class="nov-compare-header">
-              <span class="nov-compare-tag">Lentes Pura Vida</span>
-              <span class="nov-compare-price">${product.framePrice}</span>
-            </div>
-            <span class="nov-compare-subtag">Armazón · lentes cotizados aparte</span>
-            <ul>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Armazón premium a precio fijo</li>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Lentes cotizados según tu fórmula</li>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Sin tratamientos cobrados a la fuerza</li>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Pago en colones por SINPE / transferencia</li>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Atención personal por WhatsApp</li>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Envío rastreable a tu casa</li>
-            </ul>
-          </div>
-          <div class="nov-vs" aria-hidden="true">VS</div>
-          <div class="nov-compare-card nov-compare-card--them">
-            <div class="nov-compare-header">
-              <span class="nov-compare-tag">Óptica local promedio</span>
-              <span class="nov-compare-price nov-compare-price--bad">${product.comparePrice}+</span>
-            </div>
-            <span class="nov-compare-subtag">Paquete cerrado · todo incluido a precio fijo</span>
-            <ul>
-              <li><Icon name="lucide:minus" size={16} aria-hidden="true" /> Armazón cobrado al precio del local</li>
-              <li><Icon name="lucide:minus" size={16} aria-hidden="true" /> Tratamientos cobrados aparte al final</li>
-              <li><Icon name="lucide:minus" size={16} aria-hidden="true" /> Espera de 2–3 semanas en consultorio</li>
-              <li><Icon name="lucide:minus" size={16} aria-hidden="true" /> Costos de alquiler incluidos en el precio</li>
-              <li><Icon name="lucide:minus" size={16} aria-hidden="true" /> Atención solo en horario comercial</li>
-              <li><Icon name="lucide:minus" size={16} aria-hidden="true" /> Sin tracking del pedido</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <section class="nov-section nov-specs-section" data-reveal>
-      <div class="nov-section-inner nov-specs-inner">
-        <div class="nov-specs-text">
-          <span class="nov-section-eyebrow">Ficha técnica</span>
-          <h2 class="nov-section-title">Diseñado para <em>uso diario</em></h2>
-          <p>
-            {product.features.length > 0
-              ? `Características destacadas: ${product.features.join(", ").toLowerCase()}.`
-              : `Construcción ${product.material.toLowerCase()} de calidad para uso prolongado.`}
-            {product.kids && " Apto para niños y juniors."}
+          <p class="nv2-trust-line">
+            <Icon name="lucide:lock" size={12} aria-hidden="true" />
+            <span>Pago seguro · SINPE · Transferencia · Tarjeta</span>
           </p>
         </div>
-        <dl class="nov-specs-table">
-          <div><dt>Material</dt><dd>{product.material}</dd></div>
-          <div><dt>Forma</dt><dd>{product.shape}</dd></div>
-          <div><dt>Aro</dt><dd>{product.rim}</dd></div>
-          <div><dt>Talla{product.sizes.length > 1 ? "s" : ""}</dt><dd>{sizesLabel}</dd></div>
-          {primarySize && <div><dt>Lente</dt><dd>{primarySize.lens} mm</dd></div>}
-          {primarySize && <div><dt>Puente</dt><dd>{primarySize.bridge} mm</dd></div>}
-          {primarySize && <div><dt>Patilla</dt><dd>{primarySize.temple} mm</dd></div>}
-          {product.weight !== null && <div><dt>Peso</dt><dd>~{product.weight} g</dd></div>}
-          <div><dt>Compatible con</dt><dd>Mono · Bi · Progresivo · Filtro azul</dd></div>
-        </dl>
       </div>
     </section>
 
-    <section class="nov-section nov-size-section" data-reveal>
-      <div class="nov-section-inner">
-        <span class="nov-section-eyebrow">¿Te quedará bien?</span>
-        <h2 class="nov-section-title">Cómo elegir <em>tu talla</em> en 30 segundos</h2>
-        <ol class="nov-size-steps">
-          <li>
-            <span class="nov-size-num">1</span>
-            <h3>Buscá unos lentes que ya te quedan bien</h3>
-            <p>Mirá por dentro de la patilla — vienen 3 números separados por guiones.</p>
-          </li>
-          <li>
-            <span class="nov-size-num">2</span>
-            <h3>Comparalos con {product.name}</h3>
-            <p>{primarySize ? `Lente ${primarySize.lens} · Puente ${primarySize.bridge} · Patilla ${primarySize.temple}.` : "Mirá las medidas en la ficha técnica."} Si tus lentes están dentro de ±2 mm, te quedan.</p>
-          </li>
-          <li>
-            <span class="nov-size-num">3</span>
-            <h3>¿Dudas? Mandanos foto</h3>
-            <p>Por WhatsApp te confirmamos si la talla {product.primarySize} es la correcta para tu rostro.</p>
-          </li>
-        </ol>
-      </div>
-    </section>
-
-    <section class="nov-section nov-reviews-section" data-reveal>
-      <div class="nov-section-inner">
-        <span class="nov-section-eyebrow">Clientes reales</span>
-        <h2 class="nov-section-title">Lo que dicen sobre <em>{product.name}</em></h2>
-        <div class="nov-reviews-grid">
-          <article class="nov-review">
-            <div class="nov-review-stars" aria-label="5 de 5 estrellas">
-              {[0, 1, 2, 3, 4].map(() => <Icon name="lucide:star" size={14} fill="currentColor" stroke-width={0} />)}
-            </div>
-            <p>"Llevaba años usando carey. Estos {product.name} me llegaron en menos de dos semanas y la calidad del acetato es mejor que los que tenía de óptica."</p>
-            <footer>
-              <Icon name="lucide:shield-check" size={12} aria-hidden="true" />
-              <strong>Andrés C.</strong> · Cliente verificado · San José
-            </footer>
-          </article>
-          <article class="nov-review">
-            <div class="nov-review-stars" aria-label="5 de 5 estrellas">
-              {[0, 1, 2, 3, 4].map(() => <Icon name="lucide:star" size={14} fill="currentColor" stroke-width={0} />)}
-            </div>
-            <p>"Los pedí y se ven elegantes pero discretos. Perfectos para la oficina. La atención por WhatsApp impecable, me cotizaron los lentes el mismo día."</p>
-            <footer>
-              <Icon name="lucide:shield-check" size={12} aria-hidden="true" />
-              <strong>María F.</strong> · Cliente verificado · Heredia
-            </footer>
-          </article>
-          <article class="nov-review">
-            <div class="nov-review-stars" aria-label="5 de 5 estrellas">
-              {[0, 1, 2, 3, 4].map(() => <Icon name="lucide:star" size={14} fill="currentColor" stroke-width={0} />)}
-            </div>
-            <p>"Me daba miedo comprar lentes en línea pero me guiaron paso a paso. Pagué por SINPE, llegaron con la fórmula exacta y sin un solo detalle mal."</p>
-            <footer>
-              <Icon name="lucide:shield-check" size={12} aria-hidden="true" />
-              <strong>Jorge V.</strong> · Cliente verificado · Cartago
-            </footer>
-          </article>
+    <section class="nv2-details" data-reveal>
+      <div class="nv2-details-inner">
+        <div class="nv2-details-col">
+          <span class="nv2-details-kicker">Lo que recibís</span>
+          <ul class="nv2-details-list">
+            <li>
+              <strong>Armazón {product.name}</strong>
+              <span>{product.material} en el color que elijas. Construcción ligera para uso diario.</span>
+            </li>
+            <li>
+              <strong>Cotización transparente</strong>
+              <span>Lentes graduados con tu receta exacta. Te pasamos el precio antes de fabricar.</span>
+            </li>
+            <li>
+              <strong>Tratamientos a elección</strong>
+              <span>Antirreflejo, filtro azul, fotosensibles, protección UV — vos elegís qué incluir.</span>
+            </li>
+            <li>
+              <strong>Envío y garantía</strong>
+              <span>Estuche + paño incluidos. 10–14 días a toda Costa Rica. Garantía de fábrica.</span>
+            </li>
+          </ul>
         </div>
-      </div>
-    </section>
 
-    <section class="nov-section nov-faq-section" data-reveal>
-      <div class="nov-section-inner nov-faq-inner">
-        <div>
-          <span class="nov-section-eyebrow">Preguntas frecuentes</span>
-          <h2 class="nov-section-title">Antes de pedir, <em>resolvamos dudas</em></h2>
-          <p class="nov-faq-help">
-            ¿No ves tu pregunta? Escribinos por
-            <a href={waRx} target="_blank" rel="noopener noreferrer">WhatsApp</a>
-            y te respondemos en minutos.
-          </p>
-        </div>
-        <div class="nov-faq-list" data-faq-list>
-          {faqs.map((f, i) => (
-            <div class={`nov-faq-item ${i === 0 ? "is-open" : ""}`} data-faq-item>
-              <button
-                type="button"
-                class="nov-faq-q"
-                aria-expanded={i === 0 ? "true" : "false"}
-                data-faq-toggle
-              >
-                <span>{f.q}</span>
-                <Icon name="lucide:chevron-down" class="nov-faq-icon" size={20} aria-hidden="true" />
-              </button>
-              <div class="nov-faq-a" hidden={i !== 0}>
-                <p>{f.a}</p>
+        <div class="nv2-details-col">
+          <span class="nv2-details-kicker">Ficha técnica</span>
+          <dl class="nv2-details-specs">
+            <div><dt>Material</dt><dd>{product.material}</dd></div>
+            <div><dt>Forma</dt><dd>{product.shape}</dd></div>
+            <div><dt>Aro</dt><dd>{product.rim}</dd></div>
+            {primarySize && (
+              <div>
+                <dt>Talla</dt>
+                <dd>{primarySize.label} · {primarySize.lens}-{primarySize.bridge}-{primarySize.temple} mm</dd>
               </div>
-            </div>
-          ))}
+            )}
+            {product.weight !== null && (
+              <div><dt>Peso</dt><dd>~{product.weight} g</dd></div>
+            )}
+            <div><dt>Lentes</dt><dd>Mono · Bi · Progresivo · Filtro azul</dd></div>
+          </dl>
+
+          {primarySize && (
+            <details class="nv2-size-help">
+              <summary>Cómo elegir tu talla</summary>
+              <p>
+                Mirá tus lentes actuales por dentro de la patilla — vienen 3 números.
+                Comparalos con <strong>{primarySize.lens}-{primarySize.bridge}-{primarySize.temple} mm</strong>.
+                Si están dentro de ±2 mm, te quedan. ¿Dudas? Mandanos foto por WhatsApp.
+              </p>
+            </details>
+          )}
         </div>
       </div>
     </section>
@@ -677,11 +429,10 @@ const waRx = buildWaLink(
     colorPhotos: colorPhotoMap,
   }}
 >
-  // Product-page interactions — mirrors the React ProductPage.tsx state hooks:
-  //   1. Color swatch selection updates the active label + WhatsApp deep links.
-  //   2. FAQ accordion toggles individual items (single-open at a time).
-  //   3. Sticky mobile CTA appears once the hero has scrolled out of view.
-  //   4. IntersectionObserver reveals for [data-reveal] elements.
+  // Product-page interactions:
+  //   1. Color swatch selection updates the active label + WhatsApp deep links + gallery photos.
+  //   2. Sticky mobile CTA appears once the hero has scrolled out of view.
+  //   3. IntersectionObserver reveals for [data-reveal] elements.
 
   (function () {
     const swatchContainer = document.querySelector("[data-color-swatches]");
@@ -744,28 +495,6 @@ const waRx = buildWaLink(
         });
       });
     }
-
-    document.querySelectorAll("[data-faq-item]").forEach((item) => {
-      const toggle = item.querySelector("[data-faq-toggle]");
-      const panel = item.querySelector(".nov-faq-a");
-      if (!toggle || !panel) return;
-      toggle.addEventListener("click", () => {
-        const isOpen = item.classList.contains("is-open");
-        // Close others so only one FAQ is open at a time — matches React behavior.
-        document.querySelectorAll("[data-faq-item]").forEach((el) => {
-          el.classList.remove("is-open");
-          const t = el.querySelector("[data-faq-toggle]");
-          const p = el.querySelector(".nov-faq-a");
-          if (t) t.setAttribute("aria-expanded", "false");
-          if (p) p.hidden = true;
-        });
-        if (!isOpen) {
-          item.classList.add("is-open");
-          toggle.setAttribute("aria-expanded", "true");
-          panel.hidden = false;
-        }
-      });
-    });
 
     const hero = document.querySelector("[data-hero]");
     const sticky = document.querySelector("[data-sticky-cta]");
