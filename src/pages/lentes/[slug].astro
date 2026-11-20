@@ -49,7 +49,7 @@ const buildProductJsonLd = (
       "@context": "https://schema.org",
       "@type": "Product",
       "@id": `${url}#product`,
-      name: `Armazón ${p.name} — Lentes Recetados`,
+      name: `Lentes ${p.name} — Lentes Recetados`,
       description: `${p.desc} Material: ${p.material}. Forma: ${p.shape}. ${p.rim}. Colores disponibles: ${p.colors.join(", ")}.`,
       sku: p.slug,
       url,
@@ -118,8 +118,9 @@ const ratingDisplay = product.rating
     }
   : null;
 
-const seoTitle = `Lentes ${product.name} — Armazón ${product.material} desde $${product.framePrice} | Lentes Pura Vida Costa Rica`;
-const seoDescription = `${product.desc} Armazón ${product.name} desde $${product.framePrice} con envío a toda Costa Rica. Lentes graduados cotizados según tu receta por WhatsApp. Hecho en EE.UU. por optómetras certificados.`;
+const materialLabel = product.material.toLowerCase().replace(/^mixto \((.*)\)$/, "$1");
+const seoTitle = `Lentes ${product.name} de ${materialLabel} desde $${product.framePrice} | Lentes Pura Vida Costa Rica`;
+const seoDescription = `${product.desc} Lentes ${product.name} desde $${product.framePrice} (solo montura) con envío a toda Costa Rica. Lentes graduados cotizados según tu receta por WhatsApp. Hecho en EE.UU. por optómetras certificados.`;
 const seoImage = primaryThumb(frame) ?? "/favicon.png";
 const productJsonLd = buildProductJsonLd(product, seoImage);
 
@@ -157,7 +158,7 @@ const waRx = buildWaLink(
   image={seoImage}
   imageAlt={`Lentes recetados ${product.name} — ${product.alt}`}
   ogType="product"
-  keywords={`lentes ${product.name}, armazón ${product.name}, lentes ${product.material.toLowerCase()} ${product.shape.toLowerCase()}, lentes recetados Costa Rica, anteojos graduados Costa Rica`}
+  keywords={`lentes ${product.name}, montura ${product.name}, lentes ${product.material.toLowerCase()} ${product.shape.toLowerCase()}, lentes recetados Costa Rica, anteojos graduados Costa Rica`}
   jsonLd={productJsonLd}
 >
   <div class="nov-page">
@@ -226,7 +227,7 @@ const waRx = buildWaLink(
             <div class="nv2-price-row">
               <span class="nv2-price-amount">${product.framePrice}</span>
               <span class="nv2-price-currency">USD</span>
-              <span class="nv2-price-tag">solo armazón</span>
+              <span class="nv2-price-tag">solo montura</span>
             </div>
             <p class="nv2-price-savings">
               Óptica local <s>${product.comparePrice}+</s> · ahorrás <strong>${savings}</strong>
@@ -244,7 +245,7 @@ const waRx = buildWaLink(
             <div
               class="nov-color-swatches"
               role="radiogroup"
-              aria-label="Color del armazón"
+              aria-label="Color de los lentes"
               data-color-swatches
             >
               {shotColors.map((c, i) => {
@@ -303,7 +304,7 @@ const waRx = buildWaLink(
           <span class="nv2-details-kicker">Lo que recibís</span>
           <ul class="nv2-details-list">
             <li>
-              <strong>Armazón {product.name}</strong>
+              <strong>Lentes {product.name}</strong>
               <span>{product.material} en el color que elijas. Construcción ligera para uso diario.</span>
             </li>
             <li>
@@ -387,7 +388,7 @@ const waRx = buildWaLink(
             data-wa-order
           >
             <Icon name="lucide:message-circle" size={18} aria-hidden="true" />
-            <span>Cotizar por WhatsApp · armazón ${product.framePrice}</span>
+            <span>Cotizar por WhatsApp · montura ${product.framePrice}</span>
           </a>
           <a class="nov-cta-secondary nov-cta-secondary--light" href="/">
             Ver más modelos
@@ -404,7 +405,7 @@ const waRx = buildWaLink(
 
     <div class="nov-sticky-cta" aria-hidden="true" data-sticky-cta>
       <div class="nov-sticky-info">
-        <span class="nov-sticky-name">{product.name} · armazón</span>
+        <span class="nov-sticky-name">{product.name} · solo montura</span>
         <span class="nov-sticky-price">${product.framePrice}</span>
       </div>
       <a

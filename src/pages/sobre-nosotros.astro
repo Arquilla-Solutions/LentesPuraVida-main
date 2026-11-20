@@ -7,6 +7,12 @@ import WhatsAppButton from "@/components/WhatsAppButton.astro";
 import { WHATSAPP_LINK } from "@/lib/contact";
 import { SITE_URL } from "@/lib/seo";
 import "@/styles/catalogo.css";
+import { products } from "@/data/products";
+import { scanFramePhotos } from "@/lib/photos";
+
+// Same rule as the home catalog: only frames with photos in public/Glasses/ count.
+const framePhotos = scanFramePhotos();
+const modelCount = products.filter((p) => framePhotos[p.name]?.colors.length).length;
 
 const aboutJsonLd: Record<string, unknown> = {
   "@context": "https://schema.org",
@@ -30,7 +36,7 @@ const aboutJsonLd: Record<string, unknown> = {
 
 <BaseLayout
   title="Sobre Nosotros | Lentes Pura Vida — Lentes Recetados Costa Rica"
-  description="Hacemos accesibles los lentes recetados premium en Costa Rica: armazones desde $30 fabricados en EE.UU. por optómetras certificados. Conocé nuestra misión y por qué confiar en nosotros."
+  description="Hacemos accesibles los lentes recetados premium en Costa Rica: lentes desde $30 fabricados en EE.UU. por optómetras certificados. Conocé nuestra misión y por qué confiar en nosotros."
   canonical="/sobre-nosotros"
   keywords="sobre Lentes Pura Vida, óptica online Costa Rica confiable, lentes recetados Costa Rica, misión Lentes Pura Vida"
   imageAlt="Sobre Lentes Pura Vida — lentes recetados accesibles para cada familia tica"
@@ -55,8 +61,8 @@ const aboutJsonLd: Record<string, unknown> = {
         </p>
         <div class="about-hero-stats">
           <div>
-            <strong>$30</strong>
-            <span>desde por armazón</span>
+            <strong>Desde $30</strong>
+            <span>por montura</span>
           </div>
           <div class="about-stat-divider" aria-hidden="true"></div>
           <div>
@@ -118,7 +124,7 @@ const aboutJsonLd: Record<string, unknown> = {
             <span class="about-pillar-icon"><Icon name="lucide:badge-check" size={24} /></span>
             <h3>Cotización transparente</h3>
             <p>
-              El armazón tiene precio fijo. Los lentes se cotizan según tu receta y los
+              La montura tiene precio fijo. Los lentes se cotizan según tu receta y los
               tratamientos que elijás — sin imponer extras que no necesitás.
             </p>
           </article>
@@ -176,7 +182,7 @@ const aboutJsonLd: Record<string, unknown> = {
     <section class="about-final">
       <div class="about-final-inner">
         <h2>¿Listo para encontrar <em>tus lentes</em>?</h2>
-        <p>34 modelos · Precios desde $30 · Cotización transparente por WhatsApp</p>
+        <p>{modelCount} modelos · Precios desde $30 · Cotización transparente por WhatsApp</p>
         <div class="about-cta-row">
           <a href="/#catalogo" class="about-cta-primary">Ver catálogo</a>
           <a

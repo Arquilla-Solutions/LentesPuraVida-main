@@ -113,8 +113,8 @@ const HOME_FAQS: { q: string; a: string }[] = [
     a: `Sí. Enviamos a las 7 provincias: ${CR_PROVINCES.join(", ")}. Despachamos desde el laboratorio en EE.UU. con guía rastreable y tu pedido llega en 10–14 días hábiles a tu casa, oficina o sucursal de Correos de Costa Rica.`,
   },
   {
-    q: "¿El precio del armazón incluye los lentes graduados?",
-    a: "No. Los precios de $30 y $45 son solo del armazón. Los lentes graduados se cotizan según tu receta, materiales y tratamientos (antirreflejo, filtro azul, fotosensibles). Mandanos tu fórmula por WhatsApp y te pasamos la cotización completa el mismo día — sin paquetes cerrados.",
+    q: "¿El precio de la montura incluye los lentes graduados?",
+    a: "No. Los precios de $30 y $45 son solo de la montura. Los lentes graduados se cotizan según tu receta, materiales y tratamientos (antirreflejo, filtro azul, fotosensibles). Mandanos tu fórmula por WhatsApp y te pasamos la cotización completa el mismo día — sin paquetes cerrados.",
   },
   {
     q: "¿Cómo pago desde Costa Rica?",
@@ -130,7 +130,7 @@ const HOME_FAQS: { q: string; a: string }[] = [
   },
   {
     q: "¿Qué pasa si los lentes llegan con un defecto?",
-    a: "Tenés garantía de fábrica. Si el armazón o los lentes llegan con un defecto de fabricación, los reemplazamos sin costo. Te ayudamos a confirmar talla y receta antes de fabricar para minimizar errores.",
+    a: "Tenés garantía de fábrica. Si la montura o los cristales llegan con un defecto de fabricación, los reemplazamos sin costo. Te ayudamos a confirmar talla y receta antes de fabricar para minimizar errores.",
   },
 ];
 
@@ -148,7 +148,7 @@ const homeJsonLd: Record<string, unknown>[] = [
     "@id": `${SITE_URL}/#catalog`,
     name: "Catálogo de lentes recetados — Lentes Pura Vida Costa Rica",
     description:
-      "Catálogo de armazones para lentes recetados con envío a toda Costa Rica. Hombres, mujeres, niños y unisex desde $30.",
+      "Catálogo de lentes recetados con envío a toda Costa Rica. Hombres, mujeres, niños y unisex desde $30.",
     url: `${SITE_URL}/`,
     inLanguage: "es-CR",
     isPartOf: { "@id": `${SITE_URL}/#website` },
@@ -173,9 +173,9 @@ const homeJsonLd: Record<string, unknown>[] = [
 
 <BaseLayout
   title="Lentes Pura Vida | Lentes Recetados y Anteojos Graduados en Costa Rica"
-  description="Lentes recetados premium desde $30 con envío a toda Costa Rica (San José, Alajuela, Cartago, Heredia, Guanacaste, Puntarenas, Limón). Armazones hechos en EE.UU. por optómetras certificados. Hasta 60% más baratos que ópticas locales. Cotización transparente por WhatsApp."
+  description="Lentes recetados premium desde $30 con envío a toda Costa Rica (San José, Alajuela, Cartago, Heredia, Guanacaste, Puntarenas, Limón). Lentes hechos en EE.UU. por optómetras certificados. Hasta 60% más baratos que ópticas locales. Cotización transparente por WhatsApp."
   canonical="/"
-  keywords="lentes recetados Costa Rica, anteojos graduados Costa Rica, armazones Costa Rica, monturas Costa Rica, óptica online Costa Rica, lentes baratos Costa Rica, lentes con receta, gafas graduadas, lentes para hombre, lentes para mujer, lentes para niños, lentes San José, lentes Alajuela, lentes Heredia, lentes Cartago"
+  keywords="lentes recetados Costa Rica, anteojos graduados Costa Rica, monturas Costa Rica, óptica online Costa Rica, lentes baratos Costa Rica, lentes con receta, gafas graduadas, lentes para hombre, lentes para mujer, lentes para niños, lentes San José, lentes Alajuela, lentes Heredia, lentes Cartago"
   imageAlt="Lentes Pura Vida — lentes recetados premium con envío a toda Costa Rica"
   jsonLd={homeJsonLd}
 >
@@ -326,7 +326,7 @@ const homeJsonLd: Record<string, unknown>[] = [
           <span class="info-icon" aria-hidden="true">$</span>
           <div class="info-text">
             <strong>Cotización transparente</strong>
-            <span>Pagás el armazón a precio fijo. Lentes graduados se cotizan según tu receta — sin paquetes cerrados.</span>
+            <span>Pagás la montura a precio fijo. Lentes graduados se cotizan según tu receta — sin paquetes cerrados.</span>
           </div>
         </div>
         <div class="info-cell info-cell--accent">
@@ -471,6 +471,11 @@ const homeJsonLd: Record<string, unknown>[] = [
 
   const LABELS = { unisex: "Unisex", hombres: "Hombres", mujeres: "Mujeres", ninos: "Niños" };
 
+  const selectCat = (cat) => {
+    const tab = document.querySelector(`[data-cat-tabs] .cat-tab[data-cat="${cat}"]`);
+    if (tab) tab.click();
+  };
+
   tabs.forEach((tab) => {
     tab.addEventListener("click", () => {
       const cat = tab.getAttribute("data-cat");
@@ -490,6 +495,16 @@ const homeJsonLd: Record<string, unknown>[] = [
       if (empty) empty.hidden = n > 0;
     });
   });
+
+  // Footer links like /#catalogo-hombres open the catalog on that category.
+  const openFromHash = () => {
+    const m = location.hash.match(/^#catalogo-(unisex|hombres|mujeres|ninos)$/);
+    if (!m) return;
+    selectCat(m[1]);
+    document.getElementById("catalogo")?.scrollIntoView();
+  };
+  openFromHash();
+  window.addEventListener("hashchange", openFromHash);
 </script>
 
 <style is:global>

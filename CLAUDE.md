@@ -35,7 +35,7 @@
 
 These rules drove a lot of design decisions. Violating them (especially #1) creates customer-facing dishonesty.
 
-1. **Frame prices ($30 or $45) are FRAME ONLY.** Lenses are quoted by WhatsApp per-prescription. Never write "lentes graduados incluidos" or "el precio incluye lentes" — that contradicts the model and we corrected this everywhere already. Use language like "Cotización transparente · Pagás el armazón a precio fijo. Lentes graduados se cotizan según tu receta — sin paquetes cerrados."
+1. **Frame prices ($30 or $45) are FRAME ONLY.** Lenses are quoted by WhatsApp per-prescription. Never write "lentes graduados incluidos" or "el precio incluye lentes" — that contradicts the model and we corrected this everywhere already. Use language like "Cotización transparente · Pagás la montura a precio fijo. Lentes graduados se cotizan según tu receta — sin paquetes cerrados." Never write "armazón" or "armazones" anywhere (Sebastian's rule): use "lentes", and "montura" only where you must say frame only (e.g. "solo montura").
 2. **Tiered comparison pricing**: $30 frames compare against `$80+` óptica local, $45 frames against `$110+`. The bad price renders red + strikethrough; savings render in a gold pill.
 3. **WhatsApp is the only conversion channel.** No cart, no checkout, no email signup. Every CTA goes to `wa.me` with a pre-filled Spanish message. Number is still placeholder `1XXXXXXXXXX` in `src/lib/contact.ts` — **remind user to replace before launch**.
 4. **Audience: Costa Rica, Spanish-speaking.** Voice: warm, direct, CR-focused. Not corporate. Trust signals matter heavily — CR shoppers are wary of buying online. Hammer on: SINPE Móvil / made in EE.UU. / certified optometrists / cliente verificado / WhatsApp service.

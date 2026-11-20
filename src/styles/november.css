@@ -1101,8 +1101,8 @@
   transition: transform .35s var(--nov-ease);
 }
 .nov-sticky-cta.is-visible { transform: translateY(0); }
-.nov-sticky-info { display: flex; flex-direction: column; flex: 1; }
-.nov-sticky-name { font-weight: 700; font-size: 14px; color: var(--nov-navy); }
+.nov-sticky-info { display: flex; flex-direction: column; flex: 1; min-width: 0; }
+.nov-sticky-name { font-weight: 700; font-size: 14px; color: var(--nov-navy); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .nov-sticky-price { font-size: 13px; color: var(--nov-muted); }
 
 /* ── RESPONSIVE ───────────────────────────────────────────── */
@@ -1134,6 +1134,8 @@
   .nov-price { font-size: 36px; }
   .nov-cta-primary, .nov-cta-secondary { width: 100%; min-width: 0; }
   .nov-sticky-cta { display: flex; }
+  /* The full-width rule above must not hit the sticky bar button, or it pushes off-screen. */
+  .nov-sticky-cta .nov-cta-primary--small { width: auto; flex: 0 0 auto; white-space: nowrap; }
   .nov-final { padding-bottom: 120px; }
 }
 
