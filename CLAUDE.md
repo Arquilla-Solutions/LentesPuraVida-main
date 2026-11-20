@@ -80,7 +80,7 @@ Counts: Unisex 28 · Hombres 28 · Mujeres 31 · Niños 1.
 | `src/styles/november.css` | Product detail page (~1100 lines; named after first prototype) |
 | `public/_redirects` | `/* /index.html 200` — required for Cloudflare Pages SPA routing |
 | `public/favicon.png` | NOT updated to match new logo yet — TODO |
-| `src/assets/logo.png` | Toucan brand mark, 195KB (was 1.25MB pre-tinypng). Includes wordmark + URL baked in — text becomes unreadable below ~50px size, user accepted this. Could split into `logo-mark.png` (toucan only) for small uses later |
+| `public/logo.svg`, `public/logo-white.svg`, `public/mark.svg` | Brand logo since 2026-11-20: "Lentes" serif over "Pura Vida" script flowing into round glasses, one color green #06633C. Header and footer use `/logo.svg`. Favicons: `favicon.svg`, `favicon-32.png`, `apple-touch-icon.png`; schema logo `logo-512.png`. Sources in `/workspace/out/lentes-brand/` on the box. `src/assets/logo.png` (old toucan) is no longer used, kept for the record. |
 
 ## Design system
 

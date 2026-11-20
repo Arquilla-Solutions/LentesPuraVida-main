@@ -1,6 +1,4 @@
 ---
-import { Image } from "astro:assets";
-import logo from "@/assets/logo.png";
 import { WHATSAPP_DISPLAY } from "@/lib/contact";
 import { MESSAGES } from "@/lib/whatsapp";
 import QuoteButton from "./QuoteButton.astro";
@@ -12,7 +10,7 @@ const year = new Date().getFullYear();
   <div class="wrap footer-grid">
     <div class="footer-brand">
       <a href="/" aria-label="Lentes Pura Vida, inicio">
-        <Image src={logo} alt="" width={72} height={72} widths={[72, 144]} sizes="72px" class="footer-logo" />
+        <img src="/logo.svg" alt="" width="185" height="50" class="footer-logo" loading="lazy" />
       </a>
       <p>
         Lentes recetados premium fabricados en Estados Unidos por optómetras certificados.

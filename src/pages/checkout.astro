@@ -6,7 +6,12 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import WaIcon from "@/components/WaIcon.astro";
 import { LEAD_ENDPOINT, WHATSAPP_NUMBER } from "@/lib/contact";
-import { PAYMENTS, PROVINCES } from "@/lib/store";
+import { LENSES_WITH_ADD, PAYMENTS, PROVINCES, RX, signed } from "@/lib/store";
+
+const EYES = [
+  { id: "od", name: "Ojo derecho", short: "OD" },
+  { id: "oi", name: "Ojo izquierdo", short: "OI" },
+] as const;
 ---
 
 <BaseLayout
@@ -89,7 +94,87 @@ import { PAYMENTS, PROVINCES } from "@/lib/store";
               <h2 id="h-receta" class="co-h"><span class="co-num" aria-hidden="true">3</span> Su receta</h2>
               <fieldset class="choice" aria-labelledby="h-receta">
                 <label class="choice-card">
-                  <input type="radio" name="rx" value="whatsapp" checked />
+                  <input type="radio" name="rx" value="typed" checked />
+                  <span class="choice-body">
+                    <span class="choice-name">La escribo aquí</span>
+                    <span class="choice-hint">Copie los números de su receta. Toma un minuto.</span>
+                  </span>
+                </label>
+                <div class="rx" data-rx>
+                  <details class="rx-help">
+                    <summary>¿Dónde encuentro esto?</summary>
+                    <p>En su receta hay una tabla con dos filas: <strong>OD</strong> (ojo derecho) y <strong>OI</strong> (ojo izquierdo). Esfera puede decir ESF o SPH, Cilindro CIL o CYL, Eje AXIS y Adición ADD. Si una casilla está vacía, déjela en 0.00. La distancia pupilar dice DP o PD; si no aparece, déjela en blanco y le ayudamos a medirla.</p>
+                  </details>
+                  {EYES.map((eye) => (
+                    <div class="rx-eye" role="group" aria-labelledby={`rx-${eye.id}`}>
+                      <p class="rx-eye-name" id={`rx-${eye.id}`}>{eye.name} <span class="muted">({eye.short})</span></p>
+                      <div class="rx-grid">
+                        <div class="field">
+                          <label for={`f-${eye.id}-sph`}>Esfera</label>
+                          <select id={`f-${eye.id}-sph`} name={`${eye.id}-sph`} data-rx-sph>
+                            {RX.sph.map((v) => <option value={v} selected={v === 0}>{v === 0 ? "0.00 (plano)" : signed(v)}</option>)}
+                          </select>
+                        </div>
+                        <div class="field">
+                          <label for={`f-${eye.id}-cyl`}>Cilindro</label>
+                          <select id={`f-${eye.id}-cyl`} name={`${eye.id}-cyl`} data-rx-cyl>
+                            {RX.cyl.map((v) => <option value={v} selected={v === 0}>{signed(v)}</option>)}
+                          </select>
+                        </div>
+                        <div class="field">
+                          <label for={`f-${eye.id}-axis`}>Eje</label>
+                          <select id={`f-${eye.id}-axis`} name={`${eye.id}-axis`} data-rx-axis disabled aria-describedby={`e-${eye.id}-axis`}>
+                            <option value="">No aplica</option>
+                            {RX.axis.map((v) => <option value={v}>{v}</option>)}
+                          </select>
+                        </div>
+                        <div class="field" data-rx-add hidden>
+                          <label for={`f-${eye.id}-add`}>Adición</label>
+                          <select id={`f-${eye.id}-add`} name={`${eye.id}-add`} aria-describedby={`e-${eye.id}-add`}>
+                            <option value="">Escoja</option>
+                            {RX.add.map((v) => <option value={v}>{signed(v)}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                      <p class="field-err" id={`e-${eye.id}-axis`} hidden>Con cilindro, el eje es necesario. Está junto al cilindro en su receta.</p>
+                      <p class="field-err" id={`e-${eye.id}-add`} hidden>Para progresivos o lectura, escoja la adición (ADD).</p>
+                    </div>
+                  ))}
+                  <div class="rx-pd">
+                    <div class="field" data-pd-one>
+                      <label for="f-pd">Distancia pupilar (DP)</label>
+                      <select id="f-pd" name="pd">
+                        <option value="">No la tengo</option>
+                        {RX.pd.map((v) => <option value={v}>{v}</option>)}
+                      </select>
+                    </div>
+                    <div class="field-row rx-pd-two" data-pd-two hidden>
+                      <div class="field">
+                        <label for="f-pd-r">DP derecho</label>
+                        <select id="f-pd-r" name="pd-r" aria-describedby="e-pd-r">
+                          <option value="">Escoja</option>
+                          {RX.pdHalf.map((v) => <option value={v}>{v.toFixed(1)}</option>)}
+                        </select>
+                        <p class="field-err" id="e-pd-r" hidden>Escoja el número derecho.</p>
+                      </div>
+                      <div class="field">
+                        <label for="f-pd-l">DP izquierdo</label>
+                        <select id="f-pd-l" name="pd-l" aria-describedby="e-pd-l">
+                          <option value="">Escoja</option>
+                          {RX.pdHalf.map((v) => <option value={v}>{v.toFixed(1)}</option>)}
+                        </select>
+                        <p class="field-err" id="e-pd-l" hidden>Escoja el número izquierdo.</p>
+                      </div>
+                    </div>
+                    <label class="rx-check">
+                      <input type="checkbox" name="pd-two" data-pd-toggle />
+                      <span>Tengo dos números</span>
+                    </label>
+                  </div>
+                  <p class="field-err" id="e-rx-zero" hidden>Todos los valores están en 0.00. Copie los números de su receta, o escoja enviarla por WhatsApp.</p>
+                </div>
+                <label class="choice-card">
+                  <input type="radio" name="rx" value="whatsapp" />
                   <span class="choice-body">
                     <span class="choice-name">Se la envío por WhatsApp</span>
                     <span class="choice-hint">Una foto clara de la receta, en el mismo chat del pedido.</span>
@@ -139,18 +224,18 @@ import { PAYMENTS, PROVINCES } from "@/lib/store";
   </main>
 </BaseLayout>
 
-<script define:vars={{ PROVINCES, waNumber: WHATSAPP_NUMBER, leadEndpoint: LEAD_ENDPOINT }} is:inline>
-  window.__lpvCheckout = { PROVINCES, waNumber, leadEndpoint };
+<script define:vars={{ PROVINCES, waNumber: WHATSAPP_NUMBER, leadEndpoint: LEAD_ENDPOINT, withAdd: LENSES_WITH_ADD }} is:inline>
+  window.__lpvCheckout = { PROVINCES, waNumber, leadEndpoint, withAdd };
 </script>
 
 <script>
   import {
     adSource, clearCart, countItems, frameSubtotal, getItems, makeCode, money, orderLead, orderMessage, summaryRows,
-    type Order,
+    type Order, type RxEye, type RxTyped,
   } from "@/lib/cart";
 
-  const { PROVINCES, waNumber, leadEndpoint } = (window as any).__lpvCheckout as {
-    PROVINCES: Record<string, string[]>; waNumber: string; leadEndpoint: string;
+  const { PROVINCES, waNumber, leadEndpoint, withAdd } = (window as any).__lpvCheckout as {
+    PROVINCES: Record<string, string[]>; waNumber: string; leadEndpoint: string; withAdd: string[];
   };
 
   // Order summary (phone fold and desktop side panel).
@@ -173,6 +258,79 @@ import { PAYMENTS, PROVINCES } from "@/lib/store";
     const list = PROVINCES[prov.value] ?? [];
     canton.replaceChildren(new Option(list.length ? "Escoja" : "Primero la provincia", ""), ...list.map((c) => new Option(c, c)));
     canton.disabled = !list.length;
+  });
+
+  const setErr = (input: HTMLElement, show: boolean) => {
+    const err = document.getElementById(`e-${input.id.slice(2)}`);
+    if (err) err.hidden = !show;
+    if (show) input.setAttribute("aria-invalid", "true");
+    else input.removeAttribute("aria-invalid");
+  };
+
+  // Typed prescription: eje only with cilindro, adición only for progresivos or lectura,
+  // one or two DP numbers.
+  const rxBox = form.querySelector<HTMLElement>("[data-rx]")!;
+  const rxMode = () => String(new FormData(form).get("rx") ?? "");
+  const syncRx = () => { rxBox.hidden = rxMode() !== "typed"; };
+  form.querySelectorAll<HTMLInputElement>('input[name="rx"]').forEach((r) => r.addEventListener("change", syncRx));
+  syncRx();
+  const needsAdd = getItems().some((i) => withAdd.includes(i.lens));
+  form.querySelectorAll<HTMLElement>("[data-rx-add]").forEach((el) => (el.hidden = !needsAdd));
+  form.querySelectorAll<HTMLSelectElement>("[data-rx-cyl]").forEach((cyl) => {
+    const axis = cyl.closest(".rx-grid")!.querySelector<HTMLSelectElement>("[data-rx-axis]")!;
+    const sync = () => {
+      const on = Number(cyl.value) !== 0;
+      axis.disabled = !on;
+      axis.options[0].text = on ? "Escoja" : "No aplica";
+      if (!on) { axis.value = ""; setErr(axis, false); }
+    };
+    cyl.addEventListener("change", sync);
+    sync();
+  });
+  const pdToggle = form.querySelector<HTMLInputElement>("[data-pd-toggle]")!;
+  const syncPd = () => {
+    form.querySelector<HTMLElement>("[data-pd-one]")!.hidden = pdToggle.checked;
+    form.querySelector<HTMLElement>("[data-pd-two]")!.hidden = !pdToggle.checked;
+  };
+  pdToggle.addEventListener("change", syncPd);
+  syncPd();
+
+  const sel = (id: string) => form.querySelector<HTMLSelectElement>(`#f-${id}`)!;
+  const readEye = (eye: "od" | "oi"): RxEye => ({
+    sph: Number(sel(`${eye}-sph`).value),
+    cyl: Number(sel(`${eye}-cyl`).value),
+    axis: sel(`${eye}-axis`).value ? Number(sel(`${eye}-axis`).value) : null,
+    add: needsAdd && sel(`${eye}-add`).value ? Number(sel(`${eye}-add`).value) : null,
+  });
+  const readRx = (): RxTyped => ({
+    od: readEye("od"),
+    oi: readEye("oi"),
+    pd: pdToggle.checked
+      ? (sel("pd-r").value && sel("pd-l").value ? { right: Number(sel("pd-r").value), left: Number(sel("pd-l").value) } : null)
+      : (sel("pd").value ? { single: Number(sel("pd").value) } : null),
+  });
+  /** Gentle checks: eje with cilindro, adición when the lens needs it, both DP numbers, not all zeros. */
+  const rxChecks = (): [HTMLElement, boolean][] => {
+    if (rxMode() !== "typed") return [];
+    const rx = readRx();
+    const out: [HTMLElement, boolean][] = [];
+    (["od", "oi"] as const).forEach((eye) => {
+      out.push([sel(`${eye}-axis`), rx[eye].cyl === 0 || rx[eye].axis != null]);
+      if (needsAdd) out.push([sel(`${eye}-add`), rx[eye].add != null]);
+    });
+    if (pdToggle.checked) out.push([sel("pd-r"), !!sel("pd-r").value], [sel("pd-l"), !!sel("pd-l").value]);
+    const allZero = [rx.od, rx.oi].every((e) => e.sph === 0 && e.cyl === 0 && e.add == null);
+    const zeroErr = form.querySelector<HTMLElement>("#e-rx-zero")!;
+    zeroErr.hidden = !allZero;
+    out.push([sel("od-sph"), !allZero]);
+    return out;
+  };
+  form.addEventListener("change", (e) => {
+    const t = e.target as HTMLElement;
+    if (t.closest("[data-rx]") && t.matches("[data-rx-sph], [data-rx-cyl], [id$='-add']")) {
+      form.querySelector<HTMLElement>("#e-rx-zero")!.hidden = true;
+      sel("od-sph").removeAttribute("aria-invalid");
+    }
   });
 
   // Remember what they typed (same browser only), so going back to the cart loses nothing.
@@ -207,12 +365,6 @@ import { PAYMENTS, PROVINCES } from "@/lib/store";
     return `+506 ${d.slice(0, 4)} ${d.slice(4)}`;
   };
 
-  const setErr = (input: HTMLElement, show: boolean) => {
-    const err = document.getElementById(`e-${input.id.slice(2)}`);
-    if (err) err.hidden = !show;
-    if (show) input.setAttribute("aria-invalid", "true");
-    else input.removeAttribute("aria-invalid");
-  };
   form.addEventListener("change", (e) => {
     const t = e.target as HTMLInputElement;
     if (t.getAttribute("aria-invalid")) setErr(t, false);
@@ -234,6 +386,7 @@ import { PAYMENTS, PROVINCES } from "@/lib/store";
       [form.querySelector("#f-wa")!, phoneOk(wa)],
       [prov, !!prov.value],
       [canton, !!canton.value],
+      ...rxChecks(),
     ];
     let first: HTMLElement | null = null;
     for (const [el, ok] of checks) { setErr(el, !ok); if (!ok && !first) first = el; }
@@ -250,7 +403,8 @@ import { PAYMENTS, PROVINCES } from "@/lib/store";
       whatsapp: prettyPhone(wa),
       province: prov.value,
       canton: canton.value,
-      rx: fd.get("rx") === "none" ? "none" : "whatsapp",
+      rx: fd.get("rx") === "typed" ? "typed" : fd.get("rx") === "none" ? "none" : "whatsapp",
+      rxValues: fd.get("rx") === "typed" ? readRx() : null,
       payment: String(fd.get("payment") ?? "SINPE Móvil"),
       items,
       source: adSource(),

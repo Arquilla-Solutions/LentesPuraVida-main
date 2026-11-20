@@ -1,7 +1,7 @@
 // The cart, in the browser. Saved in localStorage so it survives page changes and visits.
 // Only frame prices are added up. Lenses and extras are quoted by WhatsApp from the
 // customer's prescription, so the cart never shows a lens price or a grand total.
-import { EXTRAS, LENSES, extraLabel, lensLabel } from "./store";
+import { EXTRAS, LENSES, extraLabel, lensLabel, signed } from "./store";
 
 export interface CartColor { n: string; t: string; b: string } // name, thumbnail url, swatch css
 export interface CartItem {
@@ -102,10 +102,34 @@ export interface Order {
   whatsapp: string;
   province: string;
   canton: string;
-  rx: "whatsapp" | "none";
+  rx: "typed" | "whatsapp" | "none";
+  /** Only when rx is "typed". */
+  rxValues?: RxTyped | null;
   payment: string;
   items: CartItem[];
   source: Record<string, string>;
+}
+
+export interface RxEye { sph: number; cyl: number; axis: number | null; add: number | null }
+export interface RxTyped {
+  od: RxEye; // ojo derecho
+  oi: RxEye; // ojo izquierdo
+  pd: { single: number } | { right: number; left: number } | null;
+}
+
+const rxEyeLine = (label: string, e: RxEye) => {
+  const parts = [`Esf ${signed(e.sph)}`];
+  if (e.cyl !== 0) parts.push(`Cil ${signed(e.cyl)}`, `Eje ${e.axis ?? "?"}`);
+  if (e.add != null) parts.push(`Adic ${signed(e.add)}`);
+  return `${label}: ${parts.join(" · ")}`;
+};
+
+/** The typed prescription as WhatsApp lines. */
+export function rxLines(rx: RxTyped): string[] {
+  const pd = !rx.pd ? "no la tengo"
+    : "single" in rx.pd ? String(rx.pd.single)
+    : `OD ${rx.pd.right} · OI ${rx.pd.left}`;
+  return [rxEyeLine("OD", rx.od), rxEyeLine("OI", rx.oi), `DP: ${pd}`];
 }
 
 export function orderMessage(o: Order): string {
@@ -126,7 +150,12 @@ export function orderMessage(o: Order): string {
   L.push("");
   L.push(`Nombre: ${o.name.trim()}`);
   L.push(`Envío a: ${o.canton}, ${o.province}`);
-  L.push(o.rx === "whatsapp" ? "Receta: se la mando por aquí" : "Receta: no tengo, ¿me ayudan?");
+  if (o.rx === "typed" && o.rxValues) {
+    L.push("*Mi receta:*");
+    L.push(...rxLines(o.rxValues));
+  } else {
+    L.push(o.rx === "none" ? "Receta: no tengo, ¿me ayudan?" : "Receta: se la mando por aquí");
+  }
   L.push(`Pago: ${o.payment}`);
   L.push("");
   const src = [o.source.utm_source, o.source.utm_campaign, o.source.utm_content].filter(Boolean).join(" · ");
@@ -144,6 +173,7 @@ export function orderLead(o: Order) {
     province: o.province,
     canton: o.canton,
     prescription: o.rx,
+    rx: o.rx === "typed" && o.rxValues ? o.rxValues : null,
     payment: o.payment,
     frame_subtotal: frameSubtotal(o.items),
     items: o.items.map((i) => ({

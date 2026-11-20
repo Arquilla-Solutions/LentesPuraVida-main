@@ -22,6 +22,24 @@ export type ExtraId = (typeof EXTRAS)[number]["id"];
 export const lensLabel = (id: string) => LENSES.find((l) => l.id === id)?.label ?? "";
 export const extraLabel = (id: string) => EXTRAS.find((e) => e.id === id)?.label ?? "";
 
+// Typed prescription: the same fields and ranges EyeBuyDirect asks for.
+const steps = (from: number, to: number, step: number) => {
+  const out: number[] = [];
+  for (let v = from; v <= to + 1e-9; v += step) out.push(Math.round(v * 100) / 100);
+  return out;
+};
+export const signed = (v: number) => (v === 0 ? "0.00" : `${v > 0 ? "+" : "-"}${Math.abs(v).toFixed(2)}`);
+export const RX = {
+  sph: steps(-20, 12, 0.25).reverse(), // +12.00 at the top, like the supplier's form
+  cyl: steps(-6, 6, 0.25).reverse(),
+  axis: steps(1, 180, 1),
+  add: steps(0.75, 3.5, 0.25),
+  pd: steps(50, 79, 1),
+  pdHalf: steps(25, 40, 0.5),
+};
+/** Lens types that need the "Adición" value. */
+export const LENSES_WITH_ADD = ["progresivos", "lectura"];
+
 export const PAYMENTS = [
   { id: "sinpe", label: "SINPE Móvil" },
   { id: "transferencia", label: "Transferencia bancaria" },
