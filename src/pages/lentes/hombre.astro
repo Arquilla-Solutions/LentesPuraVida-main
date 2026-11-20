@@ -1,0 +1,6 @@
+---
+import CatalogPage from "@/components/CatalogPage.astro";
+import { CATEGORIES } from "@/lib/catalog";
+const category = CATEGORIES.find((c) => c.id === "hombre")!;
+---
+<CatalogPage category={category} />

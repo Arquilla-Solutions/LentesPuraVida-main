@@ -1,0 +1,93 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import QuoteButton from "@/components/QuoteButton.astro";
+import Faq from "@/components/Faq.astro";
+import { ALL_FAQ, faqJsonLd } from "@/data/faq";
+import { MESSAGES } from "@/lib/whatsapp";
+import { SITE_URL } from "@/lib/seo";
+
+const jsonLd = [
+  faqJsonLd(ALL_FAQ),
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: "Cómo funciona", item: `${SITE_URL}/como-funciona` },
+    ],
+  },
+];
+---
+
+<BaseLayout
+  title="Cómo pedir lentes recetados por WhatsApp | Lentes Pura Vida"
+  description="Escoja la montura, mándenos la foto de su receta y le enviamos el precio total el mismo día. Envío a toda Costa Rica. Preguntas frecuentes."
+  canonical="/como-funciona"
+  jsonLd={jsonLd}
+>
+  <Header current="como-funciona" />
+  <main id="contenido">
+    <div class="wrap narrow">
+      <header class="page-head">
+        <h1>Cómo pedir sus lentes</h1>
+        <p class="lead">Todo se hace por WhatsApp, con una persona que le ayuda en cada paso. Sin formularios y sin cuentas.</p>
+      </header>
+
+      <div class="prose">
+        <h2 class="sr-only">Los pasos</h2>
+        <ol class="steps" style="grid-template-columns: 1fr; margin-top: 32px">
+          <li>
+            <h3>Escoja la montura</h3>
+            <p>Vea los <a href="/lentes">modelos</a> y escoja el que más le guste, con su color. El precio que ve ($30 o $45) es solo el de la montura. Si no se decide, escríbanos y le recomendamos.</p>
+          </li>
+          <li>
+            <h3>Mándenos su receta</h3>
+            <p>Toque “Cotizar por WhatsApp” y mándenos una foto de su receta. El mensaje ya va con el modelo y el color que escogió.</p>
+          </li>
+          <li>
+            <h3>Reciba el precio total y confirme</h3>
+            <p>Le enviamos el precio total el mismo día: montura, lentes graduados con su receta y envío. Le explicamos los tratamientos opcionales para que escoja solo lo que necesita. Antes de cobrarle confirmamos receta, color, talla y monto.</p>
+          </li>
+          <li>
+            <h3>Hacemos el pedido y se lo enviamos</h3>
+            <p>Sus lentes se hacen en un laboratorio óptico en Estados Unidos y llegan en 10–14 días hábiles a su casa, oficina o sucursal de Correos de Costa Rica.</p>
+          </li>
+        </ol>
+
+        <div class="cta-row" style="margin: 32px 0 0">
+          <QuoteButton place="como-funciona" primary />
+        </div>
+
+        <div class="callout" id="sin-receta">
+          <p><strong>¿No tiene receta?</strong> Necesita una de un optometrista u oftalmólogo. Hágase el examen de la vista donde usted confíe y mándenos la foto. Si nos manda también el recibo del examen, le rebajamos hasta $10.</p>
+          <p><QuoteButton variant="link" label="Preguntar por WhatsApp" message={MESSAGES.noRx} place="como-funciona-norx" /></p>
+        </div>
+
+        <h2 id="preguntas">Preguntas frecuentes</h2>
+      </div>
+      <Faq items={ALL_FAQ} />
+    </div>
+
+    <section class="band" style="margin-top: var(--section)">
+      <div class="wrap">
+        <hr class="rule" />
+        <h2>¿Tiene otra pregunta?</h2>
+        <p>Escríbanos. Le responde una persona, no un robot.</p>
+        <QuoteButton variant="light" label="Escribir por WhatsApp" message="Hola, tengo una pregunta sobre los lentes." place="como-funciona-band" primary />
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  // Open the matching question when arriving from a link like /como-funciona#receta.
+  const open = () => {
+    const el = location.hash && document.getElementById(location.hash.slice(1));
+    if (el instanceof HTMLDetailsElement) { el.open = true; el.scrollIntoView(); }
+  };
+  open();
+  addEventListener("hashchange", open);
+</script>

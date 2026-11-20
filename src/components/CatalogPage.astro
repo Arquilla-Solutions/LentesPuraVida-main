@@ -1,0 +1,188 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import ProductCard from "@/components/ProductCard.astro";
+import QuoteButton from "@/components/QuoteButton.astro";
+import { SITE_URL } from "@/lib/seo";
+import { MESSAGES } from "@/lib/whatsapp";
+import {
+  CATEGORIES,
+  productsIn,
+  shapeGroup,
+  visibleProducts,
+  type Category,
+} from "@/lib/catalog";
+
+interface Props { category?: Category }
+const { category } = Astro.props;
+
+const list = category ? productsIn(category.id) : visibleProducts;
+const path = category ? category.path : "/lentes";
+const title = category ? category.title : "Lentes recetados en Costa Rica: todos los modelos | Lentes Pura Vida";
+const description = category
+  ? category.description
+  : `Los ${visibleProducts.length} modelos de lentes recetados de Lentes Pura Vida, desde $30 la montura. Envío a toda Costa Rica y cotización por WhatsApp.`;
+const h1 = category ? category.h1 : "Todos los lentes";
+const intro = category
+  ? category.intro
+  : "Monturas de $30 y $45 para mujer, hombre y unisex. Escoja la que le guste y le cotizamos los lentes con su receta por WhatsApp.";
+
+const shapes = [...new Set(list.map((p) => shapeGroup(p.shape)))].sort();
+const materials = [...new Set(list.map((p) => (p.material.startsWith("Mixto") ? "Metal" : p.material)))].sort();
+const isEmpty = list.length === 0;
+
+const jsonLd: Record<string, unknown>[] = [
+  {
+    "@context": "https://schema.org",
+    "@type": "CollectionPage",
+    name: h1,
+    description,
+    url: `${SITE_URL}${path}`,
+    inLanguage: "es-CR",
+    isPartOf: { "@id": `${SITE_URL}/#website` },
+    mainEntity: {
+      "@type": "ItemList",
+      numberOfItems: list.length,
+      itemListElement: list.map((p, i) => ({
+        "@type": "ListItem",
+        position: i + 1,
+        url: `${SITE_URL}/lentes/${p.slug}`,
+        name: `Lentes ${p.name}`,
+      })),
+    },
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: "Lentes", item: `${SITE_URL}/lentes` },
+      ...(category ? [{ "@type": "ListItem", position: 3, name: category.label, item: `${SITE_URL}${path}` }] : []),
+    ],
+  },
+];
+---
+
+<BaseLayout title={title} description={description} canonical={path} jsonLd={jsonLd} noIndex={isEmpty}>
+  <Header current="lentes" />
+  <main id="contenido">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Ruta">
+        <ol>
+          <li><a href="/">Inicio</a></li>
+          {category ? <li><a href="/lentes">Lentes</a></li> : <li aria-current="page">Lentes</li>}
+          {category && <li aria-current="page">{category.label}</li>}
+        </ol>
+      </nav>
+
+      <header class="catalog-head">
+        <h1>{h1}</h1>
+        <p>{intro}</p>
+      </header>
+
+      <div class="filters">
+        <nav class="chips" aria-label="Categorías">
+          <a class="chip" href="/lentes" aria-current={!category ? "page" : undefined}>Todos <small>{visibleProducts.length}</small></a>
+          {CATEGORIES.map((c) => (
+            <a class="chip" href={c.path} aria-current={category?.id === c.id ? "page" : undefined}>
+              {c.label} <small>{productsIn(c.id).length}</small>
+            </a>
+          ))}
+        </nav>
+        {!isEmpty && shapes.length > 1 && (
+          <div class="filters-js" data-filters>
+            <div class="filter-row">
+              <span id="f-forma">Forma</span>
+              <div class="chips" role="group" aria-labelledby="f-forma">
+                <button type="button" class="chip" data-filter="shape" data-value="" aria-pressed="true">Todas</button>
+                {shapes.map((s) => <button type="button" class="chip" data-filter="shape" data-value={s} aria-pressed="false">{s}</button>)}
+              </div>
+            </div>
+            {materials.length > 1 && (
+              <div class="filter-row">
+                <span id="f-material">Material</span>
+                <div class="chips" role="group" aria-labelledby="f-material">
+                  <button type="button" class="chip" data-filter="material" data-value="" aria-pressed="true">Todos</button>
+                  {materials.map((m) => <button type="button" class="chip" data-filter="material" data-value={m} aria-pressed="false">{m}</button>)}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {isEmpty ? (
+        <div class="empty">
+          <h2>Pronto agregaremos lentes en esta categoría</h2>
+          <p>Mientras tanto, escríbanos y le ayudamos a encontrar una montura que le sirva.</p>
+          <QuoteButton label="Preguntar por WhatsApp" message={MESSAGES.kids} place="catalog-empty" primary />
+        </div>
+      ) : (
+        <>
+          <h2 class="catalog-count" aria-live="polite" data-count>{list.length} modelos</h2>
+          <div class="grid grid--4" data-grid>
+            {list.map((p, i) => (
+              <ProductCard
+                product={p}
+                eager={i < 2}
+                filterAttrs={{
+                  "data-shape": shapeGroup(p.shape),
+                  "data-material": p.material.startsWith("Mixto") ? "Metal" : p.material,
+                }}
+              />
+            ))}
+          </div>
+          <p class="empty" data-none hidden>No hay modelos con esos filtros. Pruebe con otra forma o material.</p>
+        </>
+      )}
+    </div>
+
+    {!isEmpty && (
+      <section class="band" style="margin-top: var(--section)">
+        <div class="wrap">
+          <hr class="rule" />
+          <h2>¿No sabe cuál escoger?</h2>
+          <p>Cuéntenos qué busca o mándenos una foto suya y le recomendamos dos o tres modelos que le queden bien.</p>
+          <QuoteButton variant="light" label="Pedir ayuda por WhatsApp" message="Hola, quiero ayuda para escoger unos lentes." place="catalog-band" primary />
+        </div>
+      </section>
+    )}
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  // Keep the current category chip in view on phones (the chip row scrolls sideways).
+  const active = document.querySelector<HTMLElement>(".chips .chip[aria-current='page']");
+  const row = active?.parentElement;
+  if (active && row && row.scrollWidth > row.clientWidth) {
+    row.scrollLeft = active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2;
+  }
+  const box = document.querySelector("[data-filters]");
+  const grid = document.querySelector("[data-grid]");
+  if (box && grid) {
+    const state: Record<string, string> = { shape: "", material: "" };
+    const count = document.querySelector("[data-count]");
+    const none = document.querySelector<HTMLElement>("[data-none]");
+    box.querySelectorAll<HTMLButtonElement>("[data-filter]").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const key = btn.dataset.filter!;
+        state[key] = btn.dataset.value ?? "";
+        box.querySelectorAll<HTMLButtonElement>(`[data-filter="${key}"]`).forEach((b) =>
+          b.setAttribute("aria-pressed", String(b === btn)),
+        );
+        let n = 0;
+        grid.querySelectorAll<HTMLElement>(".card").forEach((card) => {
+          const ok =
+            (!state.shape || card.dataset.shape === state.shape) &&
+            (!state.material || card.dataset.material === state.material);
+          card.hidden = !ok;
+          if (ok) n++;
+        });
+        if (count) count.textContent = `${n} ${n === 1 ? "modelo" : "modelos"}`;
+        if (none) none.hidden = n > 0;
+      });
+    });
+  }
+</script>

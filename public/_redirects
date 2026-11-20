@@ -1,1 +1,1 @@
-/*  /index.html  200
+# No catch-all rewrite: unknown URLs get the real 404 page (404.html) instead of the home page.

@@ -1,0 +1,50 @@
+---
+import type { Product } from "@/data/products";
+import { getSwatch } from "@/data/products";
+import { onFaceThumb, photographedColors, primaryThumb, scanFramePhotos } from "@/lib/photos";
+import Photo from "./Photo.astro";
+
+interface Props {
+  product: Product;
+  sizes?: string;
+  eager?: boolean;
+  /** Extra attributes for catalog filtering. */
+  filterAttrs?: Record<string, string>;
+}
+const { product, sizes = "(min-width: 1280px) 290px, (min-width: 1024px) 30vw, (min-width: 768px) 30vw, 46vw", eager = false, filterAttrs = {} } =
+  Astro.props;
+
+const frame = scanFramePhotos()[product.name];
+const thumb = primaryThumb(frame);
+const face = onFaceThumb(frame, "onWoman");
+const colors = photographedColors(frame);
+const shown = colors.slice(0, 5);
+const more = colors.length - shown.length;
+---
+
+<a href={`/lentes/${product.slug}`} class="card" {...filterAttrs}>
+  <div class="card-media">
+    {thumb && (
+      <Photo img={thumb} alt={`Lentes ${product.name}, vista de frente`} kind="product" sizes={sizes} eager={eager} />
+    )}
+    {face && (
+      <Photo img={face} alt="" kind="person" sizes={sizes} widths={[320, 500]} class="card-alt" />
+    )}
+  </div>
+  <div class="card-body">
+    <div class="card-row">
+      <h3 class="card-name">{product.name}</h3>
+      <span class="card-price">${product.framePrice}</span>
+    </div>
+    <div class="card-row card-row--meta">
+      <span class="dots" aria-label={`${colors.length} ${colors.length === 1 ? "color" : "colores"}`}>
+        {shown.map((c) => {
+          const sw = getSwatch(c.spanish);
+          return <span class="dot" style={`--sw: ${sw.bg}`} title={c.spanish}></span>;
+        })}
+        {more > 0 && <span class="dots-more">+{more}</span>}
+      </span>
+      <span class="card-note">solo montura</span>
+    </div>
+  </div>
+</a>

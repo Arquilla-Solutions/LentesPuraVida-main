@@ -6,7 +6,7 @@ export const SITE_NAME = "Lentes Pura Vida";
 export const SITE_LOCALE = "es_CR";
 export const SITE_LANG = "es-CR";
 export const DEFAULT_OG_IMAGE = `${SITE_URL}/og-image.png`;
-export const BRAND_LOGO = `${SITE_URL}/favicon.png`;
+export const BRAND_LOGO = `${SITE_URL}/logo-512.png`;
 
 // All seven Costa Rican provinces — used in LocalBusiness `areaServed` so
 // search engines associate the brand with national coverage instead of just

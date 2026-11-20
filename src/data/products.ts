@@ -57,6 +57,7 @@ export const COLOR_SWATCHES: Record<string, ColorSwatch> = {
   "Beige mate": { bg: "#c9b08f" },
   "Gris": { bg: "#6c6e7a" },
   "Gris mate": { bg: "#54565e" },
+  "Gris transparente": { bg: "linear-gradient(135deg,#c9cbd1 0%,#9a9da6 100%)", ring: "#a9abb3" },
   "Blanco": { bg: "#f3f1ed", ring: "#cfc9bd" },
   "Blanco mate": { bg: "#ece8de", ring: "#cfc9bd" },
   "Blanco esmerilado": { bg: "linear-gradient(135deg,#efece5 0%,#dad5c9 100%)", ring: "#cfc9bd" },
@@ -173,7 +174,7 @@ export const products: Product[] = [
   {
     slug: "soul", name: "Soul", img: "pl6359",
     alt: "Lentes Soul de plástico",
-    desc: "Lentes compactos con opciones de color únicas como el azul verdoso. Expresa tu personalidad con este modelo lleno de carácter.",
+    desc: "Lentes compactos con opciones de color únicas como el azul verdoso. Exprese su personalidad con este modelo lleno de carácter.",
     framePrice: 45, comparePrice: 110,
     material: "Plástico", shape: "Cuadrado", rim: "Aro completo", weight: 10,
     sizes: [{ label: "S", lens: 52, bridge: 17, temple: 142 }], primarySize: "S",

@@ -1,0 +1,53 @@
+---
+// The site's one primary action: "Cotizar por WhatsApp".
+// The link works with no JavaScript; BaseLayout's script adds a reference code on tap.
+import WaIcon from "./WaIcon.astro";
+import { quoteMessage, waHref } from "@/lib/whatsapp";
+
+interface Props {
+  label?: string;
+  frame?: string;
+  color?: string;
+  message?: string;
+  place: string;
+  variant?: "primary" | "secondary" | "compact" | "light" | "link";
+  block?: boolean;
+  /** Marks the page's main button, so the phone sticky bar hides while it is on screen. */
+  primary?: boolean;
+  class?: string;
+}
+
+const {
+  label = "Cotizar por WhatsApp",
+  frame,
+  color,
+  message,
+  place,
+  variant = "primary",
+  block = false,
+  primary = false,
+  class: className = "",
+} = Astro.props;
+
+const msg = message ?? quoteMessage(frame, color);
+const cls =
+  variant === "link"
+    ? `link link--wa ${className}`
+    : `btn btn--${variant}${block ? " btn--block" : ""} ${className}`;
+---
+
+<a
+  class={cls}
+  href={waHref(msg)}
+  target="_blank"
+  rel="noopener"
+  data-wa
+  data-msg={msg}
+  data-frame={frame}
+  data-color={color}
+  data-place={place}
+  data-primary={primary ? "" : undefined}
+>
+  {variant !== "link" && <WaIcon size={variant === "compact" ? 16 : 18} />}
+  <span>{label}</span>
+</a>

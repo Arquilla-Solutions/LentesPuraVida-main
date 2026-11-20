@@ -1,96 +1,64 @@
 ---
-import { Icon } from "astro-icon/components";
+import { Image } from "astro:assets";
 import logo from "@/assets/logo.png";
-import { WHATSAPP_LINK } from "@/lib/contact";
+import { WHATSAPP_DISPLAY } from "@/lib/contact";
+import { MESSAGES } from "@/lib/whatsapp";
+import QuoteButton from "./QuoteButton.astro";
 
-// Copyright year — Astro renders this at build time, so it stays fresh on every deploy.
 const year = new Date().getFullYear();
 ---
 
-<footer class="site-footer" aria-label="Pie de página">
-  <div class="site-footer-inner">
-    <div class="site-footer-brand">
-      <a href="/" class="site-footer-logo" aria-label="Lentes Pura Vida — inicio">
-        <img src={logo.src} alt="" />
-        <span>Lentes <em>Pura Vida</em></span>
+<footer class="site-footer" id="contacto">
+  <div class="wrap footer-grid">
+    <div class="footer-brand">
+      <a href="/" aria-label="Lentes Pura Vida, inicio">
+        <Image src={logo} alt="" width={72} height={72} widths={[72, 144]} sizes="72px" class="footer-logo" />
       </a>
-      <p class="site-footer-tag">
+      <p>
         Lentes recetados premium fabricados en Estados Unidos por optómetras certificados.
         Cotización transparente y envío a toda Costa Rica.
       </p>
-      <div class="site-footer-cr">
-        <span class="site-footer-cr-flag" aria-hidden="true">🇨🇷</span>
-        <span>Hecho con cariño para Costa Rica</span>
-      </div>
     </div>
 
-    <div class="site-footer-col">
-      <h4>Catálogo</h4>
+    <nav class="footer-col" aria-label="Lentes">
+      <h2>Lentes</h2>
       <ul>
-        <li><a href="/#catalogo-hombres">Hombres</a></li>
-        <li><a href="/#catalogo-mujeres">Mujeres</a></li>
-        <li><a href="/#catalogo-ninos">Niños</a></li>
-        <li><a href="/#catalogo-unisex">Unisex</a></li>
+        <li><a href="/lentes">Todos los modelos</a></li>
+        <li><a href="/lentes/mujer">Mujer</a></li>
+        <li><a href="/lentes/hombre">Hombre</a></li>
+        <li><a href="/lentes/unisex">Unisex</a></li>
+        <li><a href="/lentes/ninos">Niños</a></li>
+      </ul>
+    </nav>
+
+    <nav class="footer-col" aria-label="Ayuda">
+      <h2>Ayuda</h2>
+      <ul>
+        <li><a href="/como-funciona">Cómo funciona</a></li>
+        <li><a href="/lentes-y-tratamientos">Tipos de lentes</a></li>
+        <li><a href="/envios-y-garantia">Envíos y garantía</a></li>
         <li><a href="/sobre-nosotros">Sobre nosotros</a></li>
-        <li><a href="/#como-funciona">Cómo funciona</a></li>
+        <li><a href="/privacidad">Privacidad</a></li>
       </ul>
-    </div>
+    </nav>
 
-    <div class="site-footer-col" id="contacto">
-      <h4>Atención al cliente</h4>
+    <div class="footer-col">
+      <h2>Contacto</h2>
       <ul>
-        <li>
-          <a href={WHATSAPP_LINK} target="_blank" rel="noopener noreferrer">
-            <Icon name="lucide:message-circle" size={14} aria-hidden="true" /> WhatsApp
-          </a>
-        </li>
-        <li>
-          <Icon name="lucide:clock" size={14} aria-hidden="true" />
-          Respondemos en minutos
-        </li>
-        <li>
-          <Icon name="lucide:globe" size={14} aria-hidden="true" />
-          Tienda 100% online
-        </li>
-        <li>
-          <Icon name="lucide:map-pin" size={14} aria-hidden="true" />
-          Envío a todo CR
-        </li>
+        <li><QuoteButton variant="link" label={`WhatsApp ${WHATSAPP_DISPLAY}`} message={MESSAGES.general} place="footer" /></li>
+        <li>Respondemos en minutos</li>
+        <li>Tienda 100% online · Envío a todo CR</li>
       </ul>
-    </div>
-
-    <div class="site-footer-col">
-      <h4>Pago seguro</h4>
-      <div class="site-footer-pay">
-        <span>SINPE Móvil</span>
-        <span>Transferencia</span>
-        <span>Tarjeta</span>
-      </div>
-      <h4 class="site-footer-h4--mt">Garantías</h4>
-      <ul class="site-footer-trust">
-        <li>
-          <Icon name="lucide:award" size={14} aria-hidden="true" />
-          Optómetras certificados
-        </li>
-        <li>
-          <Icon name="lucide:truck" size={14} aria-hidden="true" />
-          Envío rastreable
-        </li>
-        <li>
-          <Icon name="lucide:shield-check" size={14} aria-hidden="true" />
-          Garantía de fábrica
-        </li>
-      </ul>
+      <h2 class="footer-h-gap">Pago seguro</h2>
+      <p class="footer-small">SINPE Móvil · Transferencia · Tarjeta</p>
+      <h2 class="footer-h-gap">Garantías</h2>
+      <p class="footer-small">Optómetras certificados · Envío rastreable · Garantía de fábrica</p>
     </div>
   </div>
 
-  <div class="site-footer-bottom">
-    <span>© {year} Lentes Pura Vida</span>
-    <span aria-hidden="true">·</span>
-    <span>Catálogo oficial · Costa Rica</span>
-    <span aria-hidden="true">·</span>
+  <div class="wrap footer-bottom">
+    <span>© {year} Lentes Pura Vida · Costa Rica</span>
     <span>Precios y disponibilidad sujetos a cambio</span>
-    <span aria-hidden="true">·</span>
     <span>Marketing por <a href="https://arquillasolutions.com" target="_blank" rel="noopener">Arquilla Solutions</a></span>
   </div>
 </footer>

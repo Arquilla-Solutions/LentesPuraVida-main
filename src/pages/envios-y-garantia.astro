@@ -1,0 +1,57 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import QuoteButton from "@/components/QuoteButton.astro";
+import { CR_PROVINCES } from "@/lib/seo";
+
+// Shipping wording mirrors what the site already said. "Guía rastreable" stays
+// as written until Sebastian confirms how shipping works (CONTEXT.md FLAGS).
+const provinces = `${CR_PROVINCES.slice(0, -1).join(", ")} y ${CR_PROVINCES[CR_PROVINCES.length - 1]}`;
+---
+
+<BaseLayout
+  title="Envíos y garantía | Lentes Pura Vida"
+  description="Enviamos lentes recetados a las 7 provincias de Costa Rica en 10 a 14 días hábiles. Envío gratis desde $300 y garantía de fábrica."
+  canonical="/envios-y-garantia"
+>
+  <Header />
+  <main id="contenido">
+    <div class="wrap narrow">
+      <header class="page-head">
+        <h1>Envíos y garantía</h1>
+        <p class="lead">Lo que necesita saber antes de pedir, en corto.</p>
+      </header>
+      <div class="prose">
+        <h2>Envíos</h2>
+        <ul>
+          <li>Enviamos a las 7 provincias: {provinces}.</li>
+          <li>Despachamos desde el laboratorio en EE.UU. con guía rastreable.</li>
+          <li>Su pedido llega en 10–14 días hábiles a su casa, oficina o sucursal de Correos de Costa Rica.</li>
+          <li><strong>Envío gratis</strong> en pedidos de $300 o más.</li>
+        </ul>
+
+        <h2>Garantía de fábrica</h2>
+        <p>
+          Si la montura o los lentes llegan con un defecto de fabricación, se los reemplazamos sin costo. Escríbanos por
+          WhatsApp con una foto del problema y lo resolvemos.
+        </p>
+        <p>
+          Para evitar errores, antes de hacer el pedido revisamos con usted la receta, la talla y el color.
+        </p>
+
+        <h2>Pago</h2>
+        <p>
+          SINPE Móvil, transferencia bancaria en colones o tarjeta de crédito. Le cobramos solo después de confirmar el
+          precio total con usted. No guardamos datos de tarjetas y todo queda por escrito en su chat de WhatsApp.
+        </p>
+
+        <div class="cta-row" style="margin-top: 32px">
+          <QuoteButton label="Preguntar por WhatsApp" message="Hola, tengo una pregunta sobre envíos y garantía." place="envios" primary />
+        </div>
+      </div>
+    </div>
+    <div style="height: var(--section)"></div>
+  </main>
+  <Footer />
+</BaseLayout>

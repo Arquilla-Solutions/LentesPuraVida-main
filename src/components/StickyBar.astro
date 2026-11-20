@@ -1,0 +1,65 @@
+---
+// Phone-only bottom bar with the quote button. It appears once the page's main
+// button has scrolled away and hides again whenever another main button is on
+// screen, so there is never more than one "Cotizar" competing for the thumb.
+import QuoteButton from "./QuoteButton.astro";
+
+interface Props {
+  product?: { name: string; price: number; thumb?: string; frame?: string };
+}
+const { product } = Astro.props;
+---
+
+<div class="sticky-bar" data-sticky data-early={product ? "" : undefined} aria-hidden="true">
+  {product ? (
+    <div class="sticky-info">
+      {product.thumb && <img src={product.thumb} alt="" width="56" height="28" class="sticky-thumb" />}
+      <div>
+        <span class="sticky-name">{product.name}</span>
+        <span class="sticky-price">${product.price} <small>solo montura</small></span>
+      </div>
+    </div>
+  ) : (
+    <div class="sticky-info">
+      <span class="sticky-name">Cotización sin compromiso</span>
+    </div>
+  )}
+  <QuoteButton
+    label="Cotizar"
+    variant="compact"
+    frame={product?.frame}
+    place="sticky-bar"
+    class="sticky-btn"
+  />
+</div>
+
+<script>
+  const bar = document.querySelector<HTMLElement>("[data-sticky]");
+  if (bar && "IntersectionObserver" in window) {
+    const visible = new Set<Element>();
+    // On product pages the main button sits below the photos on phones, so the bar
+    // shows from the first screen; elsewhere it waits until the hero button scrolls away.
+    let passed = bar.hasAttribute("data-early");
+    const update = () => {
+      const show = passed && visible.size === 0;
+      bar.classList.toggle("is-visible", show);
+      bar.setAttribute("aria-hidden", show ? "false" : "true");
+      bar.querySelectorAll("a").forEach((a) => (a.tabIndex = show ? 0 : -1));
+    };
+    const io = new IntersectionObserver((entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) visible.add(e.target);
+        else visible.delete(e.target);
+        if (!e.isIntersecting && e.boundingClientRect.top < 0) passed = true;
+      }
+      update();
+    });
+    document.querySelectorAll("[data-primary]").forEach((el) => {
+      if (!bar.contains(el)) io.observe(el);
+    });
+    addEventListener("scroll", () => {
+      if (!passed && scrollY > innerHeight * 0.9) { passed = true; update(); }
+    }, { passive: true });
+    update();
+  }
+</script>

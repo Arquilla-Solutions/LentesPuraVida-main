@@ -1,5 +1,7 @@
 ---
-import "../styles/global.css";
+import "../styles/site.css";
+import StickyBar from "@/components/StickyBar.astro";
+import { LEAD_ENDPOINT, WHATSAPP_NUMBER } from "@/lib/contact";
 import {
   DEFAULT_OG_IMAGE,
   SITE_LANG,
@@ -18,6 +20,10 @@ export interface Props {
   noIndex?: boolean;
   keywords?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
+  /** Product shown in the phone sticky bar (product pages only). */
+  sticky?: { name: string; price: number; thumb?: string; frame?: string };
+  /** Hide the phone sticky quote bar (404, legal pages). */
+  noSticky?: boolean;
 }
 
 const {
@@ -30,6 +36,8 @@ const {
   noIndex = false,
   keywords,
   jsonLd,
+  sticky,
+  noSticky = false,
 } = Astro.props as Props;
 
 const canonicalUrl = canonical ? absoluteUrl(canonical) : undefined;
@@ -59,7 +67,7 @@ const organizationJsonLd = {
     "Lentes recetados y anteojos graduados con envío a toda Costa Rica. Lentes premium hechos en Estados Unidos por optómetras certificados.",
   url: "https://lentespuravida.com/",
   image: "https://lentespuravida.com/og-image.png",
-  logo: "https://lentespuravida.com/favicon.png",
+  logo: "https://lentespuravida.com/logo-512.png",
   priceRange: "$30 - $45",
   currenciesAccepted: "USD, CRC",
   paymentAccepted:
@@ -124,7 +132,7 @@ const websiteJsonLd = {
       name="viewport"
       content="width=device-width, initial-scale=1.0, viewport-fit=cover"
     />
-    <meta name="theme-color" content="#13162a" />
+    <meta name="theme-color" content="#ffffff" />
     <meta name="color-scheme" content="light" />
 
     <title>{title}</title>
@@ -146,16 +154,12 @@ const websiteJsonLd = {
       </>
     )}
 
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="preload" href="/fonts/newsreader-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <script is:inline>document.documentElement.classList.add("js")</script>
 
-    <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap"
-      rel="stylesheet"
-    />
-
-    <link rel="icon" href="/favicon.png" type="image/png" />
-    <link rel="apple-touch-icon" href="/favicon.png" />
+    <link rel="icon" href="/favicon.png" type="image/png" sizes="96x96" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
@@ -193,6 +197,54 @@ const websiteJsonLd = {
     ))}
   </head>
   <body>
+    <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <slot />
+    {!noSticky && <StickyBar product={sticky} />}
+    <script is:inline define:vars={{ waNumber: WHATSAPP_NUMBER, leadEndpoint: LEAD_ENDPOINT }}>
+      // Quote links: <a data-wa data-msg="..." data-frame data-color data-place>.
+      // The static href already opens WhatsApp. On tap we add a reference code and,
+      // when the visit came from a tagged ad link, its source, then hand the lead to
+      // the backend bridge if one is configured (GHL_BACKEND_PLAN.md, phase 2).
+      (function () {
+        var KEYS = ["utm_source", "utm_medium", "utm_campaign", "utm_content", "utm_term", "fbclid", "gclid"];
+        var src = {};
+        try { src = JSON.parse(sessionStorage.getItem("lpv_src") || "{}"); } catch (e) {}
+        var q = new URLSearchParams(location.search), hit = false;
+        KEYS.forEach(function (k) { var v = q.get(k); if (v) { src[k] = v.slice(0, 120); hit = true; } });
+        if (hit) {
+          src.landing = location.pathname;
+          try { sessionStorage.setItem("lpv_src", JSON.stringify(src)); } catch (e) {}
+        }
+        var ABC = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+        function makeRef() {
+          var out = "LPV-", b = new Uint8Array(4);
+          (window.crypto || window.msCrypto).getRandomValues(b);
+          for (var i = 0; i < 4; i++) out += ABC[b[i] % ABC.length];
+          return out;
+        }
+        document.addEventListener("click", function (e) {
+          var a = e.target.closest && e.target.closest("a[data-wa]");
+          if (!a) return;
+          var ref = makeRef();
+          var tag = [ref, src.utm_source, src.utm_campaign, src.utm_content].filter(Boolean).join(" · ");
+          var msg = (a.getAttribute("data-msg") || "Hola, quiero cotizar unos lentes recetados.") + " (Ref: " + tag + ")";
+          a.href = "https://wa.me/" + waNumber + "?text=" + encodeURIComponent(msg);
+          var lead = {
+            ref: ref,
+            frame: a.getAttribute("data-frame") || "",
+            color: a.getAttribute("data-color") || "",
+            placement: a.getAttribute("data-place") || "",
+            page: location.pathname,
+            ts: new Date().toISOString()
+          };
+          for (var k in src) lead[k] = src[k];
+          (window.lpvLeads = window.lpvLeads || []).push(lead);
+          try { window.dispatchEvent(new CustomEvent("lpv:quote", { detail: lead })); } catch (e) {}
+          if (leadEndpoint && navigator.sendBeacon) {
+            try { navigator.sendBeacon(leadEndpoint, JSON.stringify(lead)); } catch (e) {}
+          }
+        }, true);
+      })();
+    </script>
   </body>
 </html>

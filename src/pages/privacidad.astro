@@ -1,0 +1,65 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import QuoteButton from "@/components/QuoteButton.astro";
+// DRAFT for Sebastian to read before going live (Costa Rica Ley 8968 treats
+// health data, such as a prescription, as sensitive).
+---
+
+<BaseLayout
+  title="Política de privacidad | Lentes Pura Vida"
+  description="Qué datos pedimos para cotizar y enviar sus lentes recetados, para qué los usamos y cómo puede pedir que los borremos."
+  canonical="/privacidad"
+  noSticky
+>
+  <Header />
+  <main id="contenido">
+    <div class="wrap narrow">
+      <header class="page-head">
+        <h1>Política de privacidad</h1>
+        <p class="lead">Última actualización: noviembre de 2026.</p>
+      </header>
+      <div class="prose">
+        <h2>Qué datos le pedimos</h2>
+        <p>
+          Para cotizar y enviarle sus lentes le pedimos por WhatsApp su nombre, su número de teléfono, una foto de su
+          receta, la dirección de entrega y, si aplica, el comprobante de pago. Su receta es un dato de salud y la
+          tratamos con especial cuidado.
+        </p>
+
+        <h2>Para qué los usamos</h2>
+        <ul>
+          <li>Cotizar sus lentes y confirmar el pedido con usted.</li>
+          <li>Hacer el pedido al laboratorio que fabrica los lentes y coordinar el envío.</li>
+          <li>Darle seguimiento y atender la garantía.</li>
+          <li>Si usted lo acepta, recordarle cuándo le toca revisarse la vista.</li>
+        </ul>
+
+        <h2>Con quién los compartimos</h2>
+        <p>
+          Solo con quien necesita los datos para hacer y entregar sus lentes: el laboratorio óptico (su receta y medidas)
+          y la empresa de envío (su nombre, teléfono y dirección). No vendemos sus datos a nadie.
+        </p>
+
+        <h2>Sus derechos</h2>
+        <p>
+          Conforme a la Ley 8968 de Protección de la Persona frente al Tratamiento de sus Datos Personales, usted puede
+          pedirnos en cualquier momento ver, corregir o borrar sus datos. Escríbanos por WhatsApp y lo hacemos.
+        </p>
+
+        <h2>Este sitio web</h2>
+        <p>
+          El sitio no le pide crear una cuenta ni llenar formularios. Si llega desde un anuncio, guardamos en su
+          navegador, solo durante la visita, de qué anuncio vino, para saber qué publicidad funciona.
+        </p>
+
+        <div class="cta-row" style="margin-top: 32px">
+          <QuoteButton variant="secondary" label="Escribir por WhatsApp" message="Hola, tengo una consulta sobre mis datos." place="privacidad" />
+        </div>
+      </div>
+    </div>
+    <div style="height: var(--section)"></div>
+  </main>
+  <Footer />
+</BaseLayout>

@@ -1,25 +1,17 @@
 ---
-import { Icon } from "astro-icon/components";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import WhatsAppButton from "@/components/WhatsAppButton.astro";
-import { WHATSAPP_LINK } from "@/lib/contact";
+import QuoteButton from "@/components/QuoteButton.astro";
 import { SITE_URL } from "@/lib/seo";
-import "@/styles/catalogo.css";
-import { products } from "@/data/products";
-import { scanFramePhotos } from "@/lib/photos";
-
-// Same rule as the home catalog: only frames with photos in public/Glasses/ count.
-const framePhotos = scanFramePhotos();
-const modelCount = products.filter((p) => framePhotos[p.name]?.colors.length).length;
+import { modelCount } from "@/lib/catalog";
 
 const aboutJsonLd: Record<string, unknown> = {
   "@context": "https://schema.org",
   "@type": "AboutPage",
-  name: "Sobre nosotros — Lentes Pura Vida Costa Rica",
+  name: "Sobre nosotros | Lentes Pura Vida",
   description:
-    "Conocé la misión de Lentes Pura Vida: lentes recetados premium hechos en EE.UU. por optómetras certificados, accesibles para cada familia tica.",
+    "Por qué existe Lentes Pura Vida: lentes recetados hechos en EE.UU. a un precio justo para las familias de Costa Rica.",
   url: `${SITE_URL}/sobre-nosotros`,
   inLanguage: "es-CR",
   isPartOf: { "@id": `${SITE_URL}/#website` },
@@ -35,170 +27,77 @@ const aboutJsonLd: Record<string, unknown> = {
 ---
 
 <BaseLayout
-  title="Sobre Nosotros | Lentes Pura Vida — Lentes Recetados Costa Rica"
-  description="Hacemos accesibles los lentes recetados premium en Costa Rica: lentes desde $30 fabricados en EE.UU. por optómetras certificados. Conocé nuestra misión y por qué confiar en nosotros."
+  title="Sobre nosotros: lentes recetados a precio justo | Lentes Pura Vida"
+  description="Somos un negocio familiar que trae lentes recetados hechos en EE.UU. a Costa Rica a un precio justo. Conozca cómo trabajamos y por qué cuestan menos."
   canonical="/sobre-nosotros"
-  keywords="sobre Lentes Pura Vida, óptica online Costa Rica confiable, lentes recetados Costa Rica, misión Lentes Pura Vida"
-  imageAlt="Sobre Lentes Pura Vida — lentes recetados accesibles para cada familia tica"
+  imageAlt="Sobre Lentes Pura Vida"
   jsonLd={aboutJsonLd}
 >
-  <div class="catalogo-page about-page">
-    <Header />
-
-    <section class="about-hero">
-      <div class="about-hero-inner">
-        <span class="about-eyebrow">
-          <span class="about-eyebrow-dot" aria-hidden="true"></span>
-          Nuestra misión
-        </span>
-        <h1 class="about-title">
-          Lentes premium al alcance de <em>cada familia tica</em>.
-        </h1>
-        <p class="about-subtitle">
-          Ver bien no debería ser un lujo. Tomamos la precisión y calidad de la fabricación
-          óptica estadounidense y la traemos a Costa Rica a un precio justo — para que cada
-          familia pueda acceder a algo tan esencial como ver el mundo con claridad.
+  <Header current="nosotros" />
+  <main id="contenido">
+    <div class="wrap narrow">
+      <header class="page-head">
+        <h1>Ver bien no debería ser un lujo.</h1>
+        <p class="lead">
+          Traemos a Costa Rica la calidad de la fabricación óptica de Estados Unidos a un precio justo, para que
+          cada familia pueda tener algo tan básico como ver el mundo con claridad.
         </p>
-        <div class="about-hero-stats">
-          <div>
-            <strong>Desde $30</strong>
-            <span>por montura</span>
-          </div>
-          <div class="about-stat-divider" aria-hidden="true"></div>
-          <div>
-            <strong>EE.UU.</strong>
-            <span>laboratorio certificado</span>
-          </div>
-          <div class="about-stat-divider" aria-hidden="true"></div>
-          <div>
-            <strong>10–14</strong>
-            <span>días a tu casa</span>
-          </div>
+        <ul class="facts">
+          <li><strong>Desde $30</strong>por montura</li>
+          <li><strong>EE.UU.</strong>laboratorio certificado</li>
+          <li><strong>10–14</strong>días a su casa</li>
+        </ul>
+      </header>
+
+      <div class="prose">
+        <h2>En Costa Rica, ver bien sale demasiado caro</h2>
+        <p>
+          Un par de lentes recetados en una óptica local cuesta entre <strong>$110 y $250 o más</strong>. La diferencia
+          no está en la calidad de los lentes: está en el alquiler del local, en las marcas de moda y en los vendedores a
+          comisión. Y todo eso lo termina pagando usted.
+        </p>
+
+        <h2>Cómo lo hacemos</h2>
+        <p>
+          Trabajamos directo con un laboratorio óptico certificado en Estados Unidos, donde optómetras con licencia
+          profesional hacen cada par con su receta exacta. Sin intermediarios, sin marcas de lujo y sin paquetes
+          cerrados con costos sorpresa.
+        </p>
+        <ul>
+          <li><strong>Tienda 100% en línea.</strong> No tenemos local ni vendedores a comisión, y eso no se lo cobramos a usted.</li>
+          <li><strong>Cotización transparente.</strong> La montura tiene precio fijo. Los lentes se cotizan según su receta y los tratamientos que usted escoja, sin extras que no necesita.</li>
+          <li><strong>Atención directa.</strong> Un solo chat de WhatsApp para la receta, el color, la talla, el pago y el envío.</li>
+        </ul>
+
+        <h2>Quiénes somos</h2>
+        <!-- Pending Sebastian's OK: names and a real photo of the family go here. -->
+        <p>
+          Somos un negocio familiar. Cada cotización la hacemos nosotros mismos: revisamos su receta, le explicamos las
+          opciones en palabras sencillas y le acompañamos por WhatsApp hasta que sus lentes le queden bien.
+        </p>
+        <p>
+          Detrás de cada par hay una mamá que necesita ver el cuaderno de su hijo, un abuelo que vuelve a leer el
+          periódico, una estudiante que por fin toma apuntes sin entrecerrar los ojos. Por eso hacemos esto.
+        </p>
+
+        <div class="callout">
+          <p>
+            <strong>Lo que puede esperar de nosotros:</strong> optómetras certificados · pago seguro por SINPE,
+            transferencia o tarjeta · envío a todo CR con guía rastreable · garantía de fábrica, con reemplazo sin costo.
+          </p>
         </div>
       </div>
-    </section>
+    </div>
 
-    <section class="about-section about-section--cream">
-      <div class="about-section-inner">
-        <span class="about-section-eyebrow">El problema</span>
-        <h2 class="about-section-title">
-          En Costa Rica, ver bien sale <em>demasiado caro</em>.
-        </h2>
-        <p class="about-section-body">
-          Un par de lentes recetados en una óptica local cuesta entre <strong>$110 y $250+</strong> —
-          más que el aguinaldo de muchas familias. La diferencia no está en la calidad de los lentes;
-          está en el alquiler del consultorio, en las marcas de moda, en los costos que vos terminás
-          pagando.
-        </p>
-        <p class="about-section-body">
-          Decidimos que esto tenía que cambiar.
-        </p>
+    <section class="band" style="margin-top: var(--section)">
+      <div class="wrap">
+        <hr class="rule" />
+        <h2>Encuentre sus lentes</h2>
+        <p>{modelCount} modelos desde $30. Cotización transparente por WhatsApp.</p>
+        <QuoteButton variant="light" place="about-band" primary />
+        <p style="margin: 20px 0 0"><a href="/lentes" style="color: #fff">Ver los modelos</a></p>
       </div>
     </section>
-
-    <section class="about-section about-section--white">
-      <div class="about-section-inner">
-        <span class="about-section-eyebrow">Nuestra solución</span>
-        <h2 class="about-section-title">
-          Calidad estadounidense. <em>Precio costarricense.</em>
-        </h2>
-        <p class="about-section-body">
-          Trabajamos directo con un laboratorio óptico certificado en Estados Unidos, donde
-          optómetras con licencia profesional fabrican cada par de lentes con tu receta exacta.
-          Sin intermediarios, sin marcas de lujo, sin paquetes cerrados con costos sorpresa.
-        </p>
-        <p class="about-section-body">
-          <strong>Te pasamos la calidad — vos pagás solo lo que necesitás.</strong>
-        </p>
-
-        <div class="about-pillars">
-          <article class="about-pillar">
-            <span class="about-pillar-icon"><Icon name="lucide:globe" size={24} /></span>
-            <h3>Tienda 100% online</h3>
-            <p>
-              Operamos sin local físico. Eso elimina alquileres, vendedores comisionados y
-              costos de oficina que se transfieren al cliente.
-            </p>
-          </article>
-          <article class="about-pillar">
-            <span class="about-pillar-icon"><Icon name="lucide:badge-check" size={24} /></span>
-            <h3>Cotización transparente</h3>
-            <p>
-              La montura tiene precio fijo. Los lentes se cotizan según tu receta y los
-              tratamientos que elijás — sin imponer extras que no necesitás.
-            </p>
-          </article>
-          <article class="about-pillar">
-            <span class="about-pillar-icon"><Icon name="lucide:message-circle" size={24} /></span>
-            <h3>Atención directa</h3>
-            <p>
-              Un solo chat de WhatsApp donde resolvemos receta, color, talla, pago y envío.
-              Sin formularios, sin esperas, sin intermediarios.
-            </p>
-          </article>
-        </div>
-      </div>
-    </section>
-
-    <section class="about-section about-section--accent">
-      <div class="about-section-inner about-section-inner--narrow">
-        <span class="about-pillar-icon about-pillar-icon--big" aria-hidden="true">
-          <Icon name="lucide:heart" size={32} />
-        </span>
-        <span class="about-section-eyebrow">Lo que nos mueve</span>
-        <h2 class="about-section-title">Más que un negocio.</h2>
-        <p class="about-section-body about-section-body--lg">
-          Detrás de cada par de lentes hay una mamá que necesita ver el cuaderno de su hijo,
-          un abuelo que vuelve a leer el periódico, una estudiante universitaria que al fin
-          puede tomar apuntes sin entrecerrar los ojos.
-        </p>
-        <p class="about-section-body about-section-body--lg">
-          Esa es la razón. Hacer accesible lo esencial, sin sacrificar la calidad.
-        </p>
-      </div>
-    </section>
-
-    <section class="about-trust-strip">
-      <div class="about-trust-strip-inner">
-        <div class="about-trust-cell">
-          <Icon name="lucide:award" size={26} aria-hidden="true" />
-          <div><strong>Optómetras certificados</strong><span>Lic. profesional en EE.UU.</span></div>
-        </div>
-        <div class="about-trust-cell">
-          <Icon name="lucide:lock" size={26} aria-hidden="true" />
-          <div><strong>Pago seguro</strong><span>SINPE · Transferencia · Tarjeta</span></div>
-        </div>
-        <div class="about-trust-cell">
-          <Icon name="lucide:map-pin" size={26} aria-hidden="true" />
-          <div><strong>Envío a todo CR</strong><span>Guía rastreable</span></div>
-        </div>
-        <div class="about-trust-cell">
-          <Icon name="lucide:shield-check" size={26} aria-hidden="true" />
-          <div><strong>Garantía de fábrica</strong><span>Reemplazo sin costo</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="about-final">
-      <div class="about-final-inner">
-        <h2>¿Listo para encontrar <em>tus lentes</em>?</h2>
-        <p>{modelCount} modelos · Precios desde $30 · Cotización transparente por WhatsApp</p>
-        <div class="about-cta-row">
-          <a href="/#catalogo" class="about-cta-primary">Ver catálogo</a>
-          <a
-            href={WHATSAPP_LINK}
-            target="_blank"
-            rel="noopener noreferrer"
-            class="about-cta-secondary"
-          >
-            <Icon name="lucide:message-circle" size={16} aria-hidden="true" />
-            Escribinos por WhatsApp
-          </a>
-        </div>
-      </div>
-    </section>
-
-    <Footer />
-    <WhatsAppButton />
-  </div>
+  </main>
+  <Footer />
 </BaseLayout>

@@ -1,532 +1,355 @@
 ---
 import { Icon } from "astro-icon/components";
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
-import logo from "@/assets/logo.png";
-import { WHATSAPP_NUMBER } from "@/lib/contact";
-import {
-  getSwatch,
-  products,
-  type Product,
-} from "@/data/products";
+import Photo from "@/components/Photo.astro";
+import ProductCard from "@/components/ProductCard.astro";
+import QuoteButton from "@/components/QuoteButton.astro";
+import { getSwatch, type Product } from "@/data/products";
 import { SITE_URL } from "@/lib/seo";
-import {
-  photographedColors,
-  primaryThumb,
-  scanFramePhotos,
-  type ColorPhotos,
-} from "@/lib/photos";
-import "@/styles/catalogo.css";
-import "@/styles/november.css";
+import { isProductView, photographedColors, primaryThumb, scanFramePhotos, type View } from "@/lib/photos";
+import { categoryLabel, visibleProducts, CATEGORIES } from "@/lib/catalog";
+import { shareJpeg } from "@/lib/images";
+import { getImage } from "astro:assets";
 
 export async function getStaticPaths() {
-  const { scanFramePhotos } = await import("@/lib/photos");
-  const { products } = await import("@/data/products");
-  const framePhotos = scanFramePhotos();
-  // Only generate product pages for frames that have Sebastian's photos.
-  return products
-    .filter((p) => framePhotos[p.name]?.colors.length)
-    .map((p) => ({
-      params: { slug: p.slug },
-      props: { product: p },
-    }));
+  const { visibleProducts } = await import("@/lib/catalog");
+  return visibleProducts.map((p) => ({ params: { slug: p.slug }, props: { product: p } }));
 }
 
 const { product } = Astro.props as { product: Product };
-const framePhotos = scanFramePhotos();
-const frame = framePhotos[product.name];
+const frame = scanFramePhotos()[product.name];
+const colors = photographedColors(frame);
+const firstColor = colors[0]?.spanish ?? "";
 
-const buildWaLink = (msg: string) =>
-  `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
-
-const buildProductJsonLd = (
-  p: Product,
-  imageUrl: string,
-): Record<string, unknown>[] => {
-  const url = `${SITE_URL}/lentes/${p.slug}`;
-  return [
-    {
-      "@context": "https://schema.org",
-      "@type": "Product",
-      "@id": `${url}#product`,
-      name: `Lentes ${p.name} — Lentes Recetados`,
-      description: `${p.desc} Material: ${p.material}. Forma: ${p.shape}. ${p.rim}. Colores disponibles: ${p.colors.join(", ")}.`,
-      sku: p.slug,
-      url,
-      image: [imageUrl.startsWith("http") ? imageUrl : `${SITE_URL}${imageUrl}`],
-      brand: { "@type": "Brand", name: "Lentes Pura Vida" },
-      category: "Eyewear / Prescription Glasses Frames",
-      material: p.material,
-      audience: p.kids
-        ? { "@type": "PeopleAudience", suggestedMinAge: 5, suggestedMaxAge: 14 }
-        : { "@type": "PeopleAudience", audienceType: p.gender },
-      color: p.colors.join(", "),
-      offers: {
-        "@type": "Offer",
-        url,
-        priceCurrency: "USD",
-        price: p.framePrice.toFixed(2),
-        priceValidUntil: `${new Date().getFullYear() + 1}-12-31`,
-        availability: "https://schema.org/InStock",
-        itemCondition: "https://schema.org/NewCondition",
-        seller: { "@id": `${SITE_URL}/#business` },
-        areaServed: { "@type": "Country", name: "Costa Rica" },
-        eligibleRegion: { "@type": "Country", name: "Costa Rica" },
-        shippingDetails: {
-          "@type": "OfferShippingDetails",
-          shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "USD" },
-          shippingDestination: { "@type": "DefinedRegion", addressCountry: "CR" },
-          deliveryTime: {
-            "@type": "ShippingDeliveryTime",
-            handlingTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 2, unitCode: "DAY" },
-            transitTime: { "@type": "QuantitativeValue", minValue: 10, maxValue: 14, unitCode: "DAY" },
-          },
-        },
-      },
-      ...(p.rating
-        ? {
-            aggregateRating: {
-              "@type": "AggregateRating",
-              ratingValue: p.rating.score.toFixed(2),
-              reviewCount: p.rating.count,
-              bestRating: 5,
-              worstRating: 1,
-            },
-          }
-        : {}),
-    },
-    {
-      "@context": "https://schema.org",
-      "@type": "BreadcrumbList",
-      itemListElement: [
-        { "@type": "ListItem", position: 1, name: "Inicio", item: `${SITE_URL}/` },
-        { "@type": "ListItem", position: 2, name: "Catálogo", item: `${SITE_URL}/#catalogo` },
-        { "@type": "ListItem", position: 3, name: p.name, item: url },
-      ],
-    },
-  ];
+// Gallery order: front, on a woman, on a man, side, top.
+const ORDER: View[] = ["front", "onWoman", "onMan", "side", "top"];
+const VIEW_LABEL: Record<View, string> = {
+  front: "de frente",
+  onWoman: "puestos en una mujer",
+  onMan: "puestos en un hombre",
+  side: "de lado",
+  top: "desde arriba",
 };
 
 const savings = product.comparePrice - product.framePrice;
-const primarySize =
-  product.sizes.find((s) => s.label === product.primarySize) ?? product.sizes[0];
-const sizesLabel = product.sizes.map((s) => s.label).join(" · ");
-const ratingDisplay = product.rating
-  ? {
-      score: product.rating.score.toFixed(product.rating.score % 1 === 0 ? 0 : 2),
-      count: product.rating.count.toLocaleString("es-CR"),
-    }
-  : null;
-
+const cat = categoryLabel(product);
+const mainCatId = product.kids ? "ninos" : product.gender === "Mujer" ? "mujer" : "unisex";
+const mainCat = CATEGORIES.find((c) => c.id === mainCatId)!;
 const materialLabel = product.material.toLowerCase().replace(/^mixto \((.*)\)$/, "$1");
-const seoTitle = `Lentes ${product.name} de ${materialLabel} desde $${product.framePrice} | Lentes Pura Vida Costa Rica`;
-const seoDescription = `${product.desc} Lentes ${product.name} desde $${product.framePrice} (solo montura) con envío a toda Costa Rica. Lentes graduados cotizados según tu receta por WhatsApp. Hecho en EE.UU. por optómetras certificados.`;
-const seoImage = primaryThumb(frame) ?? "/favicon.png";
-const productJsonLd = buildProductJsonLd(product, seoImage);
 
-// Source of truth for the swatch UI: only colors we actually photographed.
-// This intentionally ignores products.ts.colors[] because that list can drift
-// (products.ts said November had 6 colors, but only 4 folders exist on disk).
-const shotColors = photographedColors(frame);
-const initialColor = shotColors[0]?.spanish ?? "";
-const initialPhotos: ColorPhotos | null = frame?.colors[0] ?? null;
+const thumb = primaryThumb(frame);
+const shareImage = thumb ? await shareJpeg(thumb) : "/og-image.png";
+const stickyThumb = thumb ? (await getImage({ src: thumb, width: 112, format: "webp" })).src : undefined;
 
-// Per-color photo map used by the client script when a swatch is clicked.
-// Keyed by the Spanish label (matches what the swatch button emits on click).
-const colorPhotoMap: Record<string, ColorPhotos["photos"]> = {};
-for (const c of shotColors) {
-  colorPhotoMap[c.spanish] = c.photos;
-}
+const related = visibleProducts
+  .filter((p) => p.slug !== product.slug)
+  .sort((a, b) => Number(b.shape === product.shape) - Number(a.shape === product.shape))
+  .slice(0, 4);
 
-const heroImageSrc =
-  initialPhotos?.photos.front ?? initialPhotos?.photos.side ?? "";
-const thumbSideSrc = initialPhotos?.photos.side ?? heroImageSrc;
-const thumbTopSrc = initialPhotos?.photos.top ?? heroImageSrc;
+const seoTitle = `Lentes ${product.name} de ${materialLabel}, $${product.framePrice} | Lentes Pura Vida`;
+const seoDescription = `Lentes ${product.name}, ${product.shape.toLowerCase()} de ${materialLabel}: $${product.framePrice} la montura, envío a toda Costa Rica. Cotice sus lentes graduados por WhatsApp.`;
 
-const waOrderInitial = buildWaLink(
-  `Hola 👋 Quiero cotizar el modelo *${product.name}* en color "${initialColor}". Adjunto mi receta para que me pasen el precio total.`,
-);
-const waRx = buildWaLink(
-  `Hola 👋 Quiero enviarles mi receta para cotizar el modelo *${product.name}*.`,
-);
+const url = `${SITE_URL}/lentes/${product.slug}`;
+const productJsonLd: Record<string, unknown>[] = [
+  {
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "@id": `${url}#product`,
+    name: `Lentes ${product.name}`,
+    description: `${product.desc} Material: ${product.material}. Forma: ${product.shape}. ${product.rim}. Colores: ${colors.map((c) => c.spanish).join(", ")}.`,
+    sku: product.slug,
+    url,
+    image: [`${SITE_URL}${shareImage}`],
+    brand: { "@type": "Brand", name: "Lentes Pura Vida" },
+    category: "Eyewear / Prescription Glasses Frames",
+    material: product.material,
+    audience: product.kids
+      ? { "@type": "PeopleAudience", suggestedMinAge: 5, suggestedMaxAge: 14 }
+      : { "@type": "PeopleAudience", audienceType: product.gender },
+    color: colors.map((c) => c.spanish).join(", "),
+    offers: {
+      "@type": "Offer",
+      url,
+      priceCurrency: "USD",
+      price: product.framePrice.toFixed(2),
+      priceValidUntil: `${new Date().getFullYear() + 1}-12-31`,
+      availability: "https://schema.org/InStock",
+      itemCondition: "https://schema.org/NewCondition",
+      seller: { "@id": `${SITE_URL}/#business` },
+      areaServed: { "@type": "Country", name: "Costa Rica" },
+      eligibleRegion: { "@type": "Country", name: "Costa Rica" },
+      shippingDetails: {
+        "@type": "OfferShippingDetails",
+        shippingRate: { "@type": "MonetaryAmount", value: "0", currency: "USD" },
+        shippingDestination: { "@type": "DefinedRegion", addressCountry: "CR" },
+        deliveryTime: {
+          "@type": "ShippingDeliveryTime",
+          handlingTime: { "@type": "QuantitativeValue", minValue: 1, maxValue: 2, unitCode: "DAY" },
+          transitTime: { "@type": "QuantitativeValue", minValue: 10, maxValue: 14, unitCode: "DAY" },
+        },
+      },
+    },
+    ...(product.rating
+      ? {
+          aggregateRating: {
+            "@type": "AggregateRating",
+            ratingValue: product.rating.score.toFixed(2),
+            reviewCount: product.rating.count,
+            bestRating: 5,
+            worstRating: 1,
+          },
+        }
+      : {}),
+  },
+  {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      { "@type": "ListItem", position: 1, name: "Inicio", item: `${SITE_URL}/` },
+      { "@type": "ListItem", position: 2, name: "Lentes", item: `${SITE_URL}/lentes` },
+      { "@type": "ListItem", position: 3, name: mainCat.label, item: `${SITE_URL}${mainCat.path}` },
+      { "@type": "ListItem", position: 4, name: product.name, item: url },
+    ],
+  },
+];
 ---
 
 <BaseLayout
   title={seoTitle}
   description={seoDescription}
   canonical={`/lentes/${product.slug}`}
-  image={seoImage}
-  imageAlt={`Lentes recetados ${product.name} — ${product.alt}`}
+  image={shareImage}
+  imageAlt={`Lentes ${product.name}, ${product.alt.toLowerCase()}`}
   ogType="product"
-  keywords={`lentes ${product.name}, montura ${product.name}, lentes ${product.material.toLowerCase()} ${product.shape.toLowerCase()}, lentes recetados Costa Rica, anteojos graduados Costa Rica`}
+  keywords={`lentes ${product.name}, montura ${product.name}, lentes ${materialLabel} ${product.shape.toLowerCase()}, lentes recetados Costa Rica`}
   jsonLd={productJsonLd}
+  sticky={{ name: product.name, price: product.framePrice, thumb: stickyThumb, frame: product.name }}
 >
-  <div class="nov-page">
-    <nav class="nov-nav" aria-label="Navegación">
-      <a href="/" class="nov-nav-back" aria-label="Volver al catálogo">
-        <Icon name="lucide:arrow-left" size={16} aria-hidden="true" />
-        <span>Volver al catálogo</span>
-      </a>
-      <a href="/" class="nov-nav-brand" aria-label="Lentes Pura Vida — inicio">
-        <img src={logo.src} alt="" />
-        <span class="nov-nav-wordmark">Lentes <em>Pura Vida</em></span>
-      </a>
-      <a
-        class="nov-nav-cta"
-        href={waOrderInitial}
-        target="_blank"
-        rel="noopener noreferrer"
-        data-wa-order
-      >
-        <Icon name="lucide:message-circle" size={15} aria-hidden="true" />
-        <span>WhatsApp</span>
-      </a>
-    </nav>
+  <Header current="lentes" />
 
-    <section class="nov-hero" data-hero>
-      <div class="nov-hero-grid">
-        <div class="nov-gallery" data-reveal>
-          <div class="nov-gallery-main">
-            <span class="nov-badge-premium">
-              <span class="nov-badge-dot"></span> Hecho en EE.UU.
-            </span>
-            <img
-              src={heroImageSrc}
-              alt={product.alt}
-              loading="eager"
-              data-gallery-hero
-            />
-            <div class="nov-gallery-glow" aria-hidden="true"></div>
-          </div>
-          <div class="nov-thumbs" role="list">
-            {[
-              { src: heroImageSrc, view: "front", label: "Vista frontal" },
-              { src: thumbSideSrc, view: "side", label: "Vista lateral" },
-              { src: thumbTopSrc, view: "top", label: "Vista superior" },
-            ].map((t, i) => (
-              <button
-                type="button"
-                class={`nov-thumb ${i === 0 ? "is-active" : ""}`}
-                role="listitem"
-                aria-label={t.label}
-                data-thumb-view={t.view}
-              >
-                <img src={t.src} alt="" data-gallery-thumb={t.view} />
-              </button>
-            ))}
-          </div>
+  <main id="contenido">
+    <div class="wrap">
+      <nav class="crumbs" aria-label="Ruta">
+        <ol>
+          <li><a href="/lentes">Lentes</a></li>
+          <li><a href={mainCat.path}>{mainCat.label}</a></li>
+          <li aria-current="page">{product.name}</li>
+        </ol>
+      </nav>
+
+      <div class="pdp">
+        <div class="pdp-media">
+          {colors.map((c, ci) => {
+            const views = ORDER.filter((v) => c.photos[v]);
+            return (
+              <div class="gallery" data-gallery={c.spanish} hidden={ci !== 0}>
+                <span class="made-badge">Hecho en EE.UU.</span>
+                <div class="gallery-track" data-track tabindex="0" aria-label={`Fotos de los lentes ${product.name} en color ${c.spanish}`}>
+                  {views.map((v, vi) => (
+                    <div class="gallery-slide" data-slide={vi}>
+                      <Photo
+                        img={c.photos[v]!}
+                        alt={`Lentes ${product.name} color ${c.spanish.toLowerCase()}, ${VIEW_LABEL[v]}`}
+                        kind={isProductView(v) ? "product" : "person"}
+                        ratio="4 / 3"
+                        sizes="(min-width: 1024px) 680px, 100vw"
+                        widths={[400, 640, 960]}
+                        eager={ci === 0 && vi === 0}
+                      />
+                    </div>
+                  ))}
+                </div>
+                {views.length > 1 && (
+                  <div class="thumbs" role="group" aria-label="Escoger foto">
+                    {views.map((v, vi) => (
+                      <button type="button" class="thumb" data-go={vi} aria-current={vi === 0 ? "true" : "false"} aria-label={`Ver ${VIEW_LABEL[v]}`}>
+                        <Photo img={c.photos[v]!} alt="" kind={isProductView(v) ? "product" : "person"} ratio="1 / 1" sizes="84px" widths={[96, 168]} />
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        <div class="nov-info nv2-info" data-reveal>
-          <span class="nv2-breadcrumb">Catálogo · {product.gender}</span>
+        <div class="pdp-info">
+          <p class="pdp-kicker">{cat} · {product.material} · {product.shape}</p>
+          <h1>{product.name}</h1>
 
-          <h1 class="nv2-title">{product.name}</h1>
-          <p class="nv2-subtitle">{product.desc}</p>
-
-          <div class="nv2-price">
-            <div class="nv2-price-row">
-              <span class="nv2-price-amount">${product.framePrice}</span>
-              <span class="nv2-price-currency">USD</span>
-              <span class="nv2-price-tag">solo montura</span>
-            </div>
-            <p class="nv2-price-savings">
-              Óptica local <s>${product.comparePrice}+</s> · ahorrás <strong>${savings}</strong>
-            </p>
-            <p class="nv2-price-note">
-              Lentes graduados cotizados por WhatsApp según tu receta. Sin paquetes cerrados.
-            </p>
+          <div class="price">
+            <span class="price-amount">${product.framePrice}</span>
+            <span class="price-note">solo montura</span>
           </div>
+          <p class="price-compare">
+            En una óptica local, desde <s>${product.comparePrice}</s>. Usted ahorra <strong>${savings}</strong>.
+          </p>
 
-          <div class="nv2-color-section">
-            <div class="nv2-color-header">
-              <span class="nv2-color-label">Color</span>
-              <span class="nv2-color-active" data-color-active>{initialColor}</span>
-            </div>
-            <div
-              class="nov-color-swatches"
-              role="radiogroup"
-              aria-label="Color de los lentes"
-              data-color-swatches
-            >
-              {shotColors.map((c, i) => {
-                const sw = getSwatch(c.spanish);
-                const isActive = i === 0;
-                return (
+          {colors.length > 0 && (
+            <div class="colors">
+              <p class="colors-label" id="color-label">Color: <span data-color-name>{firstColor}</span></p>
+              <div class="swatches" role="radiogroup" aria-labelledby="color-label">
+                {colors.map((c, i) => (
                   <button
                     type="button"
                     role="radio"
-                    aria-checked={isActive ? "true" : "false"}
+                    class="swatch"
+                    aria-checked={i === 0 ? "true" : "false"}
                     aria-label={c.spanish}
                     title={c.spanish}
-                    class={`nov-swatch ${isActive ? "is-active" : ""}`}
-                    data-color-name={c.spanish}
-                    style={`--sw-bg: ${sw.bg}; --sw-ring: ${sw.ring ?? "transparent"};`}
-                  >
-                    <span class="nov-swatch-fill"></span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <div class="nv2-cta-row">
-            <a
-              class="nv2-cta-primary"
-              href={waOrderInitial}
-              target="_blank"
-              rel="noopener noreferrer"
-              data-wa-order
-            >
-              <Icon name="lucide:message-circle" size={18} aria-hidden="true" />
-              <span>Cotizar por WhatsApp</span>
-            </a>
-            <a
-              class="nv2-cta-text"
-              href={waRx}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              Enviar mi receta →
-            </a>
-          </div>
-
-          <p class="nv2-trust-line">
-            <Icon name="lucide:lock" size={12} aria-hidden="true" />
-            <span>Pago seguro · SINPE · Transferencia · Tarjeta</span>
-          </p>
-        </div>
-      </div>
-    </section>
-
-    <section class="nv2-details" data-reveal>
-      <div class="nv2-details-inner">
-        <div class="nv2-details-col">
-          <span class="nv2-details-kicker">Lo que recibís</span>
-          <ul class="nv2-details-list">
-            <li>
-              <strong>Lentes {product.name}</strong>
-              <span>{product.material} en el color que elijas. Construcción ligera para uso diario.</span>
-            </li>
-            <li>
-              <strong>Cotización transparente</strong>
-              <span>Lentes graduados con tu receta exacta. Te pasamos el precio antes de fabricar.</span>
-            </li>
-            <li>
-              <strong>Tratamientos a elección</strong>
-              <span>Antirreflejo, filtro azul, fotosensibles, protección UV — vos elegís qué incluir.</span>
-            </li>
-            <li>
-              <strong>Envío y garantía</strong>
-              <span>Estuche + paño incluidos. 10–14 días a toda Costa Rica. Garantía de fábrica.</span>
-            </li>
-          </ul>
-        </div>
-
-        <div class="nv2-details-col">
-          <span class="nv2-details-kicker">Ficha técnica</span>
-          <dl class="nv2-details-specs">
-            <div><dt>Material</dt><dd>{product.material}</dd></div>
-            <div><dt>Forma</dt><dd>{product.shape}</dd></div>
-            <div><dt>Aro</dt><dd>{product.rim}</dd></div>
-            {primarySize && (
-              <div>
-                <dt>Talla</dt>
-                <dd>{primarySize.label} · {primarySize.lens}-{primarySize.bridge}-{primarySize.temple} mm</dd>
+                    tabindex={i === 0 ? 0 : -1}
+                    data-swatch={c.spanish}
+                    style={`--sw: ${getSwatch(c.spanish).bg}`}
+                  ></button>
+                ))}
               </div>
-            )}
-            {product.weight !== null && (
-              <div><dt>Peso</dt><dd>~{product.weight} g</dd></div>
-            )}
-            <div><dt>Lentes</dt><dd>Mono · Bi · Progresivo · Filtro azul</dd></div>
-          </dl>
-
-          {primarySize && (
-            <details class="nv2-size-help">
-              <summary>Cómo elegir tu talla</summary>
-              <p>
-                Mirá tus lentes actuales por dentro de la patilla — vienen 3 números.
-                Comparalos con <strong>{primarySize.lens}-{primarySize.bridge}-{primarySize.temple} mm</strong>.
-                Si están dentro de ±2 mm, te quedan. ¿Dudas? Mandanos foto por WhatsApp.
-              </p>
-            </details>
+            </div>
           )}
+
+          <QuoteButton frame={product.name} color={firstColor} place="product" block primary />
+          <p class="pdp-cta-note">Le enviamos el precio total con lentes para su receta. Sin compromiso.</p>
+          <p class="pdp-norx"><a class="link" href="/como-funciona#receta">¿No tiene receta? Le explicamos cómo hacer</a></p>
+          <p class="pdp-desc">{product.desc}</p>
+
+          <div class="includes">
+            <h2>Su cotización incluye</h2>
+            <ul>
+              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Lentes graduados hechos con su receta exacta</li>
+              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Tratamiento anti-rayones y protección UV</li>
+              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Estuche y paño</li>
+              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Envío a su casa, en todo el país</li>
+              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Ayuda por WhatsApp antes y después del pedido</li>
+            </ul>
+            <p class="small">Antirreflejo, filtro de luz azul y fotocromáticos, si los quiere, se cotizan aparte. <a class="link" href="/lentes-y-tratamientos">¿Qué es cada uno?</a></p>
+          </div>
+
+          <div class="folds faq">
+            {product.sizes.length > 0 && (
+              <details class="faq-item">
+                <summary>Medidas</summary>
+                <div>
+                  <div class="measure">
+                    <svg width="120" height="44" viewBox="0 0 120 44" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="8" width="46" height="30" rx="10"/><rect x="70" y="8" width="46" height="30" rx="10"/><path d="M50 16c4-4 16-4 20 0"/></g><g stroke="#8a6a1f" stroke-width="1.5"><path d="M4 4h46M50 4h20"/></g></svg>
+                    <span class="small">Ancho del lente · puente · patilla, en mm</span>
+                  </div>
+                  <dl class="specs">
+                    {product.sizes.map((s) => (
+                      <>
+                        <dt>Talla {s.label}</dt>
+                        <dd>{s.lens}-{s.bridge}-{s.temple} mm</dd>
+                      </>
+                    ))}
+                  </dl>
+                  <p class="small" style="margin: 12px 0 0">
+                    Compare con los tres números por dentro de la patilla de sus lentes actuales. Si están a 2 mm o menos,
+                    le va a quedar parecido. Si tiene dudas, mándenos una foto por WhatsApp.
+                  </p>
+                </div>
+              </details>
+            )}
+            <details class="faq-item">
+              <summary>Material y detalles</summary>
+              <div>
+                <dl class="specs">
+                  <dt>Material</dt><dd>{product.material}</dd>
+                  <dt>Forma</dt><dd>{product.shape}</dd>
+                  <dt>Aro</dt><dd>{product.rim}</dd>
+                  {product.weight !== null && (<><dt>Peso</dt><dd>Unos {product.weight} g</dd></>)}
+                  {product.features.length > 0 && (<><dt>Detalles</dt><dd>{product.features.join(", ")}</dd></>)}
+                  <dt>Lentes</dt><dd>Monofocales, bifocales o progresivos</dd>
+                </dl>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Cómo funciona</summary>
+              <div>
+                <p>1. Toque “Cotizar por WhatsApp”. El mensaje ya lleva el modelo y el color.</p>
+                <p>2. Mándenos una foto de su receta. Le enviamos el precio total el mismo día.</p>
+                <p style="margin: 0">3. Cuando usted confirma y paga, hacemos el pedido y se lo enviamos a la casa.</p>
+              </div>
+            </details>
+            <details class="faq-item">
+              <summary>Envío y garantía</summary>
+              <div>
+                <p>Envío a todo CR · Guía rastreable. Llega en 10–14 días hábiles.</p>
+                <p>Envío gratis en pedidos de $300 o más.</p>
+                <p>Garantía de fábrica: si llegan con un defecto, se los reemplazamos sin costo.</p>
+                <p style="margin: 0">Pago seguro: SINPE · Transferencia · Tarjeta. <a class="link" href="/envios-y-garantia">Más detalles</a></p>
+              </div>
+            </details>
+          </div>
         </div>
       </div>
-    </section>
-
-    <section class="nov-trust-strip" data-reveal>
-      <div class="nov-trust-strip-inner">
-        <div class="nov-trust-cell">
-          <Icon name="lucide:award" size={26} aria-hidden="true" />
-          <div><strong>Optómetras certificados</strong><span>Lic. profesional en EE.UU.</span></div>
-        </div>
-        <div class="nov-trust-cell">
-          <Icon name="lucide:lock" size={26} aria-hidden="true" />
-          <div><strong>Pago seguro</strong><span>SINPE · Transferencia · Tarjeta</span></div>
-        </div>
-        <div class="nov-trust-cell">
-          <Icon name="lucide:map-pin" size={26} aria-hidden="true" />
-          <div><strong>Envío a todo CR</strong><span>Guía rastreable</span></div>
-        </div>
-        <div class="nov-trust-cell">
-          <Icon name="lucide:shield-check" size={26} aria-hidden="true" />
-          <div><strong>Garantía de fábrica</strong><span>Reemplazo sin costo</span></div>
-        </div>
-      </div>
-    </section>
-
-    <section class="nov-final" data-reveal>
-      <div class="nov-final-inner">
-        <h2>Cotizá tu <em>{product.name}</em> en minutos</h2>
-        <p>Mandanos tu receta por WhatsApp y te pasamos el precio total con tus lentes incluidos — sin compromiso, sin costos sorpresa.</p>
-        <div class="nov-cta-row nov-cta-row--center">
-          <a
-            class="nov-cta-primary"
-            href={waOrderInitial}
-            target="_blank"
-            rel="noopener noreferrer"
-            data-wa-order
-          >
-            <Icon name="lucide:message-circle" size={18} aria-hidden="true" />
-            <span>Cotizar por WhatsApp · montura ${product.framePrice}</span>
-          </a>
-          <a class="nov-cta-secondary nov-cta-secondary--light" href="/">
-            Ver más modelos
-          </a>
-        </div>
-        <div class="nov-final-trust">
-          <Icon name="lucide:lock" size={14} aria-hidden="true" />
-          <span>Pago seguro · sin cobros automáticos · respaldo en tu chat de WhatsApp</span>
-        </div>
-      </div>
-    </section>
-
-    <Footer />
-
-    <div class="nov-sticky-cta" aria-hidden="true" data-sticky-cta>
-      <div class="nov-sticky-info">
-        <span class="nov-sticky-name">{product.name} · solo montura</span>
-        <span class="nov-sticky-price">${product.framePrice}</span>
-      </div>
-      <a
-        class="nov-cta-primary nov-cta-primary--small"
-        href={waOrderInitial}
-        target="_blank"
-        rel="noopener noreferrer"
-        data-wa-order
-      >
-        <Icon name="lucide:message-circle" size={14} aria-hidden="true" />
-        <span>Cotizar</span>
-      </a>
     </div>
-  </div>
+
+    <section class="section section--cream" aria-labelledby="h-related">
+      <div class="wrap">
+        <div class="section-head section-head--row">
+          <h2 id="h-related">También le pueden gustar</h2>
+          <a class="link" href={mainCat.path}>Ver más modelos</a>
+        </div>
+        <div class="rail">
+          {related.map((p) => <ProductCard product={p} sizes="(min-width: 1280px) 290px, (min-width: 768px) 30vw, 68vw" />)}
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <Footer />
 </BaseLayout>
 
-<script
-  is:inline
-  define:vars={{
-    productName: product.name,
-    waNumber: WHATSAPP_NUMBER,
-    colorPhotos: colorPhotoMap,
-  }}
->
-  // Product-page interactions:
-  //   1. Color swatch selection updates the active label + WhatsApp deep links + gallery photos.
-  //   2. Sticky mobile CTA appears once the hero has scrolled out of view.
-  //   3. IntersectionObserver reveals for [data-reveal] elements.
-
-  (function () {
-    const swatchContainer = document.querySelector("[data-color-swatches]");
-    const colorActive = document.querySelector("[data-color-active]");
-    const waOrderLinks = document.querySelectorAll("[data-wa-order]");
-
-    const buildWaOrderUrl = (color) =>
-      `https://wa.me/${waNumber}?text=` +
-      encodeURIComponent(
-        `Hola 👋 Quiero cotizar el modelo *${productName}* en color "${color}". Adjunto mi receta para que me pasen el precio total.`,
-      );
-
-    const heroImg = document.querySelector("[data-gallery-hero]");
-    const thumbs = document.querySelectorAll("[data-gallery-thumb]");
-    const thumbButtons = document.querySelectorAll("[data-thumb-view]");
-
-    // Swap the whole gallery to a given color's photos.
-    const renderColor = (color) => {
-      const photos = colorPhotos?.[color];
-      if (!photos) return;
-      const frontUrl = photos.front || photos.side || photos.top;
-      if (heroImg && frontUrl) heroImg.setAttribute("src", frontUrl);
-      thumbs.forEach((img) => {
-        const view = img.getAttribute("data-gallery-thumb");
-        const url = photos[view] || frontUrl;
-        if (url) img.setAttribute("src", url);
-      });
-      // Reset the active thumb to Front on color change.
-      thumbButtons.forEach((btn) => {
-        const isFront = btn.getAttribute("data-thumb-view") === "front";
-        btn.classList.toggle("is-active", isFront);
-      });
-    };
-
-    // Clicking a thumbnail promotes its view to the hero image.
-    thumbButtons.forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const view = btn.getAttribute("data-thumb-view");
-        const img = btn.querySelector("img");
-        const src = img?.getAttribute("src");
-        if (src && heroImg) heroImg.setAttribute("src", src);
-        thumbButtons.forEach((b) => b.classList.toggle("is-active", b === btn));
-      });
+<script>
+  // Color picker: shows that color's gallery and updates the quote message.
+  const swatches = document.querySelectorAll<HTMLButtonElement>("[data-swatch]");
+  const nameEl = document.querySelector("[data-color-name]");
+  const pick = (btn: HTMLButtonElement, focus = false) => {
+    const color = btn.dataset.swatch!;
+    swatches.forEach((s) => {
+      const on = s === btn;
+      s.setAttribute("aria-checked", String(on));
+      s.tabIndex = on ? 0 : -1;
     });
+    if (focus) btn.focus();
+    if (nameEl) nameEl.textContent = color;
+    document.querySelectorAll<HTMLElement>("[data-gallery]").forEach((g) => (g.hidden = g.dataset.gallery !== color));
+    document.querySelectorAll<HTMLAnchorElement>("a[data-wa][data-frame]").forEach((a) => {
+      const frame = a.dataset.frame;
+      a.dataset.color = color;
+      a.dataset.msg = `Hola, me interesan los lentes ${frame} en color ${color}. ¿Me ayudan a cotizarlos?`;
+      const base = a.href.split("?")[0];
+      a.href = `${base}?text=${encodeURIComponent(a.dataset.msg)}`;
+    });
+  };
+  swatches.forEach((btn, i) => {
+    btn.addEventListener("click", () => pick(btn));
+    btn.addEventListener("keydown", (e) => {
+      const d = e.key === "ArrowRight" || e.key === "ArrowDown" ? 1 : e.key === "ArrowLeft" || e.key === "ArrowUp" ? -1 : 0;
+      if (!d) return;
+      e.preventDefault();
+      pick(swatches[(i + d + swatches.length) % swatches.length], true);
+    });
+  });
 
-    if (swatchContainer) {
-      swatchContainer.querySelectorAll(".nov-swatch").forEach((btn) => {
-        btn.addEventListener("click", () => {
-          const color = btn.getAttribute("data-color-name");
-          if (!color) return;
-          swatchContainer.querySelectorAll(".nov-swatch").forEach((el) => {
-            const active = el === btn;
-            el.classList.toggle("is-active", active);
-            el.setAttribute("aria-checked", active ? "true" : "false");
-          });
-          if (colorActive) colorActive.textContent = color;
-          const url = buildWaOrderUrl(color);
-          waOrderLinks.forEach((a) => a.setAttribute("href", url));
-          renderColor(color);
-        });
+  // Gallery: thumbnails scroll the track; swiping updates the active thumbnail.
+  document.querySelectorAll<HTMLElement>("[data-gallery]").forEach((g) => {
+    const track = g.querySelector<HTMLElement>("[data-track]");
+    const thumbs = g.querySelectorAll<HTMLButtonElement>("[data-go]");
+    if (!track) return;
+    thumbs.forEach((t) =>
+      t.addEventListener("click", () => {
+        const i = Number(t.dataset.go);
+        track.scrollTo({ left: i * track.clientWidth, behavior: "smooth" });
+      }),
+    );
+    let raf = 0;
+    track.addEventListener("scroll", () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const i = Math.round(track.scrollLeft / track.clientWidth);
+        thumbs.forEach((t) => t.setAttribute("aria-current", String(Number(t.dataset.go) === i)));
       });
-    }
-
-    const hero = document.querySelector("[data-hero]");
-    const sticky = document.querySelector("[data-sticky-cta]");
-    if (hero && sticky) {
-      const io = new IntersectionObserver(
-        ([entry]) => {
-          const visible = !entry.isIntersecting && entry.boundingClientRect.top < 0;
-          sticky.classList.toggle("is-visible", visible);
-          sticky.setAttribute("aria-hidden", visible ? "false" : "true");
-        },
-        { threshold: 0, rootMargin: "0px" },
-      );
-      io.observe(hero);
-    }
-
-    const revealEls = document.querySelectorAll("[data-reveal]");
-    if (!("IntersectionObserver" in window) || revealEls.length === 0) {
-      revealEls.forEach((el) => el.classList.add("is-visible"));
-    } else {
-      const revealIo = new IntersectionObserver(
-        (entries) => {
-          entries.forEach((e) => {
-            if (e.isIntersecting) {
-              e.target.classList.add("is-visible");
-              revealIo.unobserve(e.target);
-            }
-          });
-        },
-        { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
-      );
-      revealEls.forEach((el) => revealIo.observe(el));
-    }
-  })();
+    }, { passive: true });
+  });
 </script>

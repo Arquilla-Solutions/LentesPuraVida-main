@@ -1,165 +1,95 @@
 ---
 import { Icon } from "astro-icon/components";
-import logo from "@/assets/logo.png";
-import { WHATSAPP_LINK } from "@/lib/contact";
+import QuoteButton from "./QuoteButton.astro";
 
-interface MarqueeItem {
-  icon: string;
-  text: string;
+interface Props {
+  /** Current section, for aria-current. */
+  current?: "lentes" | "como-funciona" | "tratamientos" | "nosotros";
 }
+const { current } = Astro.props;
 
-const MARQUEE_ITEMS: MarqueeItem[] = [
-  { icon: "lucide:truck", text: "Envío GRATIS en pedidos de $300 o más" },
-  { icon: "lucide:package", text: "Entrega de 10 a 14 días a toda Costa Rica" },
-  { icon: "lucide:award", text: "Hechos en EE.UU. por optómetras certificados" },
-  { icon: "lucide:message-circle", text: "Cotización transparente por WhatsApp" },
-  { icon: "lucide:shield-check", text: "Garantía de fábrica incluida" },
-];
-
-interface NavLink {
-  href: string;
-  label: string;
-}
-
-const NAV_LINKS: NavLink[] = [
-  { href: "/", label: "Inicio" },
-  { href: "/#catalogo", label: "Catálogo" },
-  { href: "/#como-funciona", label: "Cómo funciona" },
-  { href: "/sobre-nosotros", label: "Nosotros" },
-  { href: "/#contacto", label: "Contacto" },
-];
+const NAV = [
+  { id: "lentes", href: "/lentes", label: "Lentes" },
+  { id: "como-funciona", href: "/como-funciona", label: "Cómo funciona" },
+  { id: "tratamientos", href: "/lentes-y-tratamientos", label: "Tipos de lentes" },
+  { id: "nosotros", href: "/sobre-nosotros", label: "Nosotros" },
+] as const;
 ---
 
-<div class="annc-marquee" aria-label="Información de envío y atención">
-  <div class="annc-marquee-fade annc-marquee-fade--left" aria-hidden="true"></div>
-  <div class="annc-marquee-fade annc-marquee-fade--right" aria-hidden="true"></div>
-  <div class="annc-marquee-track">
-    {[0, 1].map((loopKey) => (
-      <div class="annc-marquee-loop" aria-hidden={loopKey === 1 ? "true" : undefined}>
-        {MARQUEE_ITEMS.map((item) => (
-          <span class="annc-marquee-item">
-            <span class="annc-marquee-icon"><Icon name={item.icon} size={14} aria-hidden="true" /></span>
-            <span>{item.text}</span>
-            <span class="annc-marquee-dot" aria-hidden="true"></span>
-          </span>
-        ))}
-      </div>
-    ))}
-  </div>
-</div>
+<p class="announce">Envío gratis en pedidos de $300 o más</p>
 
-<nav class="topnav" aria-label="Navegación principal">
-  <a href="/" class="topnav-brand" aria-label="Lentes Pura Vida — Inicio">
-    <img src={logo.src} alt="" class="topnav-logo" width="34" height="34" />
-    <span class="topnav-wordmark">Lentes <em>Pura Vida</em></span>
-  </a>
+<header class="site-header">
+  <div class="wrap site-header-inner">
+    <a href="/" class="wordmark" aria-label="Lentes Pura Vida, inicio">Lentes Pura Vida</a>
 
-  <div class="topnav-actions topnav-actions--desktop">
-    {NAV_LINKS.map((link) => (
-      <a href={link.href} class="topnav-link">{link.label}</a>
-    ))}
-    <a
-      class="topnav-link topnav-link-cta"
-      href={WHATSAPP_LINK}
-      target="_blank"
-      rel="noopener noreferrer"
-    >
-      <Icon name="lucide:message-circle" size={14} aria-hidden="true" />
-      <span>WhatsApp</span>
-    </a>
-  </div>
+    <nav class="nav-desktop" aria-label="Principal">
+      {NAV.map((l) => (
+        <a href={l.href} aria-current={current === l.id ? "page" : undefined}>{l.label}</a>
+      ))}
+    </nav>
 
-  <button
-    type="button"
-    class="topnav-burger"
-    aria-label="Abrir menú"
-    aria-expanded="false"
-    aria-controls="site-drawer"
-    data-drawer-open
-  >
-    <Icon name="lucide:menu" size={22} aria-hidden="true" />
-  </button>
-</nav>
-
-<div
-  id="site-drawer"
-  class="drawer"
-  role="dialog"
-  aria-modal="true"
-  aria-label="Menú de navegación"
-  aria-hidden="true"
->
-  <div class="drawer-backdrop" aria-hidden="true" data-drawer-close></div>
-  <div class="drawer-panel">
-    <div class="drawer-header">
-      <a href="/" class="topnav-brand" data-drawer-close>
-        <img src={logo.src} alt="" class="topnav-logo" width="34" height="34" />
-        <span class="topnav-wordmark">Lentes <em>Pura Vida</em></span>
-      </a>
+    <div class="header-actions">
+      <QuoteButton label="Cotizar" variant="secondary" place="header" class="btn--sm header-quote" />
       <button
         type="button"
-        class="drawer-close"
-        aria-label="Cerrar menú"
-        data-drawer-close
+        class="menu-btn"
+        aria-label="Abrir menú"
+        aria-expanded="false"
+        aria-controls="menu"
+        data-menu-open
       >
-        <Icon name="lucide:x" size={22} aria-hidden="true" />
+        <Icon name="lucide:menu" size={24} aria-hidden="true" />
       </button>
     </div>
-    <ul class="drawer-links">
-      {NAV_LINKS.map((link) => (
-        <li>
-          <a href={link.href} class="topnav-link" data-drawer-close>{link.label}</a>
-        </li>
+  </div>
+</header>
+
+<div id="menu" class="menu" hidden data-menu>
+  <div class="menu-backdrop" data-menu-close></div>
+  <div class="menu-panel" role="dialog" aria-modal="true" aria-label="Menú">
+    <div class="menu-top">
+      <a href="/" class="wordmark">Lentes Pura Vida</a>
+      <button type="button" class="menu-btn" aria-label="Cerrar menú" data-menu-close>
+        <Icon name="lucide:x" size={24} aria-hidden="true" />
+      </button>
+    </div>
+    <ul class="menu-links">
+      <li><a href="/">Inicio</a></li>
+      {NAV.map((l) => (
+        <li><a href={l.href} aria-current={current === l.id ? "page" : undefined}>{l.label}</a></li>
       ))}
+      <li><a href="/envios-y-garantia">Envíos y garantía</a></li>
     </ul>
-    <a
-      class="drawer-cta"
-      href={WHATSAPP_LINK}
-      target="_blank"
-      rel="noopener noreferrer"
-      data-drawer-close
-    >
-      <Icon name="lucide:message-circle" size={18} aria-hidden="true" />
-      <span>Escribinos por WhatsApp</span>
-    </a>
-    <p class="drawer-foot">Atención directa · Cotización en minutos</p>
+    <QuoteButton place="menu" block />
+    <p class="menu-note">Le respondemos por WhatsApp. Sin compromiso.</p>
   </div>
 </div>
 
 <script>
-  // Mobile drawer behavior — mirrors the React SiteHeader.tsx effects:
-  //   open on burger, close on backdrop/X/link/ESC, lock body scroll while open.
-  const drawer = document.getElementById("site-drawer");
-  const openBtn = document.querySelector<HTMLButtonElement>("[data-drawer-open]");
-
-  if (drawer && openBtn) {
-    let previousOverflow = "";
-
-    const openDrawer = () => {
-      drawer.classList.add("drawer--open");
-      drawer.setAttribute("aria-hidden", "false");
+  const menu = document.querySelector<HTMLElement>("[data-menu]");
+  const openBtn = document.querySelector<HTMLButtonElement>("[data-menu-open]");
+  if (menu && openBtn) {
+    const open = () => {
+      menu.hidden = false;
+      requestAnimationFrame(() => menu.classList.add("is-open"));
       openBtn.setAttribute("aria-expanded", "true");
-      previousOverflow = document.body.style.overflow;
       document.body.style.overflow = "hidden";
+      menu.querySelector<HTMLElement>("[data-menu-close]:not(.menu-backdrop)")?.focus();
     };
-
-    const closeDrawer = () => {
-      drawer.classList.remove("drawer--open");
-      drawer.setAttribute("aria-hidden", "true");
+    const close = () => {
+      menu.classList.remove("is-open");
       openBtn.setAttribute("aria-expanded", "false");
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = "";
+      setTimeout(() => (menu.hidden = true), 200);
+      openBtn.focus();
     };
-
-    openBtn.addEventListener("click", openDrawer);
-
-    drawer.querySelectorAll<HTMLElement>("[data-drawer-close]").forEach((el) => {
-      el.addEventListener("click", closeDrawer);
-    });
-
+    openBtn.addEventListener("click", open);
+    menu.querySelectorAll("[data-menu-close]").forEach((el) => el.addEventListener("click", close));
+    menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => {
+      document.body.style.overflow = "";
+    }));
     document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && drawer.classList.contains("drawer--open")) {
-        closeDrawer();
-      }
+      if (e.key === "Escape" && !menu.hidden) close();
     });
   }
 </script>

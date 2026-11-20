@@ -1,41 +1,47 @@
-// Build-time photo scanner for `public/Glasses/`.
+// Frame photo library, read at build time from `src/assets/Glasses/`.
 //
-// Each frame lives under `public/Glasses/{Frame Name}/`. Colors are either
-// subdirectories (the common case, e.g. `Bandon/Black (Bandon)/`) or, for a
-// single-color frame like Potter, files sit at the root of the frame folder
-// and the color is parsed out of the filename.
+// HOW TO SWAP IN NEW PHOTOS (no code changes):
+//   src/assets/Glasses/{Frame}/{Color folder}/{Frame Color - View}.{avif|jpg|jpeg|png|webp}
+//   e.g. src/assets/Glasses/November/Black (November)/November Black - Front.jpg
+// View is the text after the last " - ": Front, Side, Top, On Man, On Woman.
+// A single-color frame may keep its files directly in the frame folder; the color
+// is then read from the file name ("Potter Matte Black - Front.avif").
+// Replace a file with one of the same name (any of the extensions above) and rebuild.
+// Astro turns every photo into AVIF + WebP at several widths, so originals can be
+// large phone shots; bigger originals give sharper desktop images.
 //
-// Each color has up to 5 views: front / side / top / on man / on woman.
-//
-// products.ts stores colors in Spanish; folders are in English. The
-// SPANISH_TO_ENGLISH dictionary below is the bridge — kept in this file so
-// there's exactly one place to edit when a new color shows up.
+// products.ts stores colors in Spanish; folders are in English. SPANISH_TO_ENGLISH
+// is the bridge, kept here so there is one place to edit when a new color shows up.
 
-import { readdirSync, statSync } from "node:fs";
-import { join } from "node:path";
+import type { ImageMetadata } from "astro";
 
-const GLASSES_DIR = "public/Glasses";
+const FILES = import.meta.glob<{ default: ImageMetadata }>(
+  "/src/assets/Glasses/**/*.{avif,AVIF,jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP}",
+  { eager: true },
+);
 
-const VIEW_KEYS = ["front", "side", "top", "onMan", "onWoman"] as const;
+export const VIEW_KEYS = ["front", "onWoman", "onMan", "side", "top"] as const;
 export type View = (typeof VIEW_KEYS)[number];
+
+/** Product shots (frame alone on a plain background) vs. photos of a person. */
+export const isProductView = (v: View) => v === "front" || v === "side" || v === "top";
 
 export interface ColorPhotos {
   /** The exact color folder name on disk (e.g. "Black (Bandon)"). */
   folderName: string;
   /** The color-only part of the folder name (e.g. "Black"). */
   colorEn: string;
-  /** Public URLs for each available view. Not every color has all views. */
-  photos: Partial<Record<View, string>>;
+  /** Image metadata for each available view. Not every color has all views. */
+  photos: Partial<Record<View, ImageMetadata>>;
 }
 
 export interface FramePhotos {
-  /** Ordered list of colors this frame has photos for. */
   colors: ColorPhotos[];
-  /** Convenience: colorEn → ColorPhotos. Lowercased keys for tolerant lookup. */
+  /** colorEn (lowercase) to ColorPhotos. */
   byColor: Record<string, ColorPhotos>;
 }
 
-/** Spanish (products.ts) → English (folder-color). Extend as new colors ship. */
+/** Spanish (products.ts) to English (folder color). Extend as new colors ship. */
 export const SPANISH_TO_ENGLISH: Record<string, string> = {
   "amarillo": "yellow",
   "azul": "blue",
@@ -81,118 +87,100 @@ export const SPANISH_TO_ENGLISH: Record<string, string> = {
   "verde oliva": "olive green",
 };
 
-/** Runs at build time when a page imports it. Cached per module load. */
+export const ENGLISH_TO_SPANISH: Record<string, string> = (() => {
+  const out: Record<string, string> = {};
+  for (const [es, en] of Object.entries(SPANISH_TO_ENGLISH)) {
+    out[en] = es[0].toUpperCase() + es.slice(1);
+  }
+  // Folder names with no Spanish twin in products.ts, or with a typo on disk.
+  out["clear gray"] = "Gris transparente";
+  out["matte tortiose"] = "Carey mate";
+  return out;
+})();
+
 let _cached: Record<string, FramePhotos> | null = null;
 
 export function scanFramePhotos(): Record<string, FramePhotos> {
   if (_cached) return _cached;
-  const result: Record<string, FramePhotos> = {};
-  let frames: string[];
-  try {
-    frames = readdirSync(GLASSES_DIR).filter((d) =>
-      statSync(join(GLASSES_DIR, d)).isDirectory(),
-    );
-  } catch {
-    _cached = result;
-    return result;
-  }
+  // frame -> colorKey -> ColorPhotos (Map keeps sorted insertion order)
+  const tree = new Map<string, Map<string, ColorPhotos>>();
 
-  for (const frame of frames) {
-    const framePath = join(GLASSES_DIR, frame);
-    const entries = readdirSync(framePath);
-    const subdirs = entries.filter((e) =>
-      statSync(join(framePath, e)).isDirectory(),
-    );
+  for (const path of Object.keys(FILES).sort()) {
+    const parts = path.split("/Glasses/")[1]?.split("/") ?? [];
+    if (parts.length < 2) continue;
+    const frame = parts[0];
+    const file = parts[parts.length - 1];
+    const view = viewFromFilename(file);
+    if (!view) continue;
 
-    let colors: ColorPhotos[];
-
-    if (subdirs.length > 0) {
-      colors = subdirs.map((sub) => {
-        const files = readdirSync(join(framePath, sub)).filter((f) =>
-          f.toLowerCase().endsWith(".avif"),
-        );
-        return {
-          folderName: sub,
-          colorEn: extractColorFromFolder(sub, frame),
-          photos: mapPhotos(files, encodeSegments(["/", "Glasses", frame, sub])),
-        };
-      });
+    let folderName: string;
+    let colorEn: string;
+    if (parts.length >= 3) {
+      folderName = parts[1];
+      colorEn = extractColorFromFolder(folderName, frame);
     } else {
-      // Single-color frame like Potter — files sit at the root, color in filename.
-      const files = entries.filter((f) => f.toLowerCase().endsWith(".avif"));
-      const grouped: Record<string, string[]> = {};
-      for (const f of files) {
-        const color = extractColorFromFilename(f, frame);
-        (grouped[color] ??= []).push(f);
-      }
-      colors = Object.entries(grouped).map(([color, files]) => ({
-        folderName: color,
-        colorEn: color,
-        photos: mapPhotos(files, encodeSegments(["/", "Glasses", frame])),
-      }));
+      colorEn = extractColorFromFilename(file, frame);
+      folderName = colorEn;
     }
 
-    const byColor: Record<string, ColorPhotos> = {};
-    for (const c of colors) byColor[c.colorEn.toLowerCase()] = c;
-
-    result[frame] = { colors, byColor };
+    if (!tree.has(frame)) tree.set(frame, new Map());
+    const colors = tree.get(frame)!;
+    const key = colorEn.toLowerCase();
+    if (!colors.has(key)) colors.set(key, { folderName, colorEn, photos: {} });
+    colors.get(key)!.photos[view] = FILES[path].default;
   }
 
+  const result: Record<string, FramePhotos> = {};
+  for (const [frame, colors] of tree) {
+    const list = [...colors.values()].filter((c) => Object.keys(c.photos).length > 0);
+    const byColor: Record<string, ColorPhotos> = {};
+    for (const c of list) byColor[c.colorEn.toLowerCase()] = c;
+    result[frame] = { colors: list, byColor };
+  }
   _cached = result;
   return result;
 }
 
-/** Look up a Spanish color name → ColorPhotos in a frame, or null. */
-export function findColorPhotos(
-  frame: FramePhotos | undefined,
-  spanishColor: string,
-): ColorPhotos | null {
-  if (!frame) return null;
-  const englishKey = SPANISH_TO_ENGLISH[spanishColor.toLowerCase()];
-  if (englishKey && frame.byColor[englishKey]) return frame.byColor[englishKey];
-  // Best-effort fallback: try the raw Spanish key in case the folder happens to match.
-  if (frame.byColor[spanishColor.toLowerCase()]) return frame.byColor[spanishColor.toLowerCase()];
-  return null;
-}
-
-/** Reverse of SPANISH_TO_ENGLISH — used to label folder colors back into Spanish for display. */
-export const ENGLISH_TO_SPANISH: Record<string, string> = (() => {
-  const out: Record<string, string> = {};
-  for (const [es, en] of Object.entries(SPANISH_TO_ENGLISH)) {
-    // Capitalize the Spanish label the way products.ts does ("Negro", "Azul marino").
-    out[en] = es[0].toUpperCase() + es.slice(1);
-  }
-  return out;
-})();
-
-/**
- * Truth-source list of colors for a frame: only the ones actually photographed.
- * Falls back to the English folder name if we don't have a Spanish translation
- * (better to show something than to hide the color).
- */
+/** Colors actually photographed, labelled in Spanish (falls back to the English name). */
 export function photographedColors(
   frame: FramePhotos | undefined,
 ): Array<{ spanish: string; english: string; photos: ColorPhotos["photos"] }> {
   if (!frame) return [];
-  return frame.colors.map((c) => {
-    const key = c.colorEn.toLowerCase();
-    const spanish = ENGLISH_TO_SPANISH[key] ?? c.colorEn;
-    return { spanish, english: c.colorEn, photos: c.photos };
-  });
+  return frame.colors.map((c) => ({
+    spanish: ENGLISH_TO_SPANISH[c.colorEn.toLowerCase()] ?? c.colorEn,
+    english: c.colorEn,
+    photos: c.photos,
+  }));
 }
 
-/** Get the primary "card thumbnail" for a frame — first color's front view. */
-export function primaryThumb(frame: FramePhotos | undefined): string | null {
-  if (!frame || frame.colors.length === 0) return null;
-  const first = frame.colors[0];
-  return first.photos.front ?? first.photos.side ?? first.photos.top ?? null;
+/** Card thumbnail: first color's front view. */
+export function primaryThumb(frame: FramePhotos | undefined): ImageMetadata | null {
+  const p = frame?.colors[0]?.photos;
+  return p?.front ?? p?.side ?? p?.top ?? null;
+}
+
+/** First on-face photo of a frame, preferring the given person. */
+export function onFaceThumb(
+  frame: FramePhotos | undefined,
+  prefer: "onWoman" | "onMan" = "onWoman",
+): ImageMetadata | null {
+  if (!frame) return null;
+  const other = prefer === "onWoman" ? "onMan" : "onWoman";
+  for (const c of frame.colors) if (c.photos[prefer]) return c.photos[prefer]!;
+  for (const c of frame.colors) if (c.photos[other]) return c.photos[other]!;
+  return null;
+}
+
+function viewFromFilename(f: string): View | null {
+  const m = f.replace(/\.[a-z]+$/i, "").match(/\s-\s*(front|side|top|on\s*man|on\s*woman)\s*$/i);
+  if (!m) return null;
+  const v = m[1].toLowerCase().replace(/\s+/g, "");
+  return v === "onman" ? "onMan" : v === "onwoman" ? "onWoman" : (v as View);
 }
 
 function extractColorFromFolder(sub: string, frame: string): string {
-  // "Color (Frame)" pattern
   const parenMatch = sub.match(/^(.+?)\s*\(.+\)$/);
   if (parenMatch) return parenMatch[1].trim();
-  // "Frame Color" pattern (case-insensitive)
   if (sub.toLowerCase().startsWith(frame.toLowerCase() + " ")) {
     return sub.slice(frame.length + 1).trim();
   }
@@ -200,36 +188,12 @@ function extractColorFromFolder(sub: string, frame: string): string {
 }
 
 function extractColorFromFilename(f: string, frame: string): string {
-  // "Potter Matte Black - front.avif" → "Matte Black"
-  const stripped = f.replace(/\.avif$/i, "");
-  const withoutView = stripped
+  const withoutView = f
+    .replace(/\.[a-z]+$/i, "")
     .replace(/\s*-\s*(front|side|top|on\s*man|on\s*woman)\s*$/i, "")
     .trim();
   if (withoutView.toLowerCase().startsWith(frame.toLowerCase() + " ")) {
     return withoutView.slice(frame.length + 1).trim();
   }
   return withoutView;
-}
-
-function mapPhotos(
-  files: string[],
-  baseUrl: string,
-): Partial<Record<View, string>> {
-  const out: Partial<Record<View, string>> = {};
-  for (const f of files) {
-    const lower = f.toLowerCase();
-    const url = `${baseUrl}/${encodeURIComponent(f)}`;
-    if (/\s-\s*on\s*woman/.test(lower)) out.onWoman = url;
-    else if (/\s-\s*on\s*man/.test(lower)) out.onMan = url;
-    else if (/\s-\s*side/.test(lower)) out.side = url;
-    else if (/\s-\s*top/.test(lower)) out.top = url;
-    else if (/\s-\s*front/.test(lower)) out.front = url;
-  }
-  return out;
-}
-
-/** URL-encode each path segment; the leading "/" stays literal. */
-function encodeSegments(parts: string[]): string {
-  const [first, ...rest] = parts;
-  return first + rest.map((p) => encodeURIComponent(p)).join("/");
 }
