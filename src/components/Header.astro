@@ -5,8 +5,10 @@ import QuoteButton from "./QuoteButton.astro";
 interface Props {
   /** Current section, for aria-current. */
   current?: "lentes" | "como-funciona" | "tratamientos" | "nosotros";
+  /** Checkout: logo and a way back to the cart, nothing else to pull attention away. */
+  minimal?: boolean;
 }
-const { current } = Astro.props;
+const { current, minimal = false } = Astro.props;
 
 const NAV = [
   { id: "lentes", href: "/lentes", label: "Lentes" },
@@ -16,6 +18,17 @@ const NAV = [
 ] as const;
 ---
 
+{minimal ? (
+<header class="site-header site-header--min">
+  <div class="wrap site-header-inner">
+    <a href="/" class="wordmark" aria-label="Lentes Pura Vida, inicio">Lentes Pura Vida</a>
+    <a href="/carrito" class="back-link">
+      <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Volver al carrito
+    </a>
+  </div>
+</header>
+) : (<>
 <p class="announce">Envío gratis en pedidos de $300 o más</p>
 
 <header class="site-header">
@@ -30,6 +43,10 @@ const NAV = [
 
     <div class="header-actions">
       <QuoteButton label="Cotizar" variant="secondary" place="header" class="btn--sm header-quote" />
+      <a href="/carrito" class="icon-btn cart-btn" data-cart-open data-cart-label aria-label="Carrito">
+        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 10V7a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <span class="cart-badge" data-cart-count hidden>0</span>
+      </a>
       <button
         type="button"
         class="menu-btn"
@@ -59,11 +76,13 @@ const NAV = [
         <li><a href={l.href} aria-current={current === l.id ? "page" : undefined}>{l.label}</a></li>
       ))}
       <li><a href="/envios-y-garantia">Envíos y garantía</a></li>
+      <li><a href="/carrito">Carrito <span class="menu-count" data-cart-count hidden>0</span></a></li>
     </ul>
     <QuoteButton place="menu" block />
     <p class="menu-note">Le respondemos por WhatsApp. Sin compromiso.</p>
   </div>
 </div>
+</>)}
 
 <script>
   const menu = document.querySelector<HTMLElement>("[data-menu]");

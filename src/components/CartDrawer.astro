@@ -1,0 +1,99 @@
+---
+// Slide-in cart, on every page. A native <dialog>, so focus stays inside while it is
+// open, Escape closes it and screen readers treat the rest of the page as inert.
+// Without JavaScript the header cart icon simply opens the /carrito page.
+---
+
+<dialog class="drawer" data-cart-drawer aria-labelledby="cart-title" data-cart-scope>
+  <div class="drawer-panel">
+    <header class="drawer-head">
+      <h2 id="cart-title" class="drawer-title">Su carrito <span class="drawer-count" data-cart-n></span></h2>
+      <button type="button" class="icon-btn" data-cart-close aria-label="Cerrar el carrito" data-cart-focus-after-remove>
+        <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+      </button>
+    </header>
+
+    <div class="drawer-body">
+      <ul class="ci-list" data-cart-list aria-label="Lentes en su carrito"></ul>
+      <div class="cart-empty" data-cart-empty hidden>
+        <svg width="56" height="56" viewBox="0 0 64 64" aria-hidden="true" class="cart-empty-art"><g fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="22" width="22" height="16" rx="7"/><rect x="36" y="22" width="22" height="16" rx="7"/><path d="M28 27c2-2 6-2 8 0M6 26L2 22M58 26l4-4"/></g></svg>
+        <p class="cart-empty-title">Su carrito está vacío</p>
+        <p class="muted small">Escoja la montura que le guste y la agregamos aquí.</p>
+        <a class="btn btn--primary" href="/lentes">Ver los lentes</a>
+      </div>
+    </div>
+
+    <footer class="drawer-foot" data-cart-foot hidden>
+      <div class="sum-row">
+        <span>Monturas <span class="muted" data-cart-n2></span></span>
+        <strong data-cart-subtotal></strong>
+      </div>
+      <div class="sum-row sum-row--soft">
+        <span>Lentes y extras</span>
+        <span>Se cotizan según su receta</span>
+      </div>
+      <a class="btn btn--primary btn--block" href="/checkout">Continuar con el pedido</a>
+      <p class="drawer-note">No se cobra nada aquí. Le confirmamos el precio total por WhatsApp el mismo día.</p>
+      <a class="link drawer-full" href="/carrito">Ver el carrito completo</a>
+    </footer>
+  </div>
+</dialog>
+<p class="sr-only" aria-live="polite" data-cart-live></p>
+
+<script>
+  import { countItems, frameSubtotal, money, mountBadges, mountCartList } from "@/lib/cart";
+
+  mountBadges();
+  const dlg = document.querySelector<HTMLDialogElement>("[data-cart-drawer]");
+  const list = dlg?.querySelector<HTMLElement>("[data-cart-list]");
+
+  if (dlg && list && typeof dlg.showModal === "function") {
+    const empty = dlg.querySelector<HTMLElement>("[data-cart-empty]")!;
+    const foot = dlg.querySelector<HTMLElement>("[data-cart-foot]")!;
+    const paint = () => {
+      const n = countItems();
+      const label = n ? `(${n})` : "";
+      dlg.querySelector("[data-cart-n]")!.textContent = label;
+      dlg.querySelector("[data-cart-n2]")!.textContent = n ? `${n} ${n === 1 ? "par" : "pares"}` : "";
+      dlg.querySelector("[data-cart-subtotal]")!.textContent = money(frameSubtotal());
+      empty.hidden = n > 0;
+      foot.hidden = n === 0;
+      list.hidden = n === 0;
+    };
+    mountCartList(list, paint);
+
+    let opener: HTMLElement | null = null;
+    let closing = 0;
+    const open = (from?: HTMLElement | null) => {
+      clearTimeout(closing);
+      opener = from ?? (document.activeElement as HTMLElement);
+      paint();
+      if (!dlg.open) dlg.showModal();
+      document.documentElement.classList.add("is-locked");
+      list.querySelectorAll<HTMLElement>(".ci").forEach((c, i) => c.style.setProperty("--n", String(Math.min(i, 6))));
+      dlg.classList.add("is-entering");
+      setTimeout(() => dlg.classList.remove("is-entering"), 1000);
+      requestAnimationFrame(() => dlg.classList.add("is-open"));
+      dlg.querySelector<HTMLElement>("[data-cart-close]")?.focus();
+    };
+    const close = () => {
+      if (!dlg.open) return;
+      dlg.classList.remove("is-open");
+      document.documentElement.classList.remove("is-locked");
+      const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+      closing = window.setTimeout(() => { dlg.close(); opener?.focus?.(); }, reduce ? 0 : 320);
+    };
+    dlg.addEventListener("cancel", (e) => { e.preventDefault(); close(); });
+    dlg.addEventListener("click", (e) => {
+      if (e.target === dlg) close(); // backdrop
+      if ((e.target as HTMLElement).closest("[data-cart-close]")) close();
+    });
+    document.addEventListener("click", (e) => {
+      const t = (e.target as HTMLElement).closest<HTMLElement>("[data-cart-open]");
+      if (!t || location.pathname === "/carrito") return;
+      e.preventDefault();
+      open(t);
+    });
+    (window as any).lpvCart = { open, close };
+  }
+</script>

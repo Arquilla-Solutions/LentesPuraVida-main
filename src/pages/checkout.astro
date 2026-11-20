@@ -1,0 +1,281 @@
+---
+// Checkout: the customer's details, then "Confirmar pedido" opens WhatsApp with the whole
+// order already written. Nothing is charged here. If LEAD_ENDPOINT is set, the order is
+// also sent there as JSON (the GoHighLevel bridge, GHL_BACKEND_PLAN.md phase 2).
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Header from "@/components/Header.astro";
+import WaIcon from "@/components/WaIcon.astro";
+import { LEAD_ENDPOINT, WHATSAPP_NUMBER } from "@/lib/contact";
+import { PAYMENTS, PROVINCES } from "@/lib/store";
+---
+
+<BaseLayout
+  title="Confirmar pedido | Lentes Pura Vida"
+  description="Confirme su pedido de lentes recetados. Le enviamos el precio total por WhatsApp el mismo día."
+  canonical="/checkout"
+  noIndex
+  noSticky
+>
+  <Header minimal />
+  <main id="contenido" class="co">
+    <div class="wrap">
+      <ol class="flow-steps" aria-label="Pasos del pedido">
+        <li><a href="/carrito">Carrito</a></li>
+        <li aria-current="step">Sus datos</li>
+        <li>Listo</li>
+      </ol>
+
+      <div class="co-empty cart-empty cart-empty--page" data-cart-empty>
+        <h1>Su carrito está vacío</h1>
+        <p class="muted">Escoja sus lentes primero y después confirma el pedido aquí.</p>
+        <a class="btn btn--primary" href="/lentes">Ver los lentes</a>
+      </div>
+
+      <div class="co-grid cart-page" data-cart-page>
+        <div class="co-main">
+          <h1 class="co-title">Confirme su pedido</h1>
+          <p class="muted co-intro">Unos datos y listo. No se cobra nada aquí: le enviamos el precio total por WhatsApp el mismo día.</p>
+
+          <details class="co-sum-phone" data-sum-phone>
+            <summary>
+              <span>Ver su pedido <span class="muted" data-cart-n></span></span>
+              <strong data-cart-subtotal></strong>
+            </summary>
+            <ul class="co-items" data-co-items></ul>
+          </details>
+
+          <form class="co-form" data-checkout novalidate>
+            <section class="co-sec" aria-labelledby="h-datos">
+              <h2 id="h-datos" class="co-h"><span class="co-num" aria-hidden="true">1</span> Sus datos</h2>
+              <div class="field">
+                <label for="f-name">Nombre y apellido</label>
+                <input id="f-name" name="name" type="text" autocomplete="name" required maxlength="80" aria-describedby="e-name" />
+                <p class="field-err" id="e-name" hidden>Escriba su nombre, por favor.</p>
+              </div>
+              <div class="field">
+                <label for="f-wa">Número de WhatsApp</label>
+                <div class="field-tel">
+                  <span class="field-prefix" aria-hidden="true">+506</span>
+                  <input id="f-wa" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" required maxlength="20" placeholder="8888 8888" aria-describedby="h-wa e-wa" />
+                </div>
+                <p class="field-help" id="h-wa">Por aquí le mandamos el precio total.</p>
+                <p class="field-err" id="e-wa" hidden>Revise el número: son 8 dígitos.</p>
+              </div>
+            </section>
+
+            <section class="co-sec" aria-labelledby="h-envio">
+              <h2 id="h-envio" class="co-h"><span class="co-num" aria-hidden="true">2</span> ¿A dónde se los enviamos?</h2>
+              <div class="field-row">
+                <div class="field">
+                  <label for="f-prov">Provincia</label>
+                  <select id="f-prov" name="province" required aria-describedby="e-prov">
+                    <option value="">Escoja</option>
+                    {Object.keys(PROVINCES).map((p) => <option value={p}>{p}</option>)}
+                  </select>
+                  <p class="field-err" id="e-prov" hidden>Escoja la provincia.</p>
+                </div>
+                <div class="field">
+                  <label for="f-canton">Cantón</label>
+                  <select id="f-canton" name="canton" required disabled aria-describedby="e-canton">
+                    <option value="">Primero la provincia</option>
+                  </select>
+                  <p class="field-err" id="e-canton" hidden>Escoja el cantón.</p>
+                </div>
+              </div>
+              <p class="field-help">Las señas exactas se las pedimos por WhatsApp cuando confirme.</p>
+            </section>
+
+            <section class="co-sec" aria-labelledby="h-receta">
+              <h2 id="h-receta" class="co-h"><span class="co-num" aria-hidden="true">3</span> Su receta</h2>
+              <fieldset class="choice" aria-labelledby="h-receta">
+                <label class="choice-card">
+                  <input type="radio" name="rx" value="whatsapp" checked />
+                  <span class="choice-body">
+                    <span class="choice-name">Se la envío por WhatsApp</span>
+                    <span class="choice-hint">Una foto clara de la receta, en el mismo chat del pedido.</span>
+                  </span>
+                </label>
+                <label class="choice-card">
+                  <input type="radio" name="rx" value="none" />
+                  <span class="choice-body">
+                    <span class="choice-name">No tengo receta</span>
+                    <span class="choice-hint">Le decimos dónde hacerse el examen. Mándenos el recibo y le rebajamos hasta $10.</span>
+                  </span>
+                </label>
+              </fieldset>
+            </section>
+
+            <section class="co-sec" aria-labelledby="h-pago">
+              <h2 id="h-pago" class="co-h">¿Cómo prefiere pagar?</h2>
+              <fieldset class="pills" aria-labelledby="h-pago">
+                {PAYMENTS.map((p, i) => (
+                  <label class="pill">
+                    <input type="radio" name="payment" value={p.label} checked={i === 0} />
+                    <span>{p.label}</span>
+                  </label>
+                ))}
+              </fieldset>
+              <p class="field-help">Usted paga solo cuando le confirmemos el precio total y esté de acuerdo.</p>
+            </section>
+
+            <button type="submit" class="btn btn--primary btn--block btn--lg co-submit">
+              <WaIcon size={20} />
+              <span>Confirmar pedido</span>
+            </button>
+            <p class="co-after">Se abre WhatsApp con su pedido ya escrito. Solo toque enviar.</p>
+          </form>
+        </div>
+
+        <aside class="summary co-aside" aria-labelledby="h-co-sum">
+          <h2 id="h-co-sum" class="summary-title">Su pedido</h2>
+          <ul class="co-items" data-co-items></ul>
+          <div class="sum-row"><span>Monturas <span class="muted" data-cart-n></span></span><strong data-cart-subtotal></strong></div>
+          <div class="sum-row sum-row--soft"><span>Lentes y extras</span><span>Se cotizan según su receta</span></div>
+          <div class="sum-row sum-row--soft"><span>Envío</span><span>Se incluye en su cotización</span></div>
+          <a class="link small" href="/carrito">Editar el carrito</a>
+        </aside>
+      </div>
+    </div>
+  </main>
+</BaseLayout>
+
+<script define:vars={{ PROVINCES, waNumber: WHATSAPP_NUMBER, leadEndpoint: LEAD_ENDPOINT }} is:inline>
+  window.__lpvCheckout = { PROVINCES, waNumber, leadEndpoint };
+</script>
+
+<script>
+  import {
+    adSource, clearCart, countItems, frameSubtotal, getItems, makeCode, money, orderLead, orderMessage, summaryRows,
+    type Order,
+  } from "@/lib/cart";
+
+  const { PROVINCES, waNumber, leadEndpoint } = (window as any).__lpvCheckout as {
+    PROVINCES: Record<string, string[]>; waNumber: string; leadEndpoint: string;
+  };
+
+  // Order summary (phone fold and desktop side panel).
+  const paintSummary = () => {
+    const items = getItems();
+    const n = countItems(items);
+    document.querySelectorAll("[data-cart-n]").forEach((el) => (el.textContent = `(${n})`));
+    document.querySelectorAll("[data-cart-subtotal]").forEach((el) => (el.textContent = money(frameSubtotal(items))));
+    document.querySelectorAll<HTMLElement>("[data-co-items]").forEach((ul) => {
+      ul.replaceChildren(...summaryRows(items));
+    });
+  };
+  paintSummary();
+
+  // Province -> canton.
+  const form = document.querySelector<HTMLFormElement>("[data-checkout]")!;
+  const prov = form.querySelector<HTMLSelectElement>("#f-prov")!;
+  const canton = form.querySelector<HTMLSelectElement>("#f-canton")!;
+  prov.addEventListener("change", () => {
+    const list = PROVINCES[prov.value] ?? [];
+    canton.replaceChildren(new Option(list.length ? "Escoja" : "Primero la provincia", ""), ...list.map((c) => new Option(c, c)));
+    canton.disabled = !list.length;
+  });
+
+  // Remember what they typed (same browser only), so going back to the cart loses nothing.
+  const DRAFT = "lpv_checkout_draft";
+  try {
+    const d = JSON.parse(localStorage.getItem(DRAFT) || "{}");
+    if (d.name) (form.elements.namedItem("name") as HTMLInputElement).value = d.name;
+    if (d.whatsapp) (form.elements.namedItem("whatsapp") as HTMLInputElement).value = d.whatsapp;
+    if (d.province && PROVINCES[d.province]) {
+      prov.value = d.province;
+      prov.dispatchEvent(new Event("change"));
+      if (d.canton) canton.value = d.canton;
+    }
+  } catch {}
+  form.addEventListener("input", () => {
+    try {
+      localStorage.setItem(DRAFT, JSON.stringify({
+        name: (form.elements.namedItem("name") as HTMLInputElement).value,
+        whatsapp: (form.elements.namedItem("whatsapp") as HTMLInputElement).value,
+        province: prov.value, canton: canton.value,
+      }));
+    } catch {}
+  });
+
+  const digits = (v: string) => v.replace(/\D/g, "");
+  const phoneOk = (v: string) => {
+    const d = digits(v);
+    return /^[245678]\d{7}$/.test(d) || /^506[245678]\d{7}$/.test(d);
+  };
+  const prettyPhone = (v: string) => {
+    const d = digits(v).replace(/^506(?=\d{8}$)/, "");
+    return `+506 ${d.slice(0, 4)} ${d.slice(4)}`;
+  };
+
+  const setErr = (input: HTMLElement, show: boolean) => {
+    const err = document.getElementById(`e-${input.id.slice(2)}`);
+    if (err) err.hidden = !show;
+    if (show) input.setAttribute("aria-invalid", "true");
+    else input.removeAttribute("aria-invalid");
+  };
+  form.addEventListener("change", (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.getAttribute("aria-invalid")) setErr(t, false);
+  });
+  form.addEventListener("input", (e) => {
+    const t = e.target as HTMLInputElement;
+    if (t.getAttribute("aria-invalid") && (t.name !== "whatsapp" || phoneOk(t.value)) && t.value.trim()) setErr(t, false);
+  });
+
+  form.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const items = getItems();
+    if (!items.length) { location.href = "/carrito"; return; }
+    const fd = new FormData(form);
+    const name = String(fd.get("name") ?? "").trim();
+    const wa = String(fd.get("whatsapp") ?? "");
+    const checks: [HTMLElement, boolean][] = [
+      [form.querySelector("#f-name")!, name.length >= 2],
+      [form.querySelector("#f-wa")!, phoneOk(wa)],
+      [prov, !!prov.value],
+      [canton, !!canton.value],
+    ];
+    let first: HTMLElement | null = null;
+    for (const [el, ok] of checks) { setErr(el, !ok); if (!ok && !first) first = el; }
+    if (first) {
+      first.focus();
+      first.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+      return;
+    }
+
+    const order: Order = {
+      code: makeCode(),
+      ts: new Date().toISOString(),
+      name,
+      whatsapp: prettyPhone(wa),
+      province: prov.value,
+      canton: canton.value,
+      rx: fd.get("rx") === "none" ? "none" : "whatsapp",
+      payment: String(fd.get("payment") ?? "SINPE Móvil"),
+      items,
+      source: adSource(),
+    };
+    const message = orderMessage(order);
+    const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
+    const lead = orderLead(order);
+
+    // The lead bridge (empty until the Cloudflare function exists). sendBeacon survives
+    // the page change and, sent as plain text, needs no cross-site preflight.
+    if (leadEndpoint && navigator.sendBeacon) {
+      try { navigator.sendBeacon(leadEndpoint, JSON.stringify(lead)); } catch {}
+    }
+    (window as any).lpvLeads = [...((window as any).lpvLeads || []), lead];
+    window.dispatchEvent(new CustomEvent("lpv:order", { detail: lead }));
+
+    try {
+      localStorage.setItem("lpv_last_order", JSON.stringify({ order, message, waUrl }));
+      localStorage.removeItem(DRAFT);
+    } catch {}
+
+    // Open WhatsApp from the tap itself (browsers allow that), then show the confirmation here.
+    const win = window.open(waUrl, "_blank");
+    if (win) { try { win.opener = null; } catch {} }
+    clearCart();
+    location.assign(`/pedido-recibido${win ? "" : "?wa=0"}`);
+  });
+</script>

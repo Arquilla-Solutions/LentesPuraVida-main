@@ -23,7 +23,7 @@ const more = colors.length - shown.length;
 ---
 
 <a href={`/lentes/${product.slug}`} class="card" {...filterAttrs}>
-  <div class="card-media">
+  <div class="card-media" data-vt={product.slug}>
     {thumb && (
       <Photo img={thumb} alt={`Lentes ${product.name}, vista de frente`} kind="product" sizes={sizes} eager={eager} />
     )}

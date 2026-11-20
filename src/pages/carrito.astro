@@ -1,0 +1,84 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import ProductCard from "@/components/ProductCard.astro";
+import { featuredProducts } from "@/lib/catalog";
+
+const suggestions = featuredProducts(4);
+---
+
+<BaseLayout
+  title="Su carrito | Lentes Pura Vida"
+  description="Revise los lentes que escogió antes de confirmar su pedido por WhatsApp."
+  canonical="/carrito"
+  noIndex
+  noSticky
+>
+  <Header />
+  <main id="contenido" data-cart-scope>
+    <div class="wrap">
+      <ol class="flow-steps" aria-label="Pasos del pedido">
+        <li aria-current="step">Carrito</li>
+        <li>Sus datos</li>
+        <li>Listo</li>
+      </ol>
+      <header class="cart-head">
+        <h1 tabindex="-1" data-cart-focus-after-remove>Su carrito</h1>
+        <p class="muted" data-cart-sub></p>
+      </header>
+
+      <noscript>
+        <div class="cart-empty"><p>Para usar el carrito necesita JavaScript. También puede escribirnos por WhatsApp desde cualquier modelo.</p></div>
+      </noscript>
+
+      <div class="cart-page" data-cart-page>
+        <ul class="ci-list ci-list--page" data-cart-list aria-label="Lentes en su carrito"></ul>
+        <aside class="summary" aria-labelledby="h-sum">
+          <h2 id="h-sum" class="summary-title">Resumen</h2>
+          <div class="sum-row"><span>Monturas <span class="muted" data-cart-n></span></span><strong data-cart-subtotal></strong></div>
+          <div class="sum-row sum-row--soft"><span>Lentes y extras</span><span>Se cotizan según su receta</span></div>
+          <div class="sum-row sum-row--soft"><span>Envío</span><span>Se incluye en su cotización</span></div>
+          <a class="btn btn--primary btn--block" href="/checkout">Continuar con el pedido</a>
+          <ul class="summary-perks">
+            <li>No se cobra nada aquí</li>
+            <li>Precio total por WhatsApp el mismo día</li>
+            <li>Paga por SINPE Móvil, transferencia o tarjeta</li>
+          </ul>
+        </aside>
+      </div>
+
+      <div class="cart-empty cart-empty--page" data-cart-empty>
+        <p class="cart-empty-title">Su carrito está vacío</p>
+        <p class="muted">Escoja la montura que le guste, con su color y tipo de lente, y aparece aquí.</p>
+        <a class="btn btn--primary" href="/lentes">Ver los lentes</a>
+      </div>
+    </div>
+
+    <section class="section section--cream" aria-labelledby="h-sug">
+      <div class="wrap">
+        <div class="section-head section-head--row">
+          <h2 id="h-sug">Le pueden gustar</h2>
+          <a class="link" href="/lentes">Ver todos los modelos</a>
+        </div>
+        <div class="rail">
+          {suggestions.map((p) => <ProductCard product={p} sizes="(min-width: 1280px) 290px, (min-width: 768px) 30vw, 68vw" />)}
+        </div>
+      </div>
+    </section>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  import { countItems, frameSubtotal, money, mountCartList } from "@/lib/cart";
+  const page = document.querySelector<HTMLElement>("[data-cart-page]")!;
+  const list = page.querySelector<HTMLElement>("[data-cart-list]")!;
+  const sub = document.querySelector<HTMLElement>("[data-cart-sub]")!;
+  mountCartList(list, () => {
+    const n = countItems();
+    sub.textContent = n ? `${n} ${n === 1 ? "par de lentes" : "pares de lentes"}` : "";
+    page.querySelector("[data-cart-n]")!.textContent = `(${n})`;
+    page.querySelector("[data-cart-subtotal]")!.textContent = money(frameSubtotal());
+  });
+</script>

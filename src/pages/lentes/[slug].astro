@@ -12,6 +12,7 @@ import { isProductView, photographedColors, primaryThumb, scanFramePhotos, type 
 import { categoryLabel, visibleProducts, CATEGORIES } from "@/lib/catalog";
 import { shareJpeg } from "@/lib/images";
 import { getImage } from "astro:assets";
+import { EXTRAS, LENSES } from "@/lib/store";
 
 export async function getStaticPaths() {
   const { visibleProducts } = await import("@/lib/catalog");
@@ -42,6 +43,16 @@ const materialLabel = product.material.toLowerCase().replace(/^mixto \((.*)\)$/,
 const thumb = primaryThumb(frame);
 const shareImage = thumb ? await shareJpeg(thumb) : "/og-image.png";
 const stickyThumb = thumb ? (await getImage({ src: thumb, width: 112, format: "webp" })).src : undefined;
+
+// What the cart needs to show and edit this frame: a small photo per color.
+const cartColors = await Promise.all(
+  colors.map(async (c) => {
+    const img = c.photos.front ?? c.photos.side ?? c.photos.top;
+    const t = img ? (await getImage({ src: img, width: 240, format: "webp" })).src : "";
+    return { n: c.spanish, t, b: getSwatch(c.spanish).bg };
+  }),
+);
+const cartProduct = { slug: product.slug, name: product.name, price: product.framePrice, colors: cartColors };
 
 const related = visibleProducts
   .filter((p) => p.slug !== product.slug)
@@ -125,7 +136,7 @@ const productJsonLd: Record<string, unknown>[] = [
   ogType="product"
   keywords={`lentes ${product.name}, montura ${product.name}, lentes ${materialLabel} ${product.shape.toLowerCase()}, lentes recetados Costa Rica`}
   jsonLd={productJsonLd}
-  sticky={{ name: product.name, price: product.framePrice, thumb: stickyThumb, frame: product.name }}
+  sticky={{ name: product.name, price: product.framePrice, thumb: stickyThumb, frame: product.name, addToCart: true }}
 >
   <Header current="lentes" />
 
@@ -148,7 +159,7 @@ const productJsonLd: Record<string, unknown>[] = [
                 <span class="made-badge">Hecho en EE.UU.</span>
                 <div class="gallery-track" data-track tabindex="0" aria-label={`Fotos de los lentes ${product.name} en color ${c.spanish}`}>
                   {views.map((v, vi) => (
-                    <div class="gallery-slide" data-slide={vi}>
+                    <div class="gallery-slide" data-slide={vi} data-vt={vi === 0 ? product.slug : undefined}>
                       <Photo
                         img={c.photos[v]!}
                         alt={`Lentes ${product.name} color ${c.spanish.toLowerCase()}, ${VIEW_LABEL[v]}`}
@@ -208,8 +219,42 @@ const productJsonLd: Record<string, unknown>[] = [
             </div>
           )}
 
-          <QuoteButton frame={product.name} color={firstColor} place="product" block primary />
-          <p class="pdp-cta-note">Le enviamos el precio total con lentes para su receta. Sin compromiso.</p>
+          <form class="buy" data-buy data-product={JSON.stringify(cartProduct)} novalidate>
+            <fieldset class="opt" data-lens-fs aria-describedby="lens-err">
+              <legend class="opt-legend">Tipo de lente</legend>
+              <div class="opt-grid">
+                {LENSES.map((l) => (
+                  <label class="opt-card">
+                    <input type="radio" name="lens" value={l.id} />
+                    <span class="opt-name">{l.label}</span>
+                    <span class="opt-hint">{l.hint}</span>
+                  </label>
+                ))}
+              </div>
+              <p class="opt-err" id="lens-err" data-lens-err hidden>Escoja el tipo de lente. Si no sabe, toque “No estoy seguro”.</p>
+            </fieldset>
+            <fieldset class="opt">
+              <legend class="opt-legend">Extras <span class="muted">(opcional)</span></legend>
+              <div class="opt-list">
+                {EXTRAS.map((x) => (
+                  <label class="opt-check">
+                    <input type="checkbox" name="extras" value={x.id} />
+                    <span class="opt-box" aria-hidden="true"></span>
+                    <span><span class="opt-name">{x.label}</span> <span class="opt-hint">· {x.hint}</span></span>
+                  </label>
+                ))}
+              </div>
+            </fieldset>
+            <p class="buy-note">Los lentes y extras se cotizan según su receta. Aquí no se cobra nada.</p>
+            <button type="submit" class="btn btn--primary btn--block btn-add" data-primary data-add>
+              <span class="btn-add-label">Agregar al carrito</span>
+              <span class="btn-add-done" aria-hidden="true">
+                <svg width="20" height="20" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                Agregado
+              </span>
+            </button>
+          </form>
+          <QuoteButton frame={product.name} color={firstColor} place="product" label="Preguntar por WhatsApp" variant="secondary" block class="btn-ask" />
           <p class="pdp-norx"><a class="link" href="/como-funciona#receta">¿No tiene receta? Le explicamos cómo hacer</a></p>
           <p class="pdp-desc">{product.desc}</p>
 
@@ -265,9 +310,10 @@ const productJsonLd: Record<string, unknown>[] = [
             <details class="faq-item">
               <summary>Cómo funciona</summary>
               <div>
-                <p>1. Toque “Cotizar por WhatsApp”. El mensaje ya lleva el modelo y el color.</p>
-                <p>2. Mándenos una foto de su receta. Le enviamos el precio total el mismo día.</p>
-                <p style="margin: 0">3. Cuando usted confirma y paga, hacemos el pedido y se lo enviamos a la casa.</p>
+                <p>1. Escoja el color y el tipo de lente, y agréguelos al carrito.</p>
+                <p>2. Confirme su pedido: se abre WhatsApp con todo ya escrito. Mándenos ahí la foto de su receta.</p>
+                <p>3. Le enviamos el precio total el mismo día.</p>
+                <p style="margin: 0">4. Cuando usted confirma y paga, hacemos el pedido y se lo enviamos a la casa.</p>
               </div>
             </details>
             <details class="faq-item">
@@ -301,11 +347,14 @@ const productJsonLd: Record<string, unknown>[] = [
 </BaseLayout>
 
 <script>
+  import { addItem, type CartColor } from "@/lib/cart";
+
   // Color picker: shows that color's gallery and updates the quote message.
   const swatches = document.querySelectorAll<HTMLButtonElement>("[data-swatch]");
   const nameEl = document.querySelector("[data-color-name]");
   const pick = (btn: HTMLButtonElement, focus = false) => {
     const color = btn.dataset.swatch!;
+    const was = document.querySelector<HTMLElement>("[data-gallery]:not([hidden])");
     swatches.forEach((s) => {
       const on = s === btn;
       s.setAttribute("aria-checked", String(on));
@@ -313,7 +362,19 @@ const productJsonLd: Record<string, unknown>[] = [
     });
     if (focus) btn.focus();
     if (nameEl) nameEl.textContent = color;
-    document.querySelectorAll<HTMLElement>("[data-gallery]").forEach((g) => (g.hidden = g.dataset.gallery !== color));
+    const next = document.querySelector<HTMLElement>(`[data-gallery="${CSS.escape(color)}"]`);
+    if (next && next !== was) {
+      // Same view in the new color (front stays front, side stays side), then a soft crossfade.
+      const wt = was?.querySelector<HTMLElement>("[data-track]");
+      const idx = wt ? Math.round(wt.scrollLeft / Math.max(1, wt.clientWidth)) : 0;
+      if (was) was.hidden = true;
+      next.hidden = false;
+      const nt = next.querySelector<HTMLElement>("[data-track]");
+      if (nt) nt.scrollLeft = Math.min(idx, nt.children.length - 1) * nt.clientWidth;
+      next.classList.remove("is-swap");
+      void next.offsetWidth;
+      next.classList.add("is-swap");
+    }
     document.querySelectorAll<HTMLAnchorElement>("a[data-wa][data-frame]").forEach((a) => {
       const frame = a.dataset.frame;
       a.dataset.color = color;
@@ -352,4 +413,97 @@ const productJsonLd: Record<string, unknown>[] = [
       });
     }, { passive: true });
   });
+
+  // Add to cart: color (from the swatches above), lens type (required) and extras.
+  // The frame photo flies to the cart icon, the badge bumps, then the cart slides in.
+  const form = document.querySelector<HTMLFormElement>("[data-buy]");
+  if (form) {
+    const product = JSON.parse(form.dataset.product!) as { slug: string; name: string; price: number; colors: CartColor[] };
+    const lensFs = form.querySelector<HTMLElement>("[data-lens-fs]")!;
+    const lensErr = form.querySelector<HTMLElement>("[data-lens-err]")!;
+    const addBtn = form.querySelector<HTMLButtonElement>("[data-add]")!;
+    const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    form.addEventListener("change", (e) => {
+      if ((e.target as HTMLInputElement).name === "lens") {
+        lensErr.hidden = true;
+        lensFs.classList.remove("is-error");
+        lensFs.removeAttribute("aria-invalid");
+      }
+    });
+
+    const fly = (from: HTMLElement | null) => {
+      const target = Array.from(document.querySelectorAll<HTMLElement>(".cart-btn")).find((el) => {
+        const r = el.getBoundingClientRect();
+        return r.width > 0 && r.bottom > 0 && r.top < innerHeight;
+      });
+      if (!from || !target || reduce() || !from.animate) return Promise.resolve();
+      let a = from.getBoundingClientRect();
+      const b = target.getBoundingClientRect();
+      // Photo scrolled away (phones, after picking the lens): the frame rises from the button instead.
+      const shown = Math.max(0, Math.min(a.bottom, innerHeight) - Math.max(a.top, 0)) / Math.max(1, a.height);
+      if (shown < 0.6) {
+        const btn = (document.activeElement as HTMLElement)?.closest?.("[data-sticky-add]") ?? addBtn;
+        const r = btn.getBoundingClientRect();
+        const w = Math.min(200, a.width);
+        const hgt = w * (a.height / a.width);
+        a = new DOMRect(r.left + r.width / 2 - w / 2, r.top - hgt * 0.6, w, hgt);
+      }
+      const ghost = document.createElement("div");
+      ghost.className = "fly-ghost";
+      const copy = from.cloneNode(true) as HTMLElement;
+      // Reuse the exact file already on screen so the flying copy never shows up blank.
+      const src = from.querySelector("img")?.currentSrc;
+      copy.querySelectorAll("source").forEach((el) => el.remove());
+      const img = copy.querySelector("img");
+      if (img && src) { img.removeAttribute("srcset"); img.removeAttribute("sizes"); img.loading = "eager"; img.src = src; }
+      ghost.append(copy);
+      Object.assign(ghost.style, { left: `${a.left}px`, top: `${a.top}px`, width: `${a.width}px`, height: `${a.height}px` });
+      document.body.append(ghost);
+      const dx = b.left + b.width / 2 - (a.left + a.width / 2);
+      const dy = b.top + b.height / 2 - (a.top + a.height / 2);
+      const s = Math.max(0.08, 36 / a.width);
+      const anim = ghost.animate(
+        [
+          { transform: "translate(0,0) scale(1)", opacity: 1, borderRadius: "10px" },
+          { transform: `translate(${dx * 0.55}px, ${dy * 0.35 - 40}px) scale(${0.45})`, opacity: 0.95, offset: 0.45 },
+          { transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: 0.2, borderRadius: "50%" },
+        ],
+        { duration: 650, easing: "cubic-bezier(.5,0,.3,1)" },
+      );
+      return anim.finished.then(() => ghost.remove(), () => ghost.remove());
+    };
+
+    let busy = false;
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      if (busy) return;
+      const fd = new FormData(form);
+      const lens = String(fd.get("lens") ?? "");
+      if (!lens) {
+        lensErr.hidden = false;
+        lensFs.setAttribute("aria-invalid", "true");
+        lensFs.classList.remove("is-error");
+        void lensFs.offsetWidth;
+        lensFs.classList.add("is-error");
+        lensFs.scrollIntoView({ behavior: reduce() ? "auto" : "smooth", block: "center" });
+        lensFs.querySelector<HTMLInputElement>("input")?.focus({ preventScroll: true });
+        return;
+      }
+      busy = true;
+      const color = document.querySelector<HTMLElement>("[data-swatch][aria-checked='true']")?.dataset.swatch ?? product.colors[0]?.n ?? "";
+      const photo = document.querySelector<HTMLElement>("[data-gallery]:not([hidden]) .gallery-slide .ph");
+      addBtn.classList.add("is-done");
+      await fly(photo);
+      addItem({ slug: product.slug, name: product.name, price: product.price, color, colors: product.colors, lens, extras: fd.getAll("extras").map(String) });
+      const live = document.querySelector("[data-cart-live]");
+      if (live) live.textContent = `Se agregaron los lentes ${product.name} en color ${color} al carrito.`;
+      await new Promise((r) => setTimeout(r, reduce() ? 0 : 220));
+      (window as any).lpvCart?.open(addBtn);
+      setTimeout(() => { addBtn.classList.remove("is-done"); busy = false; }, 900);
+    });
+
+    // Phone bottom bar: same action; if the lens type is missing it scrolls up to it.
+    document.querySelector("[data-sticky-add]")?.addEventListener("click", () => form.requestSubmit());
+  }
 </script>

@@ -1,6 +1,7 @@
 ---
 import "../styles/site.css";
 import StickyBar from "@/components/StickyBar.astro";
+import CartDrawer from "@/components/CartDrawer.astro";
 import { LEAD_ENDPOINT, WHATSAPP_NUMBER } from "@/lib/contact";
 import {
   DEFAULT_OG_IMAGE,
@@ -21,7 +22,7 @@ export interface Props {
   keywords?: string;
   jsonLd?: Record<string, unknown> | Record<string, unknown>[];
   /** Product shown in the phone sticky bar (product pages only). */
-  sticky?: { name: string; price: number; thumb?: string; frame?: string };
+  sticky?: { name: string; price: number; thumb?: string; frame?: string; addToCart?: boolean };
   /** Hide the phone sticky quote bar (404, legal pages). */
   noSticky?: boolean;
 }
@@ -156,7 +157,68 @@ const websiteJsonLd = {
 
     <link rel="preload" href="/fonts/newsreader-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin />
     <link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <script is:inline>document.documentElement.classList.add("js")</script>
+    <script is:inline>
+      // "js" turns on the enhanced bits; "has-cart" lets the cart and checkout pages draw the
+      // right layout on the first paint (no jump when the saved cart loads).
+      (function (d) { d.classList.add("js"); try { if (JSON.parse(localStorage.getItem("lpv_cart_v1") || "[]").length) d.classList.add("has-cart"); } catch (e) {} })(document.documentElement);
+    </script>
+    <script is:inline>
+      // Page-to-page motion (browsers with cross-document view transitions): the frame
+      // photo you tapped grows into the product gallery, and back again. Everything
+      // else crossfades. Turned off by CSS for people who ask for reduced motion.
+      (function () {
+        if (!("onpagereveal" in window)) return;
+        var K = "lpv_vt", CATS = /^(mujer|hombre|unisex|ninos)$/, last = "";
+        function slugOf(u) {
+          try { var m = /^\/lentes\/([^\/]+)$/.exec(new URL(u, location.href).pathname); } catch (e) { return null; }
+          return m && !CATS.test(m[1]) ? m[1] : null;
+        }
+        function find(slug) {
+          var els = document.querySelectorAll('[data-vt="' + slug + '"]');
+          for (var i = 0; i < els.length; i++) {
+            var r = els[i].getBoundingClientRect();
+            if (r.width > 0 && r.bottom > 0 && r.top < innerHeight) return els[i];
+          }
+          return null;
+        }
+        function quiet(vt) {
+          // A skipped transition rejects these; nothing to do about it, so keep the console clean.
+          if (vt.ready) vt.ready.catch(function () {});
+          if (vt.updateCallbackDone) vt.updateCallbackDone.catch(function () {});
+          if (vt.finished) vt.finished.catch(function () {});
+        }
+        function tag(el, vt) {
+          el.style.viewTransitionName = "frame";
+          vt.finished.then(function () { el.style.viewTransitionName = ""; }, function () { el.style.viewTransitionName = ""; });
+        }
+        document.addEventListener("click", function (e) {
+          var a = e.target.closest && e.target.closest("a[href]");
+          if (a) last = a.href;
+        }, true);
+        addEventListener("pageswap", function (e) {
+          try { sessionStorage.removeItem(K); } catch (x) {}
+          if (!e.viewTransition) return;
+          quiet(e.viewTransition);
+          var to = (e.activation && e.activation.entry && e.activation.entry.url) || last;
+          var slug = slugOf(to) || slugOf(location.href);
+          var el = slug && find(slug);
+          if (!el) return;
+          tag(el, e.viewTransition);
+          try { sessionStorage.setItem(K, slug); } catch (x) {}
+        });
+        addEventListener("pagereveal", function (e) {
+          var slug = null;
+          try { slug = sessionStorage.getItem(K); sessionStorage.removeItem(K); } catch (x) {}
+          if (e.viewTransition) quiet(e.viewTransition);
+          if (!e.viewTransition || !slug) return;
+          var el = find(slug);
+          if (el) tag(el, e.viewTransition);
+        });
+      })();
+    </script>
+    <script type="speculationrules" is:inline>
+      {"prefetch": [{"where": {"href_matches": "/*"}, "eagerness": "moderate"}]}
+    </script>
 
     <link rel="icon" href="/favicon.png" type="image/png" sizes="96x96" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
@@ -200,6 +262,36 @@ const websiteJsonLd = {
     <a class="skip-link" href="#contenido">Saltar al contenido</a>
     <slot />
     {!noSticky && <StickyBar product={sticky} />}
+    <CartDrawer />
+    <script>
+      // Small, once-only motion: sections below the first screen rise into place as they
+      // arrive, and lazy photos fade in when they finish loading. Nothing on the first
+      // screen moves (no delay to the main photo), and reduced motion turns it all off.
+      if (!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
+        const SEL = "main .section-head, main .grid, main .rail, main .steps, main .tiles, main .split, main .reviews, main .faq, main .band > .wrap, main .lens-list, main .facts";
+        const io = new IntersectionObserver((entries) => {
+          for (const e of entries) {
+            if (!e.isIntersecting) continue;
+            e.target.classList.add("rv-in");
+            io.unobserve(e.target);
+          }
+        }, { rootMargin: "0px 0px -6% 0px" });
+        document.querySelectorAll<HTMLElement>(SEL).forEach((el) => {
+          if (el.closest(".rv") || el.getBoundingClientRect().top < innerHeight) return;
+          el.classList.add("rv");
+          if (el.matches(".grid, .rail, .steps, .tiles, .reviews"))
+            Array.from(el.children).forEach((c, i) => (c as HTMLElement).style.setProperty("--i", String(i % 8)));
+          io.observe(el);
+        });
+        document.querySelectorAll<HTMLImageElement>(".ph img[loading='lazy']").forEach((img) => {
+          if (img.complete) return;
+          img.classList.add("ph-wait");
+          const done = () => img.classList.remove("ph-wait");
+          img.addEventListener("load", done, { once: true });
+          img.addEventListener("error", done, { once: true });
+        });
+      }
+    </script>
     <script is:inline define:vars={{ waNumber: WHATSAPP_NUMBER, leadEndpoint: LEAD_ENDPOINT }}>
       // Quote links: <a data-wa data-msg="..." data-frame data-color data-place>.
       // The static href already opens WhatsApp. On tap we add a reference code and,
@@ -227,7 +319,9 @@ const websiteJsonLd = {
           if (!a) return;
           var ref = makeRef();
           var tag = [ref, src.utm_source, src.utm_campaign, src.utm_content].filter(Boolean).join(" · ");
-          var msg = (a.getAttribute("data-msg") || "Hola, quiero cotizar unos lentes recetados.") + " (Ref: " + tag + ")";
+          var base = a.getAttribute("data-msg") || "Hola, quiero cotizar unos lentes recetados.";
+          // A message may carry its own "{ref}" slot; otherwise the code goes at the end.
+          var msg = base.indexOf("{ref}") > -1 ? base.replace("{ref}", tag) : base + " (Ref: " + tag + ")";
           a.href = "https://wa.me/" + waNumber + "?text=" + encodeURIComponent(msg);
           var lead = {
             ref: ref,
@@ -237,6 +331,7 @@ const websiteJsonLd = {
             page: location.pathname,
             ts: new Date().toISOString()
           };
+          try { var extra = JSON.parse(a.getAttribute("data-lead") || "{}"); for (var x in extra) lead[x] = extra[x]; } catch (e) {}
           for (var k in src) lead[k] = src[k];
           (window.lpvLeads = window.lpvLeads || []).push(lead);
           try { window.dispatchEvent(new CustomEvent("lpv:quote", { detail: lead })); } catch (e) {}

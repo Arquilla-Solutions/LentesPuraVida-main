@@ -1,0 +1,101 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import Header from "@/components/Header.astro";
+import Footer from "@/components/Footer.astro";
+import WaIcon from "@/components/WaIcon.astro";
+import { WHATSAPP_LINK } from "@/lib/contact";
+---
+
+<BaseLayout
+  title="Pedido recibido | Lentes Pura Vida"
+  description="Recibimos su pedido. Le respondemos por WhatsApp con el precio total el mismo día."
+  canonical="/pedido-recibido"
+  noIndex
+  noSticky
+>
+  <Header />
+  <main id="contenido" class="done">
+    <div class="wrap narrow">
+      <ol class="flow-steps" aria-label="Pasos del pedido">
+        <li>Carrito</li>
+        <li>Sus datos</li>
+        <li aria-current="step">Listo</li>
+      </ol>
+
+      <div class="done-card" data-done>
+        <svg class="done-check" width="72" height="72" viewBox="0 0 72 72" aria-hidden="true">
+          <circle cx="36" cy="36" r="33" fill="none" stroke="currentColor" stroke-width="2" />
+          <path d="M22 37.5l9.5 9.5L51 27" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        <h1 tabindex="-1" data-done-title>¡Gracias! Recibimos su pedido</h1>
+        <p class="done-code is-pending" data-done-code-wrap>Pedido <strong data-done-code>LPV-·····</strong></p>
+        <p class="lead done-lead" data-done-lead>
+          Su pedido quedó escrito en WhatsApp. Si todavía no lo envió, toque el botón y mándenoslo.
+        </p>
+        <a class="btn btn--primary btn--lg done-wa" href={WHATSAPP_LINK} target="_blank" rel="noopener" data-done-wa>
+          <WaIcon size={20} />
+          <span data-done-wa-label>Enviar el pedido por WhatsApp</span>
+        </a>
+        <p class="small muted done-wa-note" data-done-note>¿No se abrió WhatsApp? Este botón lo abre con el pedido ya escrito.</p>
+      </div>
+
+      <section class="done-next" aria-labelledby="h-next">
+        <h2 id="h-next">Qué pasa ahora</h2>
+        <ol class="timeline">
+          <li>
+            <h3>Le respondemos hoy mismo con el precio total</h3>
+            <p>Revisamos su receta y le mandamos el precio completo: montura, lentes con su graduación, los extras que escogió y el envío.</p>
+          </li>
+          <li>
+            <h3>Usted confirma y paga</h3>
+            <p>Solo si está de acuerdo. Por SINPE Móvil, transferencia o tarjeta. Antes de cobrarle confirmamos receta, color y monto.</p>
+          </li>
+          <li>
+            <h3>Hacemos sus lentes y se los enviamos</h3>
+            <p>Se hacen con su receta exacta y le avisamos por WhatsApp cuando van en camino a su casa.</p>
+          </li>
+        </ol>
+      </section>
+
+      <details class="done-sum faq-item" data-done-sum hidden>
+        <summary>Ver el detalle del pedido</summary>
+        <ul class="co-items" data-co-items></ul>
+        <div class="sum-row"><span>Monturas</span><strong data-done-sub></strong></div>
+        <div class="sum-row sum-row--soft"><span>Lentes y extras</span><span>Se cotizan según su receta</span></div>
+      </details>
+
+      <p class="done-more"><a class="link" href="/lentes">Seguir viendo lentes</a></p>
+    </div>
+  </main>
+  <Footer />
+</BaseLayout>
+
+<script>
+  import { frameSubtotal, money, summaryRows, type Order } from "@/lib/cart";
+
+  let saved: { order: Order; message: string; waUrl: string } | null = null;
+  try { saved = JSON.parse(localStorage.getItem("lpv_last_order") || "null"); } catch {}
+
+  if (saved?.order) {
+    const { order, waUrl } = saved;
+    const first = order.name.split(/\s+/)[0];
+    document.querySelector("[data-done-title]")!.textContent = `¡Gracias, ${first}! Recibimos su pedido`;
+    document.querySelector("[data-done-code]")!.textContent = order.code;
+    document.querySelector<HTMLElement>("[data-done-code-wrap]")!.classList.remove("is-pending");
+    document.querySelector<HTMLAnchorElement>("[data-done-wa]")!.href = waUrl;
+    if (new URLSearchParams(location.search).get("wa") === "0") {
+      document.querySelector("[data-done-lead]")!.textContent = "Falta un paso: toque el botón para mandarnos el pedido por WhatsApp. Ya va escrito.";
+    }
+    const ul = document.querySelector<HTMLElement>("[data-done-sum] [data-co-items]")!;
+    ul.replaceChildren(...summaryRows(order.items));
+    document.querySelector("[data-done-sub]")!.textContent = money(frameSubtotal(order.items));
+    document.querySelector<HTMLElement>("[data-done-sum]")!.hidden = false;
+  } else {
+    document.querySelector("[data-done-title]")!.textContent = "No encontramos un pedido reciente";
+    document.querySelector("[data-done-lead]")!.textContent = "Si ya nos escribió por WhatsApp, le respondemos ahí. Si no, puede escribirnos ahora.";
+    document.querySelector("[data-done-wa-label]")!.textContent = "Escribirnos por WhatsApp";
+    document.querySelector<HTMLElement>("[data-done-note]")!.hidden = true;
+    document.querySelector<HTMLElement>("[data-done-code-wrap]")!.hidden = true;
+    document.querySelector<HTMLElement>(".done-check")!.style.display = "none";
+  }
+</script>

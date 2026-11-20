@@ -5,7 +5,7 @@
 import QuoteButton from "./QuoteButton.astro";
 
 interface Props {
-  product?: { name: string; price: number; thumb?: string; frame?: string };
+  product?: { name: string; price: number; thumb?: string; frame?: string; addToCart?: boolean };
 }
 const { product } = Astro.props;
 ---
@@ -24,13 +24,17 @@ const { product } = Astro.props;
       <span class="sticky-name">Cotización sin compromiso</span>
     </div>
   )}
-  <QuoteButton
-    label="Cotizar"
-    variant="compact"
-    frame={product?.frame}
-    place="sticky-bar"
-    class="sticky-btn"
-  />
+  {product?.addToCart ? (
+    <button type="button" class="btn btn--compact sticky-btn" data-sticky-add>Agregar al carrito</button>
+  ) : (
+    <QuoteButton
+      label="Cotizar"
+      variant="compact"
+      frame={product?.frame}
+      place="sticky-bar"
+      class="sticky-btn"
+    />
+  )}
 </div>
 
 <script>
@@ -44,7 +48,7 @@ const { product } = Astro.props;
       const show = passed && visible.size === 0;
       bar.classList.toggle("is-visible", show);
       bar.setAttribute("aria-hidden", show ? "false" : "true");
-      bar.querySelectorAll("a").forEach((a) => (a.tabIndex = show ? 0 : -1));
+      bar.querySelectorAll<HTMLElement>("a, button").forEach((a) => (a.tabIndex = show ? 0 : -1));
     };
     const io = new IntersectionObserver((entries) => {
       for (const e of entries) {

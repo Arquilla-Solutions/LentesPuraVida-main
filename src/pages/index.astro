@@ -70,12 +70,12 @@ const homeJsonLd: Record<string, unknown>[] = [
         <div class="hero-copy">
           <h1>Lentes recetados de calidad, hasta 60% menos que en la óptica.</h1>
           <p class="lead">
-            Escoja la montura aquí, mándenos su receta por WhatsApp y le enviamos el precio total
-            el mismo día. Se los llevamos hasta la casa, en todo el país.
+            Escoja sus lentes y agréguelos al carrito. Mándenos su receta por WhatsApp y le enviamos el
+            precio total el mismo día. Se los llevamos hasta la casa, en todo el país.
           </p>
           <div class="hero-actions">
-            <QuoteButton place="home-hero" primary />
-            <a class="link" href="/lentes">Ver los {modelCount} modelos</a>
+            <a class="btn btn--primary" href="/lentes" data-primary>Ver los {modelCount} modelos</a>
+            <QuoteButton place="home-hero" variant="link" />
           </div>
         </div>
         <div class="hero-media">
@@ -128,16 +128,16 @@ const homeJsonLd: Record<string, unknown>[] = [
       <div class="wrap">
         <div class="section-head">
           <h2 id="h-como">Así de fácil es pedir sus lentes</h2>
-          <p>Todo se hace por WhatsApp, con una persona que le ayuda en cada paso.</p>
+          <p>Usted escoge aquí y una persona le atiende por WhatsApp en cada paso.</p>
         </div>
         <ol class="steps">
           <li>
-            <h3>Escoja la montura</h3>
-            <p>Vea los modelos y escoja el que más le guste. El precio que ve es el de la montura.</p>
+            <h3>Escoja sus lentes</h3>
+            <p>Escoja el modelo, el color y el tipo de lente, y agréguelos al carrito. El precio que ve es el de la montura.</p>
           </li>
           <li>
-            <h3>Mándenos su receta</h3>
-            <p>Tómele una foto y envíela por WhatsApp. Le enviamos el precio total, con los lentes, el mismo día.</p>
+            <h3>Confirme y mande su receta</h3>
+            <p>Al confirmar se abre WhatsApp con su pedido ya escrito. Mándenos ahí una foto de la receta y le enviamos el precio total el mismo día.</p>
           </li>
           <li>
             <h3>Reciba en su casa</h3>
