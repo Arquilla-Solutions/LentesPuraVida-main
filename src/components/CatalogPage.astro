@@ -19,14 +19,14 @@ const { category } = Astro.props;
 
 const list = category ? productsIn(category.id) : visibleProducts;
 const path = category ? category.path : "/lentes";
-const title = category ? category.title : "Lentes recetados en Costa Rica: todos los modelos | Lentes Pura Vida";
+const title = category ? category.title : "Lentes recetados y monturas en Costa Rica | Lentes Pura Vida";
 const description = category
   ? category.description
-  : `Los ${visibleProducts.length} modelos de lentes recetados de Lentes Pura Vida, desde $30 la montura. Envío a toda Costa Rica y cotización por WhatsApp.`;
+  : `Los ${visibleProducts.length} modelos de lentes recetados de Lentes Pura Vida, desde $30 la montura. Envío a toda Costa Rica y precio total por WhatsApp.`;
 const h1 = category ? category.h1 : "Todos los lentes";
 const intro = category
   ? category.intro
-  : "Monturas de $30 y $45 para mujer, hombre y unisex. Escoja la que le guste y le cotizamos los lentes con su receta por WhatsApp.";
+  : "Monturas de $30 y $45 para mujer, hombre y unisex. Escoja la que le guste y le cotizamos los lentes según su receta.";
 
 const shapes = [...new Set(list.map((p) => shapeGroup(p.shape)))].sort();
 const materials = [...new Set(list.map((p) => (p.material.startsWith("Mixto") ? "Metal" : p.material)))].sort();

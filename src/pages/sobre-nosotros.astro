@@ -27,7 +27,7 @@ const aboutJsonLd: Record<string, unknown> = {
 ---
 
 <BaseLayout
-  title="Sobre nosotros: lentes recetados a precio justo | Lentes Pura Vida"
+  title="Sobre nosotros: lentes a precio justo | Lentes Pura Vida"
   description="Somos un negocio familiar que trae lentes recetados hechos en EE.UU. a Costa Rica a un precio justo. Conozca cómo trabajamos y por qué cuestan menos."
   canonical="/sobre-nosotros"
   imageAlt="Sobre Lentes Pura Vida"
@@ -39,53 +39,53 @@ const aboutJsonLd: Record<string, unknown> = {
       <header class="page-head">
         <h1>Ver bien no debería ser un lujo.</h1>
         <p class="lead">
-          Traemos a Costa Rica la calidad de la fabricación óptica de Estados Unidos a un precio justo, para que
-          cada familia pueda tener algo tan básico como ver el mundo con claridad.
+          Traemos a Costa Rica lentes hechos en Estados Unidos, a un precio justo para cualquier familia.
         </p>
         <ul class="facts">
           <li><strong>Desde $30</strong>por montura</li>
           <li><strong>EE.UU.</strong>laboratorio certificado</li>
-          <li><strong>10–14</strong>días a su casa</li>
+          <li><strong>10 a 14</strong>días a su casa</li>
         </ul>
       </header>
 
       <div class="prose">
-        <h2>En Costa Rica, ver bien sale demasiado caro</h2>
+        <h2>En Costa Rica, ver bien sale caro</h2>
         <p>
-          Un par de lentes recetados en una óptica local cuesta entre <strong>$110 y $250 o más</strong>. La diferencia
-          no está en la calidad de los lentes: está en el alquiler del local, en las marcas de moda y en los vendedores a
-          comisión. Y todo eso lo termina pagando usted.
+          Un par de lentes recetados en una óptica local cuesta entre <strong>$110 y $250 o más</strong>.
+        </p>
+        <p>
+          La diferencia no está en la calidad. Está en el alquiler del local, las marcas de moda y los vendedores a
+          comisión. Y eso lo termina pagando usted.
         </p>
 
         <h2>Cómo lo hacemos</h2>
         <p>
-          Trabajamos directo con un laboratorio óptico certificado en Estados Unidos, donde optómetras con licencia
-          profesional hacen cada par con su receta exacta. Sin intermediarios, sin marcas de lujo y sin paquetes
-          cerrados con costos sorpresa.
+          Trabajamos directo con un laboratorio óptico certificado en Estados Unidos. Ahí hacen cada par con su receta exacta.
         </p>
-        <ul>
-          <li><strong>Tienda 100% en línea.</strong> No tenemos local ni vendedores a comisión, y eso no se lo cobramos a usted.</li>
-          <li><strong>Cotización transparente.</strong> La montura tiene precio fijo. Los lentes se cotizan según su receta y los tratamientos que usted escoja, sin extras que no necesita.</li>
-          <li><strong>Atención directa.</strong> Un solo chat de WhatsApp para la receta, el color, la talla, el pago y el envío.</li>
+        <ul class="elist">
+          <li><span class="e" aria-hidden="true">🛒</span><span><strong>Tienda 100% en línea.</strong> Sin local ni vendedores a comisión.</span></li>
+          <li><span class="e" aria-hidden="true">💵</span><span><strong>Precio claro.</strong> La montura tiene precio fijo. Los lentes se cotizan según su receta, sin extras que no necesita.</span></li>
+          <li><span class="e" aria-hidden="true">💬</span><span><strong>Un solo chat.</strong> Receta, color, talla, pago y envío, todo por WhatsApp.</span></li>
         </ul>
 
         <h2>Quiénes somos</h2>
         <!-- Pending Sebastian's OK: names and a real photo of the family go here. -->
         <p>
-          Somos un negocio familiar. Cada cotización la hacemos nosotros mismos: revisamos su receta, le explicamos las
-          opciones en palabras sencillas y le acompañamos por WhatsApp hasta que sus lentes le queden bien.
+          Somos un negocio familiar. Cada cotización la hacemos nosotros: revisamos su receta, le explicamos las
+          opciones en palabras sencillas y le acompañamos hasta que sus lentes le queden bien.
         </p>
         <p>
           Detrás de cada par hay una mamá que necesita ver el cuaderno de su hijo, un abuelo que vuelve a leer el
-          periódico, una estudiante que por fin toma apuntes sin entrecerrar los ojos. Por eso hacemos esto.
+          periódico, una estudiante que por fin toma apuntes sin entrecerrar los ojos.
         </p>
 
-        <div class="callout">
-          <p>
-            <strong>Lo que puede esperar de nosotros:</strong> optómetras certificados · pago seguro por SINPE,
-            transferencia o tarjeta · envío a todo CR con guía rastreable · garantía de fábrica, con reemplazo sin costo.
-          </p>
-        </div>
+        <h2>Lo que puede esperar</h2>
+        <ul class="elist">
+          <li><span class="e" aria-hidden="true">👓</span><span>Optómetras certificados</span></li>
+          <li><span class="e" aria-hidden="true">📲</span><span>Pago por SINPE Móvil o transferencia</span></li>
+          <li><span class="e" aria-hidden="true">🚚</span><span>Envío a todo CR con guía rastreable</span></li>
+          <li><span class="e" aria-hidden="true">✅</span><span>Garantía de fábrica, con reemplazo sin costo</span></li>
+        </ul>
       </div>
     </div>
 
@@ -93,9 +93,9 @@ const aboutJsonLd: Record<string, unknown> = {
       <div class="wrap">
         <hr class="rule" />
         <h2>Encuentre sus lentes</h2>
-        <p>{modelCount} modelos desde $30. Cotización transparente por WhatsApp.</p>
-        <QuoteButton variant="light" place="about-band" primary />
-        <p style="margin: 20px 0 0"><a href="/lentes" style="color: #fff">Ver los modelos</a></p>
+        <p>{modelCount} modelos desde $30. Le mandamos el precio total por WhatsApp.</p>
+        <a class="btn btn--light" href="/lentes" data-primary>Ver los {modelCount} modelos</a>
+        <p class="band-alt"><QuoteButton variant="link" label="O escríbanos por WhatsApp" place="about-band" class="link--light" /></p>
       </div>
     </section>
   </main>

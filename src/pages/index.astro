@@ -11,6 +11,7 @@ import { scanFramePhotos, onFaceThumb, type View } from "@/lib/photos";
 import { CATEGORIES, featuredProducts, modelCount, productsIn, visibleProducts } from "@/lib/catalog";
 import { HOME_FAQ, faqJsonLd } from "@/data/faq";
 import { REVIEWS } from "@/data/reviews";
+import { STEPS } from "@/data/steps";
 
 const photos = scanFramePhotos();
 // Pick a specific on-face photo; falls back to any on-face photo if the file is renamed.
@@ -55,8 +56,8 @@ const homeJsonLd: Record<string, unknown>[] = [
 ---
 
 <BaseLayout
-  title="Lentes recetados en Costa Rica, hasta 60% menos | Lentes Pura Vida"
-  description="Lentes recetados con envío a toda Costa Rica. Escoja la montura desde $30, mándenos su receta por WhatsApp y le cotizamos el mismo día."
+  title="Lentes recetados en Costa Rica | Lentes Pura Vida"
+  description="Lentes recetados con envío a toda Costa Rica. Monturas desde $30, escriba su receta o mándela por WhatsApp y le cotizamos el mismo día."
   canonical="/"
   keywords="lentes recetados Costa Rica, anteojos graduados Costa Rica, monturas Costa Rica, óptica online Costa Rica, lentes baratos Costa Rica, lentes con receta, lentes para hombre, lentes para mujer"
   imageAlt="Lentes Pura Vida: lentes recetados con envío a toda Costa Rica"
@@ -70,8 +71,8 @@ const homeJsonLd: Record<string, unknown>[] = [
         <div class="hero-copy">
           <h1>Lentes recetados de calidad, hasta 60% menos que en la óptica.</h1>
           <p class="lead">
-            Escoja sus lentes y agréguelos al carrito. Mándenos su receta por WhatsApp y le enviamos el
-            precio total el mismo día. Se los llevamos hasta la casa, en todo el país.
+            Escoja sus lentes y escriba su receta al confirmar, o mándenosla por WhatsApp.
+            Le enviamos el precio total el mismo día y se los llevamos a la casa.
           </p>
           <div class="hero-actions">
             <a class="btn btn--primary" href="/lentes" data-primary>Ver los {modelCount} modelos</a>
@@ -100,10 +101,10 @@ const homeJsonLd: Record<string, unknown>[] = [
     <div class="trust">
       <div class="wrap">
         <ul aria-label="Por qué comprar aquí">
-          <li>Hechos en EE.UU.</li>
-          <li>Envío a todo el país</li>
-          <li>Garantía de fábrica</li>
-          <li>Pago por SINPE Móvil</li>
+          <li><span class="e" aria-hidden="true">👓</span>Hechos en EE.UU.</li>
+          <li><span class="e" aria-hidden="true">🇨🇷</span>Envío a todo CR</li>
+          <li><span class="e" aria-hidden="true">✅</span>Garantía de fábrica</li>
+          <li><span class="e" aria-hidden="true">📲</span>Pago por SINPE</li>
         </ul>
       </div>
     </div>
@@ -128,23 +129,17 @@ const homeJsonLd: Record<string, unknown>[] = [
       <div class="wrap">
         <div class="section-head">
           <h2 id="h-como">Así de fácil es pedir sus lentes</h2>
-          <p>Usted escoge aquí y una persona le atiende por WhatsApp en cada paso.</p>
+          <p>Usted escoge aquí. Una persona le atiende por WhatsApp en cada paso.</p>
         </div>
         <ol class="steps">
-          <li>
-            <h3>Escoja sus lentes</h3>
-            <p>Escoja el modelo, el color y el tipo de lente, y agréguelos al carrito. El precio que ve es el de la montura.</p>
-          </li>
-          <li>
-            <h3>Confirme y mande su receta</h3>
-            <p>Al confirmar se abre WhatsApp con su pedido ya escrito. Mándenos ahí una foto de la receta y le enviamos el precio total el mismo día.</p>
-          </li>
-          <li>
-            <h3>Reciba en su casa</h3>
-            <p>Cuando usted confirma, hacemos el pedido. Sus lentes llegan listos para usar.</p>
-          </li>
+          {STEPS.map((st) => (
+            <li>
+              <h3><span class="step-e" aria-hidden="true">{st.e}</span>{st.h}</h3>
+              <p>{st.p}</p>
+            </li>
+          ))}
         </ol>
-        <p class="small" style="margin-top: 32px"><a class="link" href="/como-funciona">Ver el proceso completo y las preguntas frecuentes</a></p>
+        <p style="margin-top: 32px"><a class="link" href="/como-funciona">Ver el proceso completo</a></p>
       </div>
     </section>
 
@@ -172,12 +167,12 @@ const homeJsonLd: Record<string, unknown>[] = [
           <h2 id="h-precio">¿Por qué cuestan menos?</h2>
           <p class="lead" style="margin-top: 16px">
             Sus lentes se hacen en un laboratorio óptico certificado en Estados Unidos, con su receta exacta.
-            No pagamos local, ni vendedores a comisión, ni marcas de moda. Ese ahorro se lo pasamos a usted.
           </p>
-          <ul class="perks">
-            <li><strong>Hechos en EE.UU.</strong> por optómetras certificados.</li>
-            <li><strong>Envío gratis</strong> en pedidos de $300 o más.</li>
-            <li><strong>Hasta $10 de descuento</strong> si nos manda el recibo de su examen de la vista.</li>
+          <p class="lead">Sin local, sin vendedores a comisión, sin marcas de moda. Ese ahorro es suyo.</p>
+          <ul class="elist">
+            <li><span class="e" aria-hidden="true">👓</span><span><strong>Hechos en EE.UU.</strong> por optómetras certificados.</span></li>
+            <li><span class="e" aria-hidden="true">🚚</span><span><strong>Envío gratis</strong> en pedidos de $300 o más.</span></li>
+            <li><span class="e" aria-hidden="true">💚</span><span><strong>Hasta $10 de descuento</strong> si nos manda el recibo de su examen de la vista.</span></li>
           </ul>
         </div>
         <div class="compare" aria-label="Comparación de precios de la montura">
@@ -218,9 +213,13 @@ const homeJsonLd: Record<string, unknown>[] = [
         <hr class="rule" />
         <h2 id="h-nosotros">Le atiende una persona, no un robot</h2>
         <p class="lead" style="margin-top: 16px">
-          Somos un negocio familiar. Cada cotización la hacemos nosotros: revisamos su receta, le explicamos
-          las opciones en palabras sencillas y le acompañamos por WhatsApp hasta que sus lentes le queden bien.
+          Somos un negocio familiar. Cada cotización la hacemos nosotros.
         </p>
+        <ul class="elist" style="margin-bottom: 28px">
+          <li><span class="e" aria-hidden="true">🔍</span><span>Revisamos su receta.</span></li>
+          <li><span class="e" aria-hidden="true">💬</span><span>Le explicamos las opciones en palabras sencillas.</span></li>
+          <li><span class="e" aria-hidden="true">💚</span><span>Le acompañamos por WhatsApp hasta que sus lentes le queden bien.</span></li>
+        </ul>
         <a class="link" href="/sobre-nosotros">Conozca quiénes somos</a>
       </div>
     </section>
@@ -238,9 +237,10 @@ const homeJsonLd: Record<string, unknown>[] = [
     <section class="band">
       <div class="wrap">
         <hr class="rule" />
-        <h2>Mándenos su receta y le cotizamos hoy mismo</h2>
-        <p>Sin compromiso. Le respondemos por WhatsApp con el precio total de sus lentes.</p>
-        <QuoteButton variant="light" place="home-band" primary />
+        <h2>Escoja sus lentes y le cotizamos hoy mismo</h2>
+        <p>{modelCount} modelos desde $30. Sin compromiso: le mandamos el precio total por WhatsApp.</p>
+        <a class="btn btn--light" href="/lentes" data-primary>Ver los {modelCount} modelos</a>
+        <p class="band-alt"><QuoteButton variant="link" label="O escríbanos por WhatsApp" place="home-band" class="link--light" /></p>
       </div>
     </section>
   </main>

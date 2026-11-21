@@ -7,6 +7,7 @@ import Faq from "@/components/Faq.astro";
 import { ALL_FAQ, faqJsonLd } from "@/data/faq";
 import { MESSAGES } from "@/lib/whatsapp";
 import { SITE_URL } from "@/lib/seo";
+import { STEPS } from "@/data/steps";
 
 const jsonLd = [
   faqJsonLd(ALL_FAQ),
@@ -22,8 +23,8 @@ const jsonLd = [
 ---
 
 <BaseLayout
-  title="Cómo pedir lentes recetados por WhatsApp | Lentes Pura Vida"
-  description="Escoja la montura, mándenos la foto de su receta y le enviamos el precio total el mismo día. Envío a toda Costa Rica. Preguntas frecuentes."
+  title="Cómo pedir lentes recetados en Costa Rica | Lentes Pura Vida"
+  description="Escoja la montura, escriba su receta o mándela por WhatsApp y le enviamos el precio total el mismo día. Pago por SINPE Móvil. Envío a todo el país."
   canonical="/como-funciona"
   jsonLd={jsonLd}
 >
@@ -32,36 +33,37 @@ const jsonLd = [
     <div class="wrap narrow">
       <header class="page-head">
         <h1>Cómo pedir sus lentes</h1>
-        <p class="lead">Usted escoge sus lentes aquí y una persona le atiende por WhatsApp en cada paso. Sin cuentas ni contraseñas.</p>
+        <p class="lead">Cuatro pasos, sin cuentas ni contraseñas. Una persona le atiende por WhatsApp.</p>
       </header>
 
       <div class="prose">
         <h2 class="sr-only">Los pasos</h2>
-        <ol class="steps" style="grid-template-columns: 1fr; margin-top: 32px">
-          <li>
-            <h3>Escoja sus lentes</h3>
-            <p>Vea los <a href="/lentes">modelos</a> y escoja el que más le guste, con su color y el tipo de lente, y agréguelo al carrito. El precio que ve ($30 o $45) es solo el de la montura. Si no se decide, escríbanos y le recomendamos.</p>
-          </li>
-          <li>
-            <h3>Confirme el pedido y mándenos su receta</h3>
-            <p>En el carrito toque “Continuar con el pedido”, ponga su nombre y provincia y confirme. Se abre WhatsApp con el pedido ya escrito: modelo, color y tipo de lente. Ahí mismo nos manda una foto de su receta.</p>
-          </li>
-          <li>
-            <h3>Reciba el precio total y confirme</h3>
-            <p>Le enviamos el precio total el mismo día: montura, lentes graduados con su receta y envío. Le explicamos los tratamientos opcionales para que escoja solo lo que necesita. Antes de cobrarle confirmamos receta, color, talla y monto.</p>
-          </li>
-          <li>
-            <h3>Hacemos el pedido y se lo enviamos</h3>
-            <p>Sus lentes se hacen en un laboratorio óptico en Estados Unidos y llegan en 10–14 días hábiles a su casa, oficina o sucursal de Correos de Costa Rica.</p>
-          </li>
+        <ol class="steps steps--stack">
+          {STEPS.map((st) => (
+            <li>
+              <h3><span class="step-e" aria-hidden="true">{st.e}</span>{st.h}</h3>
+              <p>{st.p}</p>
+            </li>
+          ))}
         </ol>
 
+        <h2>Bueno saber</h2>
+        <ul class="elist">
+          <li><span class="e" aria-hidden="true">👓</span><span>Los $30 o $45 que ve son <strong>solo la montura</strong>. Los lentes se cotizan según su receta.</span></li>
+          <li><span class="e" aria-hidden="true">📝</span><span>Su receta la puede <strong>escribir al confirmar</strong> el pedido o <strong>mandar en foto</strong> por WhatsApp.</span></li>
+          <li><span class="e" aria-hidden="true">🔍</span><span>Antes de cobrarle confirmamos receta, color, talla y monto.</span></li>
+          <li><span class="e" aria-hidden="true">📲</span><span>Paga por SINPE Móvil o transferencia, solo cuando esté de acuerdo.</span></li>
+          <li><span class="e" aria-hidden="true">🚚</span><span>Llega en 10 a 14 días hábiles a su casa, oficina o sucursal de Correos de Costa Rica.</span></li>
+        </ul>
+
         <div class="cta-row" style="margin: 32px 0 0">
-          <QuoteButton place="como-funciona" primary />
+          <a class="btn btn--primary" href="/lentes" data-primary>Ver los modelos</a>
+          <QuoteButton place="como-funciona" variant="link" label="Preguntar por WhatsApp" />
         </div>
 
         <div class="callout" id="sin-receta">
-          <p><strong>¿No tiene receta?</strong> Necesita una de un optometrista u oftalmólogo. Hágase el examen de la vista donde usted confíe y mándenos la foto. Si nos manda también el recibo del examen, le rebajamos hasta $10.</p>
+          <p><strong>¿No tiene receta?</strong> Hágase el examen de la vista donde usted confíe, con un optometrista u oftalmólogo.</p>
+          <p>Si nos manda el recibo del examen, le rebajamos hasta $10.</p>
           <p><QuoteButton variant="link" label="Preguntar por WhatsApp" message={MESSAGES.noRx} place="como-funciona-norx" /></p>
         </div>
 

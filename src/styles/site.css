@@ -165,6 +165,14 @@ h3 { font-family: var(--sans); font-weight: 600; font-size: 19px; line-height: 1
 }
 .link:hover { text-decoration-color: var(--green); text-decoration-thickness: 2px; }
 .cta-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; }
+.link--light { color: #fff; }
+.link--light:hover { text-decoration-color: #fff; }
+/* Lists with a small emoji as the marker (benefits, reassurance). One emoji per line, never in prices. */
+.elist { list-style: none; margin: 20px 0 0; padding: 0; display: grid; gap: 12px; }
+.elist li { display: flex; gap: 12px; align-items: baseline; margin: 0; }
+.elist .e { flex: none; width: 1.4em; text-align: center; font-size: 1.05em; }
+.prose .elist { padding: 0; }
+.elist--tight { gap: 8px; font-size: 15px; color: var(--ink-soft); }
 
 /* ---------- Header ---------- */
 .announce {
@@ -267,12 +275,11 @@ h3 { font-family: var(--sans); font-weight: 600; font-size: 19px; line-height: 1
   gap: 10px 16px; font-size: 15px; color: var(--ink-soft);
 }
 .trust li { display: flex; align-items: center; gap: 8px; }
-.trust li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex: none; }
+.trust li .e { flex: none; }
 @media (min-width: 768px) {
   .trust ul { display: flex; justify-content: center; gap: 0; padding: 20px 0; }
   .trust li { padding: 0 24px; }
   .trust li + li { border-left: 1px solid var(--line); }
-  .trust li::before { display: none; }
 }
 
 /* ---------- Product cards ---------- */
@@ -307,15 +314,25 @@ h3 { font-family: var(--sans); font-weight: 600; font-size: 19px; line-height: 1
 @media (max-width: 413px) { .card-note { display: none; } }
 
 /* ---------- Steps ---------- */
-.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 32px; counter-reset: step; }
-.steps li { counter-increment: step; border-top: 1px solid var(--line); padding-top: 20px; }
-.steps li::before {
-  content: counter(step); display: block; font-family: var(--serif); font-size: 40px; line-height: 1;
-  color: var(--green); margin-bottom: 12px;
+.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; counter-reset: step; }
+.steps li {
+  counter-increment: step; border-top: 1px solid var(--line); padding-top: 18px;
+  display: grid; grid-template-columns: 34px 1fr; column-gap: 12px; align-content: start;
 }
-.steps h3 { margin-bottom: 8px; }
+.steps li::before {
+  content: counter(step); grid-row: 1 / span 2; font-family: var(--serif); font-size: 34px; line-height: 1;
+  color: var(--green);
+}
+.steps h3 { margin: 4px 0 6px; text-wrap: pretty; }
 .steps p { margin: 0; color: var(--ink-soft); }
-@media (min-width: 768px) { .steps { grid-template-columns: repeat(3, 1fr); gap: 32px; } }
+.steps .step-e { margin-right: 8px; }
+@media (min-width: 768px) { .steps:not(.steps--stack) { grid-template-columns: repeat(2, 1fr); gap: 32px; } }
+@media (min-width: 1024px) {
+  .steps:not(.steps--stack) { grid-template-columns: repeat(4, 1fr); }
+  .steps:not(.steps--stack) li { display: block; padding-top: 20px; }
+  .steps:not(.steps--stack) li::before { display: block; font-size: 40px; margin-bottom: 14px; }
+}
+.steps--stack { margin-top: 32px; }
 
 /* ---------- Category tiles ---------- */
 .tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
@@ -370,6 +387,7 @@ h3 { font-family: var(--sans); font-weight: 600; font-size: 19px; line-height: 1
 .band h2 { color: #fff; max-width: 18ch; margin: 0 auto; }
 .band p { color: #dcebe1; margin: 16px auto 28px; max-width: 34em; }
 .band .rule { margin: 0 auto 24px; background: rgba(255, 255, 255, 0.55); }
+.band .band-alt { margin: 20px auto 0; }
 
 /* ---------- Breadcrumb ---------- */
 .crumbs { font-size: 14px; color: var(--ink-soft); padding: 16px 0 0; }
@@ -392,7 +410,7 @@ h3 { font-family: var(--sans); font-weight: 600; font-size: 19px; line-height: 1
 }
 .chip:hover { border-color: var(--ink); }
 .chip[aria-current="page"], .chip[aria-pressed="true"] { background: var(--green); border-color: var(--green); color: #fff; }
-.chip small { margin-left: 6px; color: inherit; opacity: 0.7; font-size: 13px; }
+.chip small { margin-left: 6px; color: inherit; opacity: 0.85; font-size: 13px; }
 .filters { display: grid; gap: 10px; padding: 16px 0 24px; border-bottom: 1px solid var(--line); margin-bottom: 28px; }
 .filter-row { display: flex; align-items: center; gap: 12px; min-width: 0; }
 .filter-row > span { font-size: 14px; color: var(--ink-soft); flex: none; width: 64px; }
@@ -409,6 +427,7 @@ h3 { font-family: var(--sans); font-weight: 600; font-size: 19px; line-height: 1
 .pdp > * { min-width: 0; }
 @media (min-width: 1024px) {
   .pdp { grid-template-columns: minmax(0, 1.45fr) minmax(0, 1fr); gap: 56px; padding-top: 24px; align-items: start; }
+  .pdp-media { position: sticky; top: calc(var(--header-h) + 20px); }
   .pdp-info { position: sticky; top: calc(var(--header-h) + 24px); }
 }
 .gallery { position: relative; }
@@ -473,6 +492,8 @@ h3 { font-family: var(--sans); font-weight: 600; font-size: 19px; line-height: 1
 .folds { margin-top: 24px; }
 .folds .faq-item summary { font-size: 16px; padding: 16px 32px 16px 0; }
 .folds .faq-item > div { padding: 0 0 18px; font-size: 16px; color: var(--ink-soft); }
+.fold-steps { margin: 0 0 14px; padding-left: 22px; display: grid; gap: 8px; }
+.fold-steps strong { color: var(--ink); font-weight: 600; }
 .specs { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 20px; }
 .specs dt { color: var(--ink-soft); }
 .specs dd { margin: 0; color: var(--ink); }
@@ -498,10 +519,13 @@ h3 { font-family: var(--sans); font-weight: 600; font-size: 19px; line-height: 1
 .lens-list > div { padding: 22px 0; border-bottom: 1px solid var(--line); }
 .lens-list h3 { margin: 0 0 6px; }
 .lens-list p { margin: 0 0 8px; }
+.prose .label-e { margin: 20px 0 0; font-weight: 600; color: var(--ink); }
+.prose .label-e + .lens-list { margin-top: 12px; }
 .facts { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .facts li { padding: 18px 8px; text-align: center; font-size: 14px; color: var(--ink-soft); }
 .facts li + li { border-left: 1px solid var(--line); }
-.facts strong { display: block; font-family: var(--serif); font-weight: 500; font-size: 26px; color: var(--ink); line-height: 1.1; margin-bottom: 4px; }
+@media (min-width: 768px) { .facts strong { font-size: 26px; } }
+.facts strong { display: block; font-family: var(--serif); font-weight: 500; font-size: 22px; color: var(--ink); line-height: 1.1; margin-bottom: 4px; }
 
 /* ---------- Footer ---------- */
 .site-footer { background: var(--cream); border-top: 1px solid var(--line); padding: 56px 0 24px; font-size: 15px; }
@@ -672,7 +696,7 @@ html.is-locked { overflow: hidden; }
 .opt-card:has(input:checked) { border-color: var(--green); background: var(--green-tint); box-shadow: inset 0 0 0 0.5px var(--green); }
 .opt-card:has(input:focus-visible) { outline: 2px solid var(--green); outline-offset: 2px; }
 .opt-card .opt-name { font-weight: 600; font-size: 15px; line-height: 1.25; }
-.opt-card .opt-hint { font-size: 13px; line-height: 1.35; color: var(--ink-soft); }
+.opt-card .opt-hint { font-size: 14px; line-height: 1.35; color: var(--ink-soft); }
 .opt-card::after {
   content: ""; position: absolute; top: 10px; right: 10px; width: 16px; height: 16px; border-radius: 50%;
   border: 1.5px solid #c9c1b3; transition: border-color .15s ease, border-width .2s var(--ease-spring);
@@ -850,7 +874,7 @@ html:not(.js) .buy { display: none; }
 .summary .btn { margin-top: 6px; }
 .summary-perks { list-style: none; margin: 4px 0 0; padding: 0; display: grid; gap: 6px; font-size: 14px; color: var(--ink-soft); }
 .summary-perks li { display: flex; gap: 8px; align-items: center; }
-.summary-perks li::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--green); flex: none; }
+.summary-perks .e { flex: none; width: 1.3em; text-align: center; }
 
 /* ---------- /checkout ---------- */
 .co .flow-steps { padding-top: 16px; }
@@ -957,6 +981,7 @@ html:not(.js) .buy { display: none; }
 .done-wa { animation: rise .6s .45s var(--ease-out) both; }
 .done-wa .wa-icon { color: #fff; }
 .done-wa-note { margin: 12px 0 0; }
+.done-assure { width: fit-content; margin: 22px auto 0; text-align: left; }
 .done-next { border-top: 1px solid var(--line); padding-top: 28px; }
 .done-next h2 { font-size: 28px; margin-bottom: 18px; }
 .timeline { list-style: none; margin: 0; padding: 0; counter-reset: tl; }

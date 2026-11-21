@@ -7,45 +7,22 @@ import { MESSAGES } from "@/lib/whatsapp";
 import { SITE_URL } from "@/lib/seo";
 
 const LENSES = [
-  {
-    h: "Monofocales",
-    p: "Tienen una sola graduación en todo el lente: para ver de lejos o para leer. Son los más comunes y los más económicos.",
-  },
-  {
-    h: "Bifocales",
-    p: "Tienen dos zonas: arriba para ver de lejos y abajo una ventanita para leer. La línea entre las dos se nota.",
-  },
-  {
-    h: "Progresivos",
-    p: "Le dejan ver de lejos, a media distancia y de cerca con el mismo lente, sin línea. Son la opción usual después de los 40, cuando cuesta leer de cerca. Los primeros días hay que acostumbrarse a mover un poco la cabeza.",
-  },
-  {
-    h: "Lentes delgados (alto índice)",
-    p: "Si su graduación es alta, los lentes normales salen gruesos y pesados. Los de alto índice son más delgados y livianos. Si no sabe si los necesita, mándenos la receta y le decimos.",
-  },
+  { h: "Monofocales (visión sencilla)", p: "Una sola graduación en todo el lente, para lejos o para leer. Los más comunes y los más económicos." },
+  { h: "Bifocales", p: "Dos zonas: arriba para lejos y abajo una ventanita para leer. La línea entre las dos se nota." },
+  { h: "Progresivos", p: "Lejos, media distancia y cerca en el mismo lente, sin línea. Lo usual después de los 40. Los primeros días hay que acostumbrarse un poco." },
+  { h: "Lentes delgados (alto índice)", p: "Con graduación alta, los lentes normales salen gruesos. Estos son más delgados y livianos. Con su receta le decimos si los necesita." },
 ];
 
-const COATINGS = [
-  {
-    h: "Anti-rayones",
-    p: "Una capa que protege la superficie del lente de rayones del día a día.",
-  },
-  {
-    h: "Protección UV",
-    p: "Bloquea los rayos ultravioleta del sol, que con los años dañan los ojos.",
-  },
-  {
-    h: "Antirreflejo",
-    p: "Quita los reflejos de luces y pantallas. Se ve más claro de noche, por ejemplo manejando, y en fotos y videollamadas se le ven los ojos, no el brillo del lente.",
-  },
-  {
-    h: "Filtro de luz azul",
-    p: "Reduce parte de la luz azul de celulares y computadoras. Muchas personas sienten la vista menos cansada con él, aunque los estudios no han demostrado que proteja los ojos. Si pasa muchas horas frente a la pantalla, puede valer la pena.",
-  },
-  {
-    h: "Fotocromáticos",
-    p: "Se oscurecen al sol y se aclaran bajo techo, así no necesita lentes de sol aparte. Ojo: dentro del carro se oscurecen poco, porque el parabrisas bloquea la luz que los activa.",
-  },
+const INCLUDED = [
+  { h: "Anti-rayones", p: "Protege el lente de los rayones del día a día." },
+  { h: "Protección UV", p: "Bloquea los rayos ultravioleta del sol, que con los años dañan los ojos." },
+];
+
+const OPTIONAL = [
+  { h: "Antirreflejo", p: "Quita los reflejos de luces y pantallas. Se ve más claro de noche, por ejemplo manejando." },
+  { h: "Filtro de luz azul", p: "Reduce parte de la luz azul de celulares y computadoras. Muchas personas sienten la vista menos cansada, aunque los estudios no han demostrado que proteja los ojos." },
+  { h: "Fotocromáticos", p: "Se oscurecen al sol y se aclaran bajo techo. Ojo: dentro del carro se oscurecen poco, porque el parabrisas bloquea la luz que los activa." },
+  { h: "Polarizados", p: "Lentes de sol con su graduación. Quitan el brillo del agua y de la carretera." },
 ];
 
 const jsonLd = {
@@ -60,8 +37,8 @@ const jsonLd = {
 ---
 
 <BaseLayout
-  title="Tipos de lentes: monofocales, progresivos y tratamientos | Lentes Pura Vida"
-  description="Monofocales, bifocales, progresivos, antirreflejo, filtro de luz azul y fotocromáticos explicados en palabras sencillas, para escoger sin pagar de más."
+  title="Tipos de lentes y tratamientos | Lentes Pura Vida"
+  description="Monofocales, bifocales, progresivos, antirreflejo, filtro de luz azul y fotocromáticos, explicados en palabras sencillas para escoger sin pagar de más."
   canonical="/lentes-y-tratamientos"
   ogType="article"
   jsonLd={jsonLd}
@@ -81,16 +58,22 @@ const jsonLd = {
         </div>
 
         <h2>Tratamientos</h2>
-        <p>Los dos primeros vienen con todos nuestros lentes. Los demás son opcionales y se los cotizamos aparte.</p>
+        <p class="label-e"><span aria-hidden="true">✅</span> Vienen con todos nuestros lentes</p>
         <div class="lens-list">
-          {COATINGS.map((l) => (<div><h3>{l.h}</h3><p>{l.p}</p></div>))}
+          {INCLUDED.map((l) => (<div><h3>{l.h}</h3><p>{l.p}</p></div>))}
+        </div>
+        <p class="label-e" style="margin-top: 32px"><span aria-hidden="true">➕</span> Opcionales, se cotizan aparte</p>
+        <div class="lens-list">
+          {OPTIONAL.map((l) => (<div><h3>{l.h}</h3><p>{l.p}</p></div>))}
         </div>
 
         <div class="callout">
-          <p><strong>¿No sabe cuál le conviene?</strong> Mándenos su receta y cuéntenos para qué usa más los lentes (computadora, manejar, leer). Le recomendamos la opción más sencilla que le sirva.</p>
+          <p><strong>¿No sabe cuál le conviene?</strong> Mándenos su receta y cuéntenos para qué usa más los lentes: computadora, manejar o leer.</p>
+          <p>Le recomendamos la opción más sencilla que le sirva.</p>
         </div>
         <div class="cta-row">
           <QuoteButton label="Pregúntenos cuál le conviene" message={MESSAGES.lensHelp} place="tratamientos" primary />
+          <a class="link" href="/lentes">Ver los modelos</a>
         </div>
       </div>
     </div>

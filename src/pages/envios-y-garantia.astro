@@ -11,8 +11,8 @@ const provinces = `${CR_PROVINCES.slice(0, -1).join(", ")} y ${CR_PROVINCES[CR_P
 ---
 
 <BaseLayout
-  title="Envíos y garantía | Lentes Pura Vida"
-  description="Enviamos lentes recetados a las 7 provincias de Costa Rica en 10 a 14 días hábiles. Envío gratis desde $300 y garantía de fábrica."
+  title="Envíos a todo Costa Rica y garantía | Lentes Pura Vida"
+  description="Enviamos lentes recetados a las 7 provincias de Costa Rica en 10 a 14 días hábiles. Envío gratis desde $300, garantía de fábrica y pago por SINPE Móvil."
   canonical="/envios-y-garantia"
 >
   <Header />
@@ -24,30 +24,30 @@ const provinces = `${CR_PROVINCES.slice(0, -1).join(", ")} y ${CR_PROVINCES[CR_P
       </header>
       <div class="prose">
         <h2>Envíos</h2>
-        <ul>
-          <li>Enviamos a las 7 provincias: {provinces}.</li>
-          <li>Despachamos desde el laboratorio en EE.UU. con guía rastreable.</li>
-          <li>Su pedido llega en 10–14 días hábiles a su casa, oficina o sucursal de Correos de Costa Rica.</li>
-          <li><strong>Envío gratis</strong> en pedidos de $300 o más.</li>
+        <ul class="elist">
+          <li><span class="e" aria-hidden="true">🇨🇷</span><span>Enviamos a las 7 provincias: {provinces}.</span></li>
+          <li><span class="e" aria-hidden="true">📦</span><span>Despachamos desde el laboratorio en EE.UU. con guía rastreable.</span></li>
+          <li><span class="e" aria-hidden="true">🚚</span><span>Llega en 10 a 14 días hábiles a su casa, oficina o sucursal de Correos de Costa Rica.</span></li>
+          <li><span class="e" aria-hidden="true">💚</span><span><strong>Envío gratis</strong> en pedidos de $300 o más.</span></li>
         </ul>
 
         <h2>Garantía de fábrica</h2>
-        <p>
-          Si la montura o los lentes llegan con un defecto de fabricación, se los reemplazamos sin costo. Escríbanos por
-          WhatsApp con una foto del problema y lo resolvemos.
-        </p>
-        <p>
-          Para evitar errores, antes de hacer el pedido revisamos con usted la receta, la talla y el color.
-        </p>
+        <ul class="elist">
+          <li><span class="e" aria-hidden="true">✅</span><span>Si la montura o los lentes llegan con un defecto de fabricación, se los reemplazamos sin costo.</span></li>
+          <li><span class="e" aria-hidden="true">📸</span><span>Escríbanos por WhatsApp con una foto del problema y lo resolvemos.</span></li>
+          <li><span class="e" aria-hidden="true">🔍</span><span>Antes de pedirlos revisamos con usted la receta, la talla y el color.</span></li>
+        </ul>
 
         <h2>Pago</h2>
-        <p>
-          SINPE Móvil, transferencia bancaria en colones o tarjeta de crédito. Le cobramos solo después de confirmar el
-          precio total con usted. No guardamos datos de tarjetas y todo queda por escrito en su chat de WhatsApp.
-        </p>
+        <ul class="elist">
+          <li><span class="e" aria-hidden="true">📲</span><span>SINPE Móvil o transferencia bancaria en colones.</span></li>
+          <li><span class="e" aria-hidden="true">🔒</span><span>Le cobramos solo después de confirmar el precio total con usted.</span></li>
+          <li><span class="e" aria-hidden="true">💬</span><span>Todo queda por escrito en su chat de WhatsApp.</span></li>
+        </ul>
 
         <div class="cta-row" style="margin-top: 32px">
-          <QuoteButton label="Preguntar por WhatsApp" message="Hola, tengo una pregunta sobre envíos y garantía." place="envios" primary />
+          <a class="btn btn--primary" href="/lentes" data-primary>Ver los modelos</a>
+          <QuoteButton variant="link" label="Preguntar por WhatsApp" message="Hola, tengo una pregunta sobre envíos y garantía." place="envios" />
         </div>
       </div>
     </div>

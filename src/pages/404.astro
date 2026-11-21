@@ -15,12 +15,12 @@ import QuoteButton from "@/components/QuoteButton.astro";
   <main id="contenido">
     <div class="wrap narrow nf">
       <h1>No encontramos esa página</h1>
-      <p class="lead">Puede que el enlace haya cambiado. Estos le pueden servir:</p>
+      <p class="lead">Puede que el enlace haya cambiado. 🔍 Pruebe por aquí:</p>
       <div class="cta-row">
-        <a class="btn btn--secondary" href="/lentes">Ver los modelos</a>
-        <QuoteButton place="404" />
+        <a class="btn btn--primary" href="/lentes">Ver los modelos</a>
+        <a class="btn btn--secondary" href="/">Ir al inicio</a>
       </div>
-      <p style="margin-top: 24px"><a class="link" href="/">Ir al inicio</a></p>
+      <p style="margin-top: 24px"><QuoteButton place="404" variant="link" label="Preguntar por WhatsApp" /></p>
     </div>
   </main>
   <Footer />

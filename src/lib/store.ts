@@ -43,7 +43,6 @@ export const LENSES_WITH_ADD = ["progresivos", "lectura"];
 export const PAYMENTS = [
   { id: "sinpe", label: "SINPE Móvil" },
   { id: "transferencia", label: "Transferencia bancaria" },
-  { id: "tarjeta", label: "Tarjeta" },
 ] as const;
 
 // Costa Rica: 7 provinces, 84 cantons (Río Cuarto 2017, Monteverde and Puerto Jiménez 2022).

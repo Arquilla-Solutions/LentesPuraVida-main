@@ -9,7 +9,6 @@ import { WHATSAPP_LINK } from "@/lib/contact";
 <BaseLayout
   title="Pedido recibido | Lentes Pura Vida"
   description="Recibimos su pedido. Le respondemos por WhatsApp con el precio total el mismo día."
-  canonical="/pedido-recibido"
   noIndex
   noSticky
 >
@@ -37,6 +36,10 @@ import { WHATSAPP_LINK } from "@/lib/contact";
           <span data-done-wa-label>Enviar el pedido por WhatsApp</span>
         </a>
         <p class="small muted done-wa-note" data-done-note>¿No se abrió WhatsApp? Este botón lo abre con el pedido ya escrito.</p>
+        <ul class="elist elist--tight done-assure">
+          <li><span class="e" aria-hidden="true">🔒</span><span>No se ha cobrado nada.</span></li>
+          <li><span class="e" aria-hidden="true">💬</span><span>Le escribimos al WhatsApp que nos dejó.</span></li>
+        </ul>
       </div>
 
       <section class="done-next" aria-labelledby="h-next">
@@ -44,15 +47,15 @@ import { WHATSAPP_LINK } from "@/lib/contact";
         <ol class="timeline">
           <li>
             <h3>Le respondemos hoy mismo con el precio total</h3>
-            <p>Revisamos su receta y le mandamos el precio completo: montura, lentes con su graduación, los extras que escogió y el envío.</p>
+            <p>Revisamos su receta y le mandamos el precio completo: montura, lentes, extras y envío.</p>
           </li>
           <li>
             <h3>Usted confirma y paga</h3>
-            <p>Solo si está de acuerdo. Por SINPE Móvil, transferencia o tarjeta. Antes de cobrarle confirmamos receta, color y monto.</p>
+            <p>Solo si está de acuerdo. Por SINPE Móvil o transferencia.</p>
           </li>
           <li>
             <h3>Hacemos sus lentes y se los enviamos</h3>
-            <p>Se hacen con su receta exacta y le avisamos por WhatsApp cuando van en camino a su casa.</p>
+            <p>Con su receta exacta. Le avisamos por WhatsApp cuando van en camino.</p>
           </li>
         </ol>
       </section>

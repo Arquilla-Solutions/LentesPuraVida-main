@@ -17,7 +17,6 @@ const EYES = [
 <BaseLayout
   title="Confirmar pedido | Lentes Pura Vida"
   description="Confirme su pedido de lentes recetados. Le enviamos el precio total por WhatsApp el mismo día."
-  canonical="/checkout"
   noIndex
   noSticky
 >
@@ -31,7 +30,7 @@ const EYES = [
       </ol>
 
       <div class="co-empty cart-empty cart-empty--page" data-cart-empty>
-        <h1>Su carrito está vacío</h1>
+        <p class="cart-empty-title">Su carrito está vacío</p>
         <p class="muted">Escoja sus lentes primero y después confirma el pedido aquí.</p>
         <a class="btn btn--primary" href="/lentes">Ver los lentes</a>
       </div>
@@ -39,7 +38,7 @@ const EYES = [
       <div class="co-grid cart-page" data-cart-page>
         <div class="co-main">
           <h1 class="co-title">Confirme su pedido</h1>
-          <p class="muted co-intro">Unos datos y listo. No se cobra nada aquí: le enviamos el precio total por WhatsApp el mismo día.</p>
+          <p class="muted co-intro">Unos datos y listo. No se cobra nada aquí: le mandamos el precio total por WhatsApp el mismo día.</p>
 
           <details class="co-sum-phone" data-sum-phone>
             <summary>
@@ -191,7 +190,7 @@ const EYES = [
             </section>
 
             <section class="co-sec" aria-labelledby="h-pago">
-              <h2 id="h-pago" class="co-h">¿Cómo prefiere pagar?</h2>
+              <h2 id="h-pago" class="co-h"><span class="co-num" aria-hidden="true">4</span> ¿Cómo prefiere pagar?</h2>
               <fieldset class="pills" aria-labelledby="h-pago">
                 {PAYMENTS.map((p, i) => (
                   <label class="pill">
@@ -200,14 +199,14 @@ const EYES = [
                   </label>
                 ))}
               </fieldset>
-              <p class="field-help">Usted paga solo cuando le confirmemos el precio total y esté de acuerdo.</p>
+              <p class="field-help">🔒 Usted paga solo cuando le confirmemos el precio total y esté de acuerdo.</p>
             </section>
 
             <button type="submit" class="btn btn--primary btn--block btn--lg co-submit">
               <WaIcon size={20} />
               <span>Confirmar pedido</span>
             </button>
-            <p class="co-after">Se abre WhatsApp con su pedido ya escrito. Solo toque enviar.</p>
+            <p class="co-after">📲 Se abre WhatsApp con su pedido ya escrito. Solo toque enviar.</p>
           </form>
         </div>
 

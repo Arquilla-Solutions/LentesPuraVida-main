@@ -72,7 +72,7 @@ const organizationJsonLd = {
   priceRange: "$30 - $45",
   currenciesAccepted: "USD, CRC",
   paymentAccepted:
-    "SINPE Móvil, Transferencia bancaria, Tarjeta de crédito",
+    "SINPE Móvil, Transferencia bancaria",
   knowsLanguage: ["es-CR", "es"],
   knowsAbout: [
     "Lentes recetados",
@@ -231,8 +231,12 @@ const websiteJsonLd = {
     <meta property="og:locale" content={SITE_LOCALE} />
     {canonicalUrl && <meta property="og:url" content={canonicalUrl} />}
     <meta property="og:image" content={imageUrl} />
-    <meta property="og:image:width" content="1200" />
-    <meta property="og:image:height" content="630" />
+    {!image && (
+      <>
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+      </>
+    )}
     {imageAlt && <meta property="og:image:alt" content={imageAlt} />}
 
     <meta name="twitter:card" content="summary_large_image" />

@@ -29,9 +29,9 @@ export const CATEGORIES: Category[] = [
     title: "Lentes recetados para mujer en Costa Rica | Lentes Pura Vida",
     h1: "Lentes recetados para mujer",
     intro:
-      "Monturas de plástico y metal en formas clásicas y modernas. Escoja la que le guste y le cotizamos los lentes con su receta por WhatsApp.",
+      "Monturas de plástico y metal en formas clásicas y modernas. Escoja la que le guste y le cotizamos los lentes según su receta.",
     description:
-      "Lentes recetados para mujer desde $30 la montura, con envío a toda Costa Rica. Escoja el modelo y le cotizamos sus lentes graduados por WhatsApp.",
+      "Lentes recetados para mujer desde $30 la montura, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
   },
   {
     id: "hombre",
@@ -40,9 +40,9 @@ export const CATEGORIES: Category[] = [
     title: "Lentes recetados para hombre en Costa Rica | Lentes Pura Vida",
     h1: "Lentes recetados para hombre",
     intro:
-      "Monturas sobrias y livianas para usar todos los días. Escoja la que le guste y le cotizamos los lentes con su receta por WhatsApp.",
+      "Monturas sobrias y livianas para usar todos los días. Escoja la que le guste y le cotizamos los lentes según su receta.",
     description:
-      "Lentes recetados para hombre desde $30 la montura, con envío a toda Costa Rica. Escoja el modelo y le cotizamos sus lentes graduados por WhatsApp.",
+      "Lentes recetados para hombre desde $30 la montura, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
   },
   {
     id: "unisex",
@@ -51,9 +51,9 @@ export const CATEGORIES: Category[] = [
     title: "Lentes recetados unisex en Costa Rica | Lentes Pura Vida",
     h1: "Lentes recetados unisex",
     intro:
-      "Modelos que se ven bien en cualquier cara. Escoja el suyo y le cotizamos los lentes con su receta por WhatsApp.",
+      "Modelos que se ven bien en cualquier cara. Escoja el suyo y le cotizamos los lentes según su receta.",
     description:
-      "Lentes recetados unisex desde $30 la montura, con envío a toda Costa Rica. Escoja el modelo y le cotizamos sus lentes graduados por WhatsApp.",
+      "Lentes recetados unisex desde $30 la montura, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
   },
   {
     id: "ninos",

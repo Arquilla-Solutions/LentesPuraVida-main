@@ -13,6 +13,7 @@ import { categoryLabel, visibleProducts, CATEGORIES } from "@/lib/catalog";
 import { shareJpeg } from "@/lib/images";
 import { getImage } from "astro:assets";
 import { EXTRAS, LENSES } from "@/lib/store";
+import { STEPS } from "@/data/steps";
 
 export async function getStaticPaths() {
   const { visibleProducts } = await import("@/lib/catalog");
@@ -60,7 +61,7 @@ const related = visibleProducts
   .slice(0, 4);
 
 const seoTitle = `Lentes ${product.name} de ${materialLabel}, $${product.framePrice} | Lentes Pura Vida`;
-const seoDescription = `Lentes ${product.name}, ${product.shape.toLowerCase()} de ${materialLabel}: $${product.framePrice} la montura, envío a toda Costa Rica. Cotice sus lentes graduados por WhatsApp.`;
+const seoDescription = `Lentes ${product.name}, ${product.shape.toLowerCase()} de ${materialLabel}: $${product.framePrice} la montura. Envío a toda Costa Rica. Escriba su receta y le cotizamos el mismo día.`;
 
 const url = `${SITE_URL}/lentes/${product.slug}`;
 const productJsonLd: Record<string, unknown>[] = [
@@ -267,7 +268,7 @@ const productJsonLd: Record<string, unknown>[] = [
               <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Envío a su casa, en todo el país</li>
               <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Ayuda por WhatsApp antes y después del pedido</li>
             </ul>
-            <p class="small">Antirreflejo, filtro de luz azul y fotocromáticos, si los quiere, se cotizan aparte. <a class="link" href="/lentes-y-tratamientos">¿Qué es cada uno?</a></p>
+            <p class="small">Los extras (antirreflejo, filtro de luz azul, fotocromáticos, polarizados) se cotizan aparte, si los quiere. <a class="link" href="/lentes-y-tratamientos">¿Qué es cada uno?</a></p>
           </div>
 
           <div class="folds faq">
@@ -310,19 +311,22 @@ const productJsonLd: Record<string, unknown>[] = [
             <details class="faq-item">
               <summary>Cómo funciona</summary>
               <div>
-                <p>1. Escoja el color y el tipo de lente, y agréguelos al carrito.</p>
-                <p>2. Confirme su pedido: se abre WhatsApp con todo ya escrito. Mándenos ahí la foto de su receta.</p>
-                <p>3. Le enviamos el precio total el mismo día.</p>
-                <p style="margin: 0">4. Cuando usted confirma y paga, hacemos el pedido y se lo enviamos a la casa.</p>
+                <ol class="fold-steps">
+                  {STEPS.map((st) => <li><strong>{st.h}.</strong> {st.p}</li>)}
+                </ol>
+                <p style="margin: 0"><a class="link" href="/como-funciona">Ver el proceso completo</a></p>
               </div>
             </details>
             <details class="faq-item">
               <summary>Envío y garantía</summary>
               <div>
-                <p>Envío a todo CR · Guía rastreable. Llega en 10–14 días hábiles.</p>
-                <p>Envío gratis en pedidos de $300 o más.</p>
-                <p>Garantía de fábrica: si llegan con un defecto, se los reemplazamos sin costo.</p>
-                <p style="margin: 0">Pago seguro: SINPE · Transferencia · Tarjeta. <a class="link" href="/envios-y-garantia">Más detalles</a></p>
+                <ul class="elist elist--tight" style="margin: 0 0 14px">
+                  <li><span class="e" aria-hidden="true">🚚</span><span>Envío a todo CR · Guía rastreable. Llega en 10 a 14 días hábiles.</span></li>
+                  <li><span class="e" aria-hidden="true">💚</span><span>Envío gratis en pedidos de $300 o más.</span></li>
+                  <li><span class="e" aria-hidden="true">✅</span><span>Garantía de fábrica: si llegan con un defecto, se los reemplazamos sin costo.</span></li>
+                  <li><span class="e" aria-hidden="true">📲</span><span>Pago por SINPE Móvil o transferencia.</span></li>
+                </ul>
+                <p style="margin: 0"><a class="link" href="/envios-y-garantia">Más detalles</a></p>
               </div>
             </details>
           </div>
