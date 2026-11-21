@@ -16,12 +16,11 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
   const body = await readCapped(request, MAX_BODY);
   if (body === null) return fail(400, "too large");
 
+  // CF-Connecting-IP is set by Cloudflare on every request and cannot be faked from outside.
   const ip = request.headers.get("CF-Connecting-IP") ?? "";
   const ipKey = `order:${(await sha256Hex(`${env.RATE_SALT ?? "lpv"}|${ip}`)).slice(0, 32)}`;
   const perIp = Number(env.RATE_LIMIT_ORDERS) > 0 ? Number(env.RATE_LIMIT_ORDERS) : 8;
-  if (!(await underLimit(env.DB, ipKey, perIp, 600)) || !(await underLimit(env.DB, "order:all", 300, 3600))) {
-    return fail(429, "slow down");
-  }
+  if (!(await underLimit(env.DB, ipKey, perIp, 600))) return fail(429, "slow down");
 
   let order;
   try {
@@ -30,11 +29,18 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     return fail(400, e instanceof Invalid ? e.message : "bad json");
   }
 
+  // Bot check before anything touches saved orders, so nobody can ask "does LPV-XXXXX exist?"
+  // without solving it. A retry of a saved order fails here (its token is spent); that is fine,
+  // the order is already on the board and the browser ignores the answer.
+  if (!(await turnstileOk(env.TURNSTILE_SECRET, order.turnstile, ip, new URL(request.url).hostname))) {
+    return fail(403, "turnstile");
+  }
+  // Site-wide cap counts only checks that passed, so bots cannot use it up for real customers.
+  if (!(await underLimit(env.DB, "order:all", 300, 3600))) return fail(429, "slow down");
+
   // Same code twice (double tap, retry) = one order. Same answer either way.
   const seen = await env.DB.prepare("SELECT 1 FROM orders WHERE ref = ?").bind(order.ref).first();
   if (seen) return json({ ok: true, ref: order.ref });
-
-  if (!(await turnstileOk(env.TURNSTILE_SECRET, order.turnstile, ip))) return fail(403, "turnstile");
 
   const now = new Date().toISOString();
   const byRef = "(SELECT id FROM orders WHERE ref = ?)";

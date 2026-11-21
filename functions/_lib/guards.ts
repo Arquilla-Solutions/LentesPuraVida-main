@@ -1,3 +1,5 @@
+import { DEV_HOSTS } from "./access.ts";
+
 // Rate limit (fixed window, counted in D1, IPs stored only as salted hashes) and Turnstile.
 
 export async function sha256Hex(s: string): Promise<string> {
@@ -21,19 +23,32 @@ export async function underLimit(db: D1Database, key: string, max: number, windo
   return (row?.count ?? Infinity) <= max;
 }
 
-/** Server-side Turnstile check. Missing secret or token = not human. */
-export async function turnstileOk(secret: string | undefined, token: string, ip: string): Promise<boolean> {
+// Cloudflare's public Turnstile test secrets (always pass / always fail / already spent).
+const TEST_SECRET = /^[123]x0+AA$/;
+
+/**
+ * Server-side Turnstile check. Missing secret or token = not human. On a real hostname the
+ * answer must be for this site and the checkout action, and a test secret never passes, so a
+ * copied .dev.vars value or a token solved on another site cannot open the door.
+ */
+export async function turnstileOk(
+  secret: string | undefined, token: string, ip: string, host: string, fetcher: typeof fetch = fetch,
+): Promise<boolean> {
   if (!secret || !token) return false;
+  const local = DEV_HOSTS.has(host);
+  if (!local && TEST_SECRET.test(secret.trim())) return false;
   try {
     const form = new FormData();
     form.append("secret", secret);
     form.append("response", token);
     if (ip) form.append("remoteip", ip);
     form.append("idempotency_key", crypto.randomUUID());
-    const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
+    const res = await fetcher("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
     if (!res.ok) return false;
-    const out = (await res.json()) as { success?: boolean; action?: string };
-    return out.success === true && (!out.action || out.action === "checkout");
+    const out = (await res.json()) as { success?: boolean; action?: string; hostname?: string };
+    if (out.success !== true) return false;
+    if (local) return !out.action || out.action === "checkout";
+    return out.action === "checkout" && out.hostname === host;
   } catch {
     return false;
   }

@@ -13,7 +13,7 @@ export type Jwk = JsonWebKey & { kid?: string };
 export type KeyFetcher = (certsUrl: string) => Promise<Jwk[]>;
 
 const DEV_BYPASS_VALUE = "local-only-never-in-production";
-const DEV_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
+export const DEV_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 const LEEWAY = 30; // seconds of clock skew allowed on nbf/iat
 
 const b64urlBytes = (s: string): Uint8Array => {
@@ -39,6 +39,8 @@ export function devBypass(request: Request, env: AccessEnv): boolean {
 }
 
 let cache: { url: string; keys: Jwk[]; at: number } | null = null;
+let lastFetch = 0; // last time the certs were asked for, success or not
+const REFETCH_GAP = 30_000; // forged tokens with made-up key ids cannot make us fetch more often than this
 const defaultFetcher: KeyFetcher = async (url) => {
   const res = await fetch(url, { headers: { Accept: "application/json" } });
   if (!res.ok) throw new Error(`certs ${res.status}`);
@@ -49,7 +51,9 @@ const defaultFetcher: KeyFetcher = async (url) => {
 async function keyFor(kid: string, certsUrl: string, fetcher: KeyFetcher): Promise<Jwk | undefined> {
   const fresh = cache && cache.url === certsUrl && Date.now() - cache.at < 10 * 60_000;
   let hit = fresh ? cache!.keys.find((k) => k.kid === kid) : undefined;
-  if (!hit) { // unknown kid: refetch once (Access rotates keys)
+  if (!hit) { // unknown kid: refetch (Access rotates keys), at most once per REFETCH_GAP
+    if (Date.now() - lastFetch < REFETCH_GAP) return undefined;
+    lastFetch = Date.now();
     const keys = await fetcher(certsUrl);
     cache = { url: certsUrl, keys, at: Date.now() };
     hit = keys.find((k) => k.kid === kid);
@@ -57,7 +61,7 @@ async function keyFor(kid: string, certsUrl: string, fetcher: KeyFetcher): Promi
   return hit;
 }
 
-export function resetKeyCache() { cache = null; }
+export function resetKeyCache() { cache = null; lastFetch = 0; }
 
 /** Returns the verified email, or null. Never throws. */
 export async function verifyAccessJwt(

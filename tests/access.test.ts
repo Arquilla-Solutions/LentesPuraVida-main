@@ -81,3 +81,12 @@ test("dev bypass only on localhost, only with the exact value, only without Acce
 test("adminIdentity on a production host with no token -> denied", async () => {
   assert.equal(await adminIdentity(new Request("https://lentespuravida.com/api/admin/orders"), { ...env, DEV_BYPASS: "local-only-never-in-production" }), null);
 });
+
+test("forged tokens with made-up key ids cannot make us refetch the certs on every request", async () => {
+  resetKeyCache();
+  assert.equal(await check(await sign(good)), "seb@example.com");
+  const before = fetched;
+  for (let i = 0; i < 20; i++) assert.equal(await check(await sign(good, { header: { alg: "RS256", kid: `junk-${i}` } })), null);
+  assert.ok(fetched - before <= 1, `refetched ${fetched - before} times`);
+  assert.equal(await check(await sign(good)), "seb@example.com"); // the real key still works from cache
+});

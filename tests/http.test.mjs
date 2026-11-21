@@ -48,6 +48,15 @@ for (const [what, headers] of [
     assert.equal(w.status, 403);
   });
 }
+test("admin: path tricks cannot reach the board files around the login check", async () => {
+  for (const path of ["/admin%2fboard.js", "/admin%2Fboard.js", "//admin/board.js", "/%61dmin/board.js", "/admin%2findex.html",
+    "/%61dmin/", "/admin/./board.js", "/api/admin/../admin/board.js", "/ADMIN/board.js", "/admin/board.js."]) {
+    const r = await fetch(`${LOCKED}${path}`, { redirect: "manual" });
+    const body = await r.text();
+    assert.notEqual(r.status, 200, `${path} gave 200`);
+    assert.ok(!body.includes("order board"), `${path} leaked the board script`);
+  }
+});
 test("admin: dev bypass is impossible when Access is configured, even on localhost", async () => {
   assert.equal((await fetch(`${LOCKED}/api/admin/orders`)).status, 403);
 });
@@ -90,6 +99,13 @@ test("order: no Turnstile token -> 403, nothing saved", async () => {
   assert.equal((await post(DEV, o)).status, 403);
   const list = await (await fetch(`${DEV}/api/admin/orders`)).json();
   assert.equal(list.orders.filter((x) => x.ref === o.ref).length, 0);
+});
+test("order: a saved code cannot be confirmed without the bot check (no guessing which codes exist)", async () => {
+  const o = order();
+  assert.equal((await post(DEV, o)).status, 201);
+  const again = await post(DEV, { ...o, turnstile: "" });
+  assert.equal(again.status, 403);
+  assert.equal((await post(DEV, { ...order(), turnstile: "" })).status, 403);
 });
 test("order: the same ref twice -> one row", async () => {
   const o = order();
