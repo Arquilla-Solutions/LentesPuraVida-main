@@ -1,0 +1,22 @@
+# Cloudflare Pages config for lentespuravida (order board, branch orders-board).
+# Static site = dist/. Pages Functions in functions/ (POST /api/order, /admin, /api/admin/*).
+# Secrets (TURNSTILE_SECRET) are set in the dashboard or with `wrangler pages secret put`,
+# never here. Local dev values live in .dev.vars (gitignored). See SETUP in the order-board notes.
+name = "lentespuravida"
+pages_build_output_dir = "dist"
+compatibility_date = "2026-07-01"
+
+[vars]
+# Cloudflare Access (Zero Trust). Fill both after creating the Access application.
+# Empty = every admin request is refused (deny by default).
+ACCESS_TEAM_DOMAIN = ""
+ACCESS_AUD = ""
+# Comma-separated list of emails allowed on the board, checked again inside the code.
+ADMIN_EMAILS = ""
+
+[[d1_databases]]
+binding = "DB"
+database_name = "lentes_orders"
+# Replace with the real id from `wrangler d1 create lentes_orders` before the first deploy.
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "migrations"

@@ -1036,3 +1036,5 @@ html:not(.js) .buy { display: none; }
 .rx-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--green); }
 #e-rx-zero { margin-top: 8px; }
 .rx-pd-two { grid-template-columns: 1fr 1fr; }
+.co-ts:empty { display: none; }
+.co-ts { margin: 4px 0 12px; }

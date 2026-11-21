@@ -2,6 +2,8 @@
 User-agent: *
 Allow: /
 Disallow: /404
+Disallow: /admin
+Disallow: /api/
 
 # Block AI scrapers that don't drive CR commerce traffic
 User-agent: GPTBot

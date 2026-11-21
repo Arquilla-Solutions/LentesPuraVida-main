@@ -2,7 +2,7 @@
 import "../styles/site.css";
 import StickyBar from "@/components/StickyBar.astro";
 import CartDrawer from "@/components/CartDrawer.astro";
-import { LEAD_ENDPOINT, WHATSAPP_NUMBER } from "@/lib/contact";
+import { QUOTE_LEAD_ENDPOINT, WHATSAPP_NUMBER } from "@/lib/contact";
 import {
   DEFAULT_OG_IMAGE,
   SITE_LANG,
@@ -297,7 +297,7 @@ const websiteJsonLd = {
         });
       }
     </script>
-    <script is:inline define:vars={{ waNumber: WHATSAPP_NUMBER, leadEndpoint: LEAD_ENDPOINT }}>
+    <script is:inline define:vars={{ waNumber: WHATSAPP_NUMBER, leadEndpoint: QUOTE_LEAD_ENDPOINT }}>
       // Quote links: <a data-wa data-msg="..." data-frame data-color data-place>.
       // The static href already opens WhatsApp. On tap we add a reference code and,
       // when the visit came from a tagged ad link, its source, then hand the lead to

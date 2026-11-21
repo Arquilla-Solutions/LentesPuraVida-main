@@ -28,3 +28,7 @@ dist-ssr
 
 # Astro
 .astro/
+
+# Cloudflare local state and dev secrets
+.wrangler/
+.dev.vars

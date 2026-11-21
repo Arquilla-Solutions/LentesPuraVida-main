@@ -4,7 +4,15 @@ export const WHATSAPP_NUMBER = "50670030553";
 export const WHATSAPP_DISPLAY = "+506 7003 0553";
 export const WHATSAPP_LINK = `https://wa.me/${WHATSAPP_NUMBER}`;
 
-// Lead bridge (GHL_BACKEND_PLAN.md, phase 2). Leave empty until the Cloudflare
-// function exists. When set, every quote tap also sends
-// { ref, frame, color, page, placement, utm_*, fbclid, gclid } to this URL.
-export const LEAD_ENDPOINT = "";
+// Checkout orders are saved to the order board (Pages Function functions/api/order.ts,
+// D1 database lentes_orders). Same site only. WhatsApp opens even if this fails.
+export const LEAD_ENDPOINT = "/api/order";
+
+// Quote taps (the "Cotizar por WhatsApp" links) are NOT sent to the order board.
+// Leave empty unless a separate lead endpoint exists.
+export const QUOTE_LEAD_ENDPOINT = "";
+
+// Cloudflare Turnstile site key (public by design) for the checkout bot check.
+// This is Cloudflare's invisible TEST key: it only works with the TEST secret in .dev.vars.
+// Before going live, replace it with the real site key (order-board SETUP.md, step 3).
+export const TURNSTILE_SITE_KEY = "1x00000000000000000000BB";

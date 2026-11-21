@@ -1,11 +1,11 @@
 ---
 // Checkout: the customer's details, then "Confirmar pedido" opens WhatsApp with the whole
-// order already written. Nothing is charged here. If LEAD_ENDPOINT is set, the order is
-// also sent there as JSON (the GoHighLevel bridge, GHL_BACKEND_PLAN.md phase 2).
+// order already written. Nothing is charged here. The order is also saved to the order board
+// (LEAD_ENDPOINT, POST /api/order) with a Turnstile bot check; WhatsApp opens even if that fails.
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import WaIcon from "@/components/WaIcon.astro";
-import { LEAD_ENDPOINT, WHATSAPP_NUMBER } from "@/lib/contact";
+import { LEAD_ENDPOINT, TURNSTILE_SITE_KEY, WHATSAPP_NUMBER } from "@/lib/contact";
 import { LENSES_WITH_ADD, PAYMENTS, PROVINCES, RX, signed } from "@/lib/store";
 
 const EYES = [
@@ -202,6 +202,7 @@ const EYES = [
               <p class="field-help">🔒 Usted paga solo cuando le confirmemos el precio total y esté de acuerdo.</p>
             </section>
 
+            <div class="co-ts" data-turnstile></div>
             <button type="submit" class="btn btn--primary btn--block btn--lg co-submit">
               <WaIcon size={20} />
               <span>Confirmar pedido</span>
@@ -223,8 +224,8 @@ const EYES = [
   </main>
 </BaseLayout>
 
-<script define:vars={{ PROVINCES, waNumber: WHATSAPP_NUMBER, leadEndpoint: LEAD_ENDPOINT, withAdd: LENSES_WITH_ADD }} is:inline>
-  window.__lpvCheckout = { PROVINCES, waNumber, leadEndpoint, withAdd };
+<script define:vars={{ PROVINCES, waNumber: WHATSAPP_NUMBER, leadEndpoint: LEAD_ENDPOINT, withAdd: LENSES_WITH_ADD, tsKey: TURNSTILE_SITE_KEY }} is:inline>
+  window.__lpvCheckout = { PROVINCES, waNumber, leadEndpoint, withAdd, tsKey };
 </script>
 
 <script>
@@ -233,8 +234,32 @@ const EYES = [
     type Order, type RxEye, type RxTyped,
   } from "@/lib/cart";
 
-  const { PROVINCES, waNumber, leadEndpoint, withAdd } = (window as any).__lpvCheckout as {
-    PROVINCES: Record<string, string[]>; waNumber: string; leadEndpoint: string; withAdd: string[];
+  const { PROVINCES, waNumber, leadEndpoint, withAdd, tsKey } = (window as any).__lpvCheckout as {
+    PROVINCES: Record<string, string[]>; waNumber: string; leadEndpoint: string; withAdd: string[]; tsKey: string;
+  };
+
+  // One order code per visit to this page, so a retry or double tap saves one order, not two.
+  const orderCode = makeCode();
+
+  // Cloudflare Turnstile: an invisible bot check. It only shows a box if Cloudflare is unsure.
+  let tsWidget: string | null = null;
+  const tsBox = document.querySelector<HTMLElement>("[data-turnstile]");
+  if (leadEndpoint && tsKey && tsBox) {
+    (window as any).lpvTurnstileReady = () => {
+      try {
+        tsWidget = (window as any).turnstile.render(tsBox, {
+          sitekey: tsKey, action: "checkout", appearance: "interaction-only", "refresh-expired": "auto", language: "es",
+        });
+      } catch {}
+    };
+    const s = document.createElement("script");
+    s.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit&onload=lpvTurnstileReady";
+    s.async = true;
+    s.defer = true;
+    document.head.append(s);
+  }
+  const tsToken = () => {
+    try { return tsWidget != null ? String((window as any).turnstile.getResponse(tsWidget) || "") : ""; } catch { return ""; }
   };
 
   // Order summary (phone fold and desktop side panel).
@@ -396,7 +421,7 @@ const EYES = [
     }
 
     const order: Order = {
-      code: makeCode(),
+      code: orderCode,
       ts: new Date().toISOString(),
       name,
       whatsapp: prettyPhone(wa),
@@ -412,10 +437,16 @@ const EYES = [
     const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
     const lead = orderLead(order);
 
-    // The lead bridge (empty until the Cloudflare function exists). sendBeacon survives
-    // the page change and, sent as plain text, needs no cross-site preflight.
-    if (leadEndpoint && navigator.sendBeacon) {
-      try { navigator.sendBeacon(leadEndpoint, JSON.stringify(lead)); } catch {}
+    // Save the order to the board. keepalive lets it finish after the page changes. Its answer
+    // is ignored on purpose: the customer is never blocked, WhatsApp always opens.
+    if (leadEndpoint) {
+      try {
+        fetch(leadEndpoint, {
+          method: "POST", keepalive: true, credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ ...lead, turnstile: tsToken() }),
+        }).catch(() => {});
+      } catch {}
     }
     (window as any).lpvLeads = [...((window as any).lpvLeads || []), lead];
     window.dispatchEvent(new CustomEvent("lpv:order", { detail: lead }));

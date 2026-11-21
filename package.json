@@ -10,6 +10,10 @@
     "preview": "astro preview",
     "astro": "astro",
     "check": "astro check",
+    "test": "node --test tests/access.test.ts tests/validate.test.ts",
+    "test:http": "node --test tests/http.test.mjs",
+    "db:migrate:local": "wrangler d1 migrations apply lentes_orders --local",
+    "dev:board": "astro build && wrangler pages dev dist --port 8788",
     "deploy": "astro build && wrangler pages deploy dist --project-name=lentespuravida --branch=main --commit-dirty=true"
   },
   "dependencies": {
