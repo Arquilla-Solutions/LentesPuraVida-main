@@ -3,6 +3,7 @@ import "../styles/site.css";
 import StickyBar from "@/components/StickyBar.astro";
 import CartDrawer from "@/components/CartDrawer.astro";
 import { QUOTE_LEAD_ENDPOINT, WHATSAPP_NUMBER } from "@/lib/contact";
+import { META_PIXEL_ID } from "@/lib/tracking";
 import {
   DEFAULT_OG_IMAGE,
   SITE_LANG,
@@ -268,6 +269,20 @@ const websiteJsonLd = {
     <slot />
     {!noSticky && <StickyBar product={sticky} />}
     <CartDrawer />
+    <noscript><img height="1" width="1" style="display:none" alt="" src={`https://www.facebook.com/tr?id=${META_PIXEL_ID}&ev=PageView&noscript=1`} /></noscript>
+    <script>
+      // Meta Pixel: PageView everywhere, Contact for WhatsApp quote taps on a product page.
+      import { initPixel, track } from "@/lib/tracking";
+      initPixel();
+      window.addEventListener("lpv:quote", () => {
+        try {
+          const raw = document.querySelector<HTMLElement>("[data-buy]")?.dataset.product;
+          if (!raw) return;
+          const p = JSON.parse(raw) as { slug: string; name: string; price: number };
+          track("Contact", { content_ids: [p.slug], content_name: p.name, content_type: "product", value: p.price, currency: "USD" });
+        } catch {}
+      });
+    </script>
     <script>
       // Small, once-only motion: sections below the first screen rise into place as they
       // arrive, and lazy photos fade in when they finish loading. Nothing on the first

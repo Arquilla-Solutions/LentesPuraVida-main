@@ -152,6 +152,7 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
     adSource, clearCart, countItems, frameSubtotal, getItems, makeCode, money, orderLead, orderMessage, summaryRows,
     type Order, type RxEye, type RxTyped,
   } from "@/lib/cart";
+  import { cartParams, track } from "@/lib/tracking";
 
   const { PROVINCES, waNumber, leadEndpoint, withAdd, tsKey } = (window as any).__lpvCheckout as {
     PROVINCES: Record<string, string[]>; waNumber: string; leadEndpoint: string; withAdd: string[]; tsKey: string;
@@ -192,6 +193,7 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
     });
   };
   paintSummary();
+  { const start = getItems(); if (start.length) track("InitiateCheckout", cartParams(start)); }
 
   // Province -> canton.
   const form = document.querySelector<HTMLFormElement>("[data-checkout]")!;
@@ -421,6 +423,10 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
       localStorage.setItem("lpv_last_order", JSON.stringify({ order, message, waUrl }));
       localStorage.removeItem(DRAFT);
     } catch {}
+
+    // Pixel Lead: frame subtotal, slugs and count only. The order code is the eventID so a
+    // later server-side (Conversions API) event can be matched to this one.
+    track("Lead", cartParams(items), order.code);
 
     // Open WhatsApp from the tap itself (browsers allow that), then show the confirmation here.
     const win = window.open(waUrl, "_blank");

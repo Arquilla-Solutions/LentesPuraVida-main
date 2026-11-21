@@ -352,6 +352,7 @@ const productJsonLd: Record<string, unknown>[] = [
 
 <script>
   import { addItem, type CartColor } from "@/lib/cart";
+  import { track } from "@/lib/tracking";
 
   // Color picker: shows that color's gallery and updates the quote message.
   const swatches = document.querySelectorAll<HTMLButtonElement>("[data-swatch]");
@@ -423,6 +424,7 @@ const productJsonLd: Record<string, unknown>[] = [
   const form = document.querySelector<HTMLFormElement>("[data-buy]");
   if (form) {
     const product = JSON.parse(form.dataset.product!) as { slug: string; name: string; price: number; colors: CartColor[] };
+    track("ViewContent", { content_ids: [product.slug], content_name: product.name, content_type: "product", value: product.price, currency: "USD" });
     const lensFs = form.querySelector<HTMLElement>("[data-lens-fs]")!;
     const lensErr = form.querySelector<HTMLElement>("[data-lens-err]")!;
     const addBtn = form.querySelector<HTMLButtonElement>("[data-add]")!;
@@ -500,6 +502,7 @@ const productJsonLd: Record<string, unknown>[] = [
       addBtn.classList.add("is-done");
       await fly(photo);
       addItem({ slug: product.slug, name: product.name, price: product.price, color, colors: product.colors, lens, extras: fd.getAll("extras").map(String) });
+      track("AddToCart", { content_ids: [product.slug], content_name: `${product.name} · ${color} · ${lens}`, content_type: "product", value: product.price, currency: "USD" });
       const live = document.querySelector("[data-cart-live]");
       if (live) live.textContent = `Se agregaron los lentes ${product.name} en color ${color} al carrito.`;
       await new Promise((r) => setTimeout(r, reduce() ? 0 : 220));
