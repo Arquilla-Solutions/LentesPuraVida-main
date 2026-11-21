@@ -58,9 +58,10 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     ),
     ...order.items.map((i, n) =>
       env.DB.prepare(
-        `INSERT INTO order_items (order_id, position, slug, frame, color, lens, extras_json, qty, frame_price)
-         VALUES (${byRef}, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      ).bind(order.ref, n, i.slug, i.frame, i.color, i.lens, JSON.stringify(i.extras), i.qty, i.frame_price),
+        `INSERT INTO order_items (order_id, position, slug, frame, color, lens, extras_json, qty, frame_price, rx_override_json)
+         VALUES (${byRef}, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ).bind(order.ref, n, i.slug, i.frame, i.color, i.lens, JSON.stringify(i.extras), i.qty, i.frame_price,
+        i.rx_override ? JSON.stringify(i.rx_override) : null),
     ),
     env.DB.prepare(
       `INSERT INTO order_events (order_id, at, kind, to_status, actor, detail) VALUES (${byRef}, ?, 'created', 'no_pagado', 'web', 'Pedido desde la web')`,

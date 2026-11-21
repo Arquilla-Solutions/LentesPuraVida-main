@@ -57,24 +57,45 @@ function rxEye(v: unknown, where: string): RxEye {
   return { sph, cyl, axis, add };
 }
 
-export function validateRx(v: unknown): RxTyped {
-  if (!isObj(v)) bad("rx missing");
+export function validateRx(v: unknown, where = "rx"): RxTyped {
+  if (!isObj(v)) bad(`${where} missing`);
   const r = v as Record<string, unknown>;
-  onlyKeys(r, ["od", "oi", "pd"], "rx");
+  onlyKeys(r, ["od", "oi", "pd"], where);
   let pd: RxTyped["pd"] = null;
   if (r.pd != null) {
-    if (!isObj(r.pd)) bad("rx.pd");
+    if (!isObj(r.pd)) bad(`${where}.pd`);
     const p = r.pd as Record<string, unknown>;
-    if ("single" in p) { onlyKeys(p, ["single"], "rx.pd"); pd = { single: inList(p.single, RX.pd, "rx.pd.single") }; }
+    if ("single" in p) { onlyKeys(p, ["single"], `${where}.pd`); pd = { single: inList(p.single, RX.pd, `${where}.pd.single`) }; }
     else {
-      onlyKeys(p, ["right", "left"], "rx.pd");
-      pd = { right: inList(p.right, RX.pdHalf, "rx.pd.right"), left: inList(p.left, RX.pdHalf, "rx.pd.left") };
+      onlyKeys(p, ["right", "left"], `${where}.pd`);
+      pd = { right: inList(p.right, RX.pdHalf, `${where}.pd.right`), left: inList(p.left, RX.pdHalf, `${where}.pd.left`) };
     }
   }
-  return { od: rxEye(r.od, "rx.od"), oi: rxEye(r.oi, "rx.oi"), pd };
+  return { od: rxEye(r.od, `${where}.od`), oi: rxEye(r.oi, `${where}.oi`), pd };
 }
 
-export interface CleanItem { slug: string; frame: string; color: string; lens: string; extras: string[]; qty: number; frame_price: number }
+export type RxMode = "typed" | "whatsapp" | "none";
+/** A pair with its own receta (reading glasses, a pair for someone else). */
+export interface RxOverride { prescription: RxMode; rx: RxTyped | null; for: string }
+const FOR = /^[\p{L}\p{M}\p{N} .,'()-]*$/u; // keep in step with the checkout's filter
+
+function rxOverride(v: unknown, where: string): RxOverride {
+  if (!isObj(v)) bad(where);
+  const o = v as Record<string, unknown>;
+  onlyKeys(o, ["prescription", "rx", "for"], where);
+  if (o.prescription !== "typed" && o.prescription !== "whatsapp" && o.prescription !== "none") bad(`${where}.prescription`);
+  let rx: RxTyped | null = null;
+  if (o.prescription === "typed") rx = validateRx(o.rx, `${where}.rx`);
+  else if (o.rx != null) bad(`${where}.rx only with typed prescription`);
+  const who = optText(o.for, `${where}.for`, 40).replace(/\s+/g, " ");
+  if (!FOR.test(who)) bad(`${where}.for characters`);
+  return { prescription: o.prescription as RxMode, rx, for: who };
+}
+
+export interface CleanItem {
+  slug: string; frame: string; color: string; lens: string; extras: string[]; qty: number; frame_price: number;
+  rx_override: RxOverride | null; // null = uses the order's receta
+}
 export interface CleanOrder {
   ref: string; name: string; whatsapp: string; province: string; canton: string;
   prescription: "typed" | "whatsapp" | "none"; rx: RxTyped | null; payment: string;
@@ -87,7 +108,7 @@ const ORDER_KEYS = [
   "type", "ref", "ts", "name", "whatsapp", "province", "canton", "prescription", "rx", "payment",
   "frame_subtotal", "items", "page", "turnstile", ...UTM_KEYS,
 ] as const;
-const ITEM_KEYS = ["frame", "slug", "color", "lens", "extras", "qty", "frame_price"] as const;
+const ITEM_KEYS = ["frame", "slug", "color", "lens", "extras", "qty", "frame_price", "rx_override"] as const;
 const LENS_IDS = LENSES.map((l) => l.id as string);
 const EXTRA_IDS = EXTRAS.map((e) => e.id as string);
 const PAY_LABELS = PAYMENTS.map((p) => p.label as string);
@@ -111,6 +132,7 @@ function item(v: unknown, n: number): CleanItem {
   return {
     slug: product.slug, frame: product.name, color, lens: i.lens as string, extras: extras as string[],
     qty: i.qty as number, frame_price: product.framePrice,
+    rx_override: i.rx_override == null ? null : rxOverride(i.rx_override, `${where}.rx_override`),
   };
 }
 

@@ -110,6 +110,10 @@ dialog::backdrop { background: rgba(19, 22, 42, 0.38); }
 .pair-price { font-weight: 600; white-space: nowrap; }
 .pair-meta { margin: 4px 0 0; font-size: 14px; color: var(--ink-soft); display: flex; align-items: center; gap: 6px; }
 .pair-meta .copy { width: 24px; height: 24px; }
+.pair-rx { margin: 10px 0 0; padding-top: 10px; border-top: 1px dashed var(--line); }
+.pair-rx--main { font-size: 13px; color: var(--ink-soft); }
+.pair-rx-head { margin: 0 0 8px; font-size: 14px; overflow-wrap: anywhere; }
+.pair-rx .copy-all pre { font-size: 12px; }
 .sub { margin: 10px 0 0; font-size: 13px; color: var(--ink-soft); }
 
 .rx-wrap { overflow-x: auto; }
@@ -129,6 +133,7 @@ dialog::backdrop { background: rgba(19, 22, 42, 0.38); }
 .note { margin: 0; padding: 12px; background: #fbf6e9; border-radius: 10px; font-size: 14px; }
 .pd + .note, .note + * { margin-top: 10px; }
 .hint { font-size: 12px; color: var(--ink-soft); margin: 10px 0 0; }
+.hint--from { margin-top: 4px; overflow-wrap: anywhere; }
 
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
 .f { display: flex; flex-direction: column; gap: 5px; }

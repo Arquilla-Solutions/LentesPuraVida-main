@@ -1034,7 +1034,15 @@ html:not(.js) .buy { display: none; }
 .rx-pd-two[hidden], .rx-pd > [hidden], .rx .field[hidden] { display: none; }
 .rx-check { display: inline-flex; align-items: center; gap: 10px; min-height: 44px; font-size: 15px; cursor: pointer; }
 .rx-check input { width: 20px; height: 20px; margin: 0; accent-color: var(--green); }
-#e-rx-zero { margin-top: 8px; }
+.rx .rx-zero { margin-top: 8px; }
+/* Receta per pair: a quiet toggle under the order's receta, one per pair after the first. */
+.rx-same { margin: -6px 0 12px; }
+.rx-pairs { margin-top: 18px; display: grid; gap: 4px; }
+.rx-pairs[hidden], .rx-pair-body[hidden], .rx-same[hidden] { display: none; }
+.rx-pair { padding: 12px 0 4px; border-top: 1px solid var(--line); }
+.rx-pair-name { margin: 0; font-size: 14px; color: var(--ink-soft); overflow-wrap: anywhere; }
+.rx-pair-body { padding: 4px 0 8px; animation: unfold .25s var(--ease-out); }
+.rx-for { max-width: 320px; margin-bottom: 14px; }
 .rx-pd-two { grid-template-columns: 1fr 1fr; }
 .co-ts:empty { display: none; }
 .co-ts { margin: 4px 0 12px; }

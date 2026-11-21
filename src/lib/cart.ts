@@ -107,8 +107,12 @@ export interface Order {
   rxValues?: RxTyped | null;
   payment: string;
   items: CartItem[];
+  /** Pairs with their own receta, by cart item id. Pairs not listed use the order's receta. */
+  pairRx?: Record<string, PairRx>;
   source: Record<string, string>;
 }
+
+export interface PairRx { prescription: "typed" | "whatsapp" | "none"; rx: RxTyped | null; for: string }
 
 export interface RxEye { sph: number; cyl: number; axis: number | null; add: number | null }
 export interface RxTyped {
@@ -137,24 +141,37 @@ export function orderMessage(o: Order): string {
   const first = o.name.trim().split(/\s+/)[0];
   L.push(`Hola, soy ${first}. Quiero hacer este pedido:`);
   L.push("");
+  const own = o.pairRx ?? {};
+  const onDefault: number[] = [];
   o.items.forEach((i, n) => {
     L.push(`*${n + 1}. Lentes ${i.name}*${i.qty > 1 ? ` (${i.qty} pares)` : ""}`);
     L.push(`Color: ${i.color}`);
     L.push(`Lente: ${describeLens(i)}`);
     if (i.extras.length) L.push(`Extras: ${describeExtras(i)}`);
     L.push(`Montura: ${money(i.price)}${i.qty > 1 ? ` c/u` : ""}`);
+    const p = own[i.id];
+    if (p) {
+      const head = `Receta de este par${p.for ? ` (${p.for})` : ""}`;
+      if (p.prescription === "typed" && p.rx) L.push(`${head}:`, ...rxLines(p.rx));
+      else L.push(`${head}: ${p.prescription === "none" ? "no tiene, ¿me ayudan?" : "se la envío por WhatsApp"}`);
+    } else onDefault.push(n + 1);
     L.push("");
   });
+  // With pairs on their own receta, say which pairs the main receta is for.
+  const forPairs = onDefault.length < o.items.length && onDefault.length
+    ? ` (${onDefault.length === 1 ? "par" : "pares"} ${onDefault.join(onDefault.length === 2 ? " y " : ", ")})` : "";
   L.push(`*Subtotal monturas: ${money(frameSubtotal(o.items))}*`);
   L.push("Los lentes y extras me los cotizan según mi receta.");
   L.push("");
   L.push(`Nombre: ${o.name.trim()}`);
   L.push(`Envío a: ${o.canton}, ${o.province}`);
-  if (o.rx === "typed" && o.rxValues) {
-    L.push("*Mi receta:*");
+  if (!onDefault.length) {
+    // Every pair has its own receta, already written above.
+  } else if (o.rx === "typed" && o.rxValues) {
+    L.push(`*Mi receta${forPairs}:*`);
     L.push(...rxLines(o.rxValues));
   } else {
-    L.push(o.rx === "none" ? "Receta: no tengo, ¿me ayudan?" : "Receta: se la mando por aquí");
+    L.push(`Receta${forPairs}: ${o.rx === "none" ? "no tengo, ¿me ayudan?" : "se la mando por aquí"}`);
   }
   L.push(`Pago: ${o.payment}`);
   L.push("");
@@ -176,9 +193,13 @@ export function orderLead(o: Order) {
     rx: o.rx === "typed" && o.rxValues ? o.rxValues : null,
     payment: o.payment,
     frame_subtotal: frameSubtotal(o.items),
-    items: o.items.map((i) => ({
-      frame: i.name, slug: i.slug, color: i.color, lens: i.lens, extras: i.extras, qty: i.qty, frame_price: i.price,
-    })),
+    items: o.items.map((i) => {
+      const p = o.pairRx?.[i.id];
+      return {
+        frame: i.name, slug: i.slug, color: i.color, lens: i.lens, extras: i.extras, qty: i.qty, frame_price: i.price,
+        ...(p ? { rx_override: { prescription: p.prescription, rx: p.prescription === "typed" ? p.rx : null, ...(p.for ? { for: p.for } : {}) } } : {}),
+      };
+    }),
     page: location.pathname,
     ...o.source,
   };

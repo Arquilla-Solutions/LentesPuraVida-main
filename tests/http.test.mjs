@@ -122,3 +122,20 @@ test("order: rate limit per IP triggers (LOCKED server, 3 per 10 min)", async ()
   assert.deepEqual(codes.slice(0, 3).every((c) => c === 201), true, codes.join());
   assert.deepEqual(codes.slice(3), [429, 429]);
 });
+test("order: a pair with its own receta is saved and read back by the board; a bad one -> 400", async () => {
+  const ip = { "CF-Connecting-IP": `192.0.2.${Math.floor(Math.random() * 250) + 1}` };
+  const pair = { frame: "Apollo", slug: "apollo", color: "Negro", lens: "lectura", extras: [], qty: 1, frame_price: 1 };
+  const own = { prescription: "typed", for: "Mamá", rx: { od: { sph: 1.5, cyl: 0, axis: null, add: 2 }, oi: { sph: 1.75, cyl: 0, axis: null, add: 2 }, pd: { single: 62 } } };
+  const o = order({ items: [order().items[0], { ...pair, rx_override: own }, { ...pair, rx_override: { prescription: "whatsapp", rx: null } }] });
+  assert.equal((await post(DEV, o, ip)).status, 201);
+  const list = await (await fetch(`${DEV}/api/admin/orders`)).json();
+  const id = list.orders.find((x) => x.ref === o.ref).id;
+  const { order: saved } = await (await fetch(`${DEV}/api/admin/orders/${id}`)).json();
+  assert.equal(saved.items[0].rx_override, null);
+  assert.deepEqual(saved.items[1].rx_override, own);
+  assert.deepEqual(saved.items[2].rx_override, { prescription: "whatsapp", rx: null, for: "" });
+  const bad = order({ items: [{ ...pair, rx_override: { prescription: "none", rx: own.rx } }] });
+  assert.equal((await post(DEV, bad, ip)).status, 400);
+  const bad2 = order({ items: [{ ...pair, rx_override: { ...own, sneaky: 1 } }] });
+  assert.equal((await post(DEV, bad2, ip)).status, 400);
+});

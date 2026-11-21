@@ -1,0 +1,113 @@
+---
+// The receta choices (escribirla / por WhatsApp / no tengo) and the typed fields.
+// `p` prefixes every id and name: "" for the order's receta (ids like f-od-sph), or a
+// placeholder for the per-pair copy in a <template> that the checkout script renames.
+import { RX, signed } from "@/lib/store";
+
+interface Props { p?: string; labelledby: string; help?: boolean }
+const { p = "", labelledby, help = true } = Astro.props;
+
+const EYES = [
+  { id: "od", name: "Ojo derecho", short: "OD" },
+  { id: "oi", name: "Ojo izquierdo", short: "OI" },
+] as const;
+---
+
+<fieldset class="choice" aria-labelledby={labelledby}>
+  <label class="choice-card">
+    <input type="radio" name={`${p}rx`} value="typed" checked />
+    <span class="choice-body">
+      <span class="choice-name">La escribo aquí</span>
+      <span class="choice-hint">Copie los números de su receta. Toma un minuto.</span>
+    </span>
+  </label>
+  <div class="rx" data-rx>
+    {help && (
+      <details class="rx-help">
+        <summary>¿Dónde encuentro esto?</summary>
+        <p>En su receta hay una tabla con dos filas: <strong>OD</strong> (ojo derecho) y <strong>OI</strong> (ojo izquierdo). Esfera puede decir ESF o SPH, Cilindro CIL o CYL, Eje AXIS y Adición ADD. Si una casilla está vacía, déjela en 0.00. La distancia pupilar dice DP o PD; si no aparece, déjela en blanco y le ayudamos a medirla.</p>
+      </details>
+    )}
+    {EYES.map((eye) => (
+      <div class="rx-eye" role="group" aria-labelledby={`rx-${p}${eye.id}`}>
+        <p class="rx-eye-name" id={`rx-${p}${eye.id}`}>{eye.name} <span class="muted">({eye.short})</span></p>
+        <div class="rx-grid">
+          <div class="field">
+            <label for={`f-${p}${eye.id}-sph`}>Esfera</label>
+            <select id={`f-${p}${eye.id}-sph`} name={`${p}${eye.id}-sph`} data-rx-sph>
+              {RX.sph.map((v) => <option value={v} selected={v === 0}>{v === 0 ? "0.00 (plano)" : signed(v)}</option>)}
+            </select>
+          </div>
+          <div class="field">
+            <label for={`f-${p}${eye.id}-cyl`}>Cilindro</label>
+            <select id={`f-${p}${eye.id}-cyl`} name={`${p}${eye.id}-cyl`} data-rx-cyl>
+              {RX.cyl.map((v) => <option value={v} selected={v === 0}>{signed(v)}</option>)}
+            </select>
+          </div>
+          <div class="field">
+            <label for={`f-${p}${eye.id}-axis`}>Eje</label>
+            <select id={`f-${p}${eye.id}-axis`} name={`${p}${eye.id}-axis`} data-rx-axis disabled aria-describedby={`e-${p}${eye.id}-axis`}>
+              <option value="">No aplica</option>
+              {RX.axis.map((v) => <option value={v}>{v}</option>)}
+            </select>
+          </div>
+          <div class="field" data-rx-add hidden>
+            <label for={`f-${p}${eye.id}-add`}>Adición</label>
+            <select id={`f-${p}${eye.id}-add`} name={`${p}${eye.id}-add`} data-rx-addv aria-describedby={`e-${p}${eye.id}-add`}>
+              <option value="">Escoja</option>
+              {RX.add.map((v) => <option value={v}>{signed(v)}</option>)}
+            </select>
+          </div>
+        </div>
+        <p class="field-err" id={`e-${p}${eye.id}-axis`} hidden>Con cilindro, el eje es necesario. Está junto al cilindro en su receta.</p>
+        <p class="field-err" id={`e-${p}${eye.id}-add`} hidden>Para progresivos o lectura, escoja la adición (ADD).</p>
+      </div>
+    ))}
+    <div class="rx-pd">
+      <div class="field" data-pd-one>
+        <label for={`f-${p}pd`}>Distancia pupilar (DP)</label>
+        <select id={`f-${p}pd`} name={`${p}pd`}>
+          <option value="">No la tengo</option>
+          {RX.pd.map((v) => <option value={v}>{v}</option>)}
+        </select>
+      </div>
+      <div class="field-row rx-pd-two" data-pd-two hidden>
+        <div class="field">
+          <label for={`f-${p}pd-r`}>DP derecho</label>
+          <select id={`f-${p}pd-r`} name={`${p}pd-r`} aria-describedby={`e-${p}pd-r`}>
+            <option value="">Escoja</option>
+            {RX.pdHalf.map((v) => <option value={v}>{v.toFixed(1)}</option>)}
+          </select>
+          <p class="field-err" id={`e-${p}pd-r`} hidden>Escoja el número derecho.</p>
+        </div>
+        <div class="field">
+          <label for={`f-${p}pd-l`}>DP izquierdo</label>
+          <select id={`f-${p}pd-l`} name={`${p}pd-l`} aria-describedby={`e-${p}pd-l`}>
+            <option value="">Escoja</option>
+            {RX.pdHalf.map((v) => <option value={v}>{v.toFixed(1)}</option>)}
+          </select>
+          <p class="field-err" id={`e-${p}pd-l`} hidden>Escoja el número izquierdo.</p>
+        </div>
+      </div>
+      <label class="rx-check">
+        <input type="checkbox" name={`${p}pd-two`} data-pd-toggle />
+        <span>Tengo dos números</span>
+      </label>
+    </div>
+    <p class="field-err rx-zero" id={`e-${p}rx-zero`} hidden>Todos los valores están en 0.00. Copie los números de su receta, o escoja enviarla por WhatsApp.</p>
+  </div>
+  <label class="choice-card">
+    <input type="radio" name={`${p}rx`} value="whatsapp" />
+    <span class="choice-body">
+      <span class="choice-name">Se la envío por WhatsApp</span>
+      <span class="choice-hint">Una foto clara de la receta, en el mismo chat del pedido.</span>
+    </span>
+  </label>
+  <label class="choice-card">
+    <input type="radio" name={`${p}rx`} value="none" />
+    <span class="choice-body">
+      <span class="choice-name">No tengo receta</span>
+      <span class="choice-hint">Le decimos dónde hacerse el examen. Mándenos el recibo y le rebajamos hasta $10.</span>
+    </span>
+  </label>
+</fieldset>

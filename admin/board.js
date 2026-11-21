@@ -261,17 +261,19 @@
   const field = (label, input, extra) => h("label", { class: "f" }, h("span", { class: "f-label", text: label }), input, extra);
   const section = (title, ...kids) => h("section", { class: "d-sec" }, h("h3", { text: title }), ...kids);
 
-  function rxBlock(o) {
-    if (o.prescription !== "typed" || !o.rx) {
-      return h("p", { class: "note", text: o.prescription === "whatsapp" ? "📲 La receta llega por WhatsApp. Revísela en el chat antes de pedir." : "🩺 No tiene receta todavía. Recuérdele el examen (rebaja de hasta $10 con el recibo)." });
+  // A receta: the order's (prescription + rx) or one pair's own (rx_override). `tag` names the
+  // copy buttons ("OD SPH" or "Par 2 OD SPH") so the toast says which one was copied.
+  function rxBlock(prescription, rx, tag = "") {
+    if (prescription !== "typed" || !rx) {
+      return h("p", { class: "note", text: prescription === "whatsapp" ? "📲 La receta llega por WhatsApp. Revísela en el chat antes de pedir." : "🩺 No tiene receta todavía. Recuérdele el examen (rebaja de hasta $10 con el recibo)." });
     }
-    const rx = o.rx;
+    const t = (s) => (tag ? `${tag} ${s}` : s);
     const hasAdd = rx.od.add != null || rx.oi.add != null;
     const cols = ["SPH", "CYL", "AXIS", ...(hasAdd ? ["ADD"] : [])];
     const val = (e, k) => (k === "SPH" ? signed(e.sph) : k === "CYL" ? signed(e.cyl) : k === "AXIS" ? (e.axis == null ? "" : String(e.axis)) : signed(e.add));
     const row = (label, sub, e) => h("tr", {},
       h("th", { scope: "row" }, h("span", { text: label }), h("span", { class: "muted", text: sub })),
-      ...cols.map((k) => { const v = val(e, k); return h("td", {}, v ? h("span", { class: "cell" }, h("b", { text: v }), copyBtn(v, `${label} ${k}`)) : h("span", { class: "muted", text: "—" })); }),
+      ...cols.map((k) => { const v = val(e, k); return h("td", {}, v ? h("span", { class: "cell" }, h("b", { text: v }), copyBtn(v, t(`${label} ${k}`))) : h("span", { class: "muted", text: "—" })); }),
     );
     const table = h("table", { class: "rx" },
       h("thead", {}, h("tr", {}, h("th", { text: "" }), ...cols.map((k) => h("th", { scope: "col", text: k })))),
@@ -279,18 +281,18 @@
     );
     let pd;
     if (!rx.pd) pd = h("p", { class: "note", text: "PD: no la tiene. Pídala o ayúdele a medirla antes de pedir." });
-    else if ("single" in rx.pd) pd = h("div", { class: "pd" }, h("span", { class: "f-label", text: "PD (un número)" }), h("span", { class: "cell" }, h("b", { text: String(rx.pd.single) }), copyBtn(rx.pd.single, "PD")));
+    else if ("single" in rx.pd) pd = h("div", { class: "pd" }, h("span", { class: "f-label", text: "PD (un número)" }), h("span", { class: "cell" }, h("b", { text: String(rx.pd.single) }), copyBtn(rx.pd.single, t("PD"))));
     else pd = h("div", { class: "pd" }, h("span", { class: "f-label", text: "PD (dos números)" }),
-      h("span", { class: "cell" }, h("span", { class: "muted", text: "Derecho " }), h("b", { text: rx.pd.right.toFixed(1) }), copyBtn(rx.pd.right.toFixed(1), "PD derecho")),
-      h("span", { class: "cell" }, h("span", { class: "muted", text: "Izquierdo " }), h("b", { text: rx.pd.left.toFixed(1) }), copyBtn(rx.pd.left.toFixed(1), "PD izquierdo")));
+      h("span", { class: "cell" }, h("span", { class: "muted", text: "Derecho " }), h("b", { text: rx.pd.right.toFixed(1) }), copyBtn(rx.pd.right.toFixed(1), t("PD derecho"))),
+      h("span", { class: "cell" }, h("span", { class: "muted", text: "Izquierdo " }), h("b", { text: rx.pd.left.toFixed(1) }), copyBtn(rx.pd.left.toFixed(1), t("PD izquierdo"))));
     const eyeLine = (label, e) => `${label}: SPH ${signed(e.sph)} CYL ${signed(e.cyl)} AXIS ${e.axis ?? "-"}${hasAdd ? ` ADD ${e.add == null ? "-" : signed(e.add)}` : ""}`;
     const pdLine = !rx.pd ? "PD: falta" : "single" in rx.pd ? `PD: ${rx.pd.single}` : `PD: derecho ${rx.pd.right.toFixed(1)} / izquierdo ${rx.pd.left.toFixed(1)}`;
     const all = [eyeLine("OD", rx.od), eyeLine("OS", rx.oi), pdLine].join("\n");
     return h("div", {},
       h("div", { class: "rx-wrap" }, table),
       pd,
-      h("div", { class: "copy-all" }, h("pre", { text: all }), h("button", { type: "button", class: "btn btn--soft", onclick: () => copy(all, "Receta") }, svg(ICON.copy, 15), "Copiar todo")),
-      h("p", { class: "hint", text: "Mismo orden que el formulario de EyeBuyDirect: OD arriba, OS (izquierdo) abajo, luego PD." }),
+      h("div", { class: "copy-all" }, h("pre", { text: all }), h("button", { type: "button", class: "btn btn--soft", onclick: () => copy(all, t("Receta")) }, svg(ICON.copy, 15), "Copiar todo")),
+      tag ? null : h("p", { class: "hint", text: "Mismo orden que el formulario de EyeBuyDirect: OD arriba, OS (izquierdo) abajo, luego PD." }),
     );
   }
 
@@ -314,20 +316,30 @@
       STAGES.map((s) => h("option", { value: s.id, selected: s.id === o.status, text: s.label })));
 
     // Contact
+    const ownN = o.items.filter((i) => i.rx_override).length;
     const phone = prettyPhone(o.whatsapp);
     const contact = section("Contacto",
       h("div", { class: "kv" },
         h("span", { class: "k", text: "Nombre" }), h("span", { class: "v" }, h("span", { text: o.name }), copyBtn(o.name, "nombre")),
         h("span", { class: "k", text: "WhatsApp" }), h("span", { class: "v" }, h("span", { text: phone }), copyBtn(o.whatsapp, "teléfono")),
         h("span", { class: "k", text: "Pago" }), h("span", { class: "v", text: o.payment_pref }),
-        h("span", { class: "k", text: "Receta" }), h("span", { class: "v", text: RX_MODE[o.prescription] }),
+        h("span", { class: "k", text: "Receta" }), h("span", { class: "v", text: RX_MODE[o.prescription] + (ownN ? ` · ${ownN} ${ownN === 1 ? "par" : "pares"} con otra receta` : "") }),
       ),
       h("a", { class: "btn btn--wa", href: waLink(o.whatsapp), target: "_blank", rel: "noopener noreferrer" }, svg(ICON.wa, 18), "Abrir chat de WhatsApp"),
     );
 
     // Pairs
+    const anyOwn = o.items.some((i) => i.rx_override);
+    const pairRx = (i, n) => {
+      const r = i.rx_override;
+      if (!r) return h("p", { class: "pair-rx pair-rx--main", text: "Receta del pedido" });
+      return h("div", { class: "pair-rx" },
+        h("p", { class: "pair-rx-head" }, h("b", { text: "Su propia receta" }), r.for ? h("span", { text: ` · Para: ${r.for}` }) : null),
+        rxBlock(r.prescription, r.rx, `Par ${n + 1}`),
+      );
+    };
     const pairs = section(`Pares (${o.items.reduce((n, i) => n + i.qty, 0)})`,
-      h("ul", { class: "pairs" }, o.items.map((i) => h("li", { class: "pair" },
+      h("ul", { class: "pairs" }, o.items.map((i, n) => h("li", { class: "pair" },
         h("div", { class: "pair-top" },
           h("a", { href: `/lentes/${encodeURIComponent(i.slug)}`, target: "_blank", rel: "noopener noreferrer", class: "pair-name" }, `Lentes ${i.frame}`, svg(ICON.ext, 14)),
           h("span", { class: "pair-price", text: `${money(i.frame_price)}${i.qty > 1 ? ` × ${i.qty}` : ""}` }),
@@ -335,6 +347,7 @@
         h("p", { class: "pair-meta" }, h("span", { text: `Color: ${i.color}` }), copyBtn(i.color, "color")),
         h("p", { class: "pair-meta", text: `Lente: ${m.lenses[i.lens] || i.lens}` }),
         i.extras.length ? h("p", { class: "pair-meta", text: `Extras: ${i.extras.map((x) => m.extras[x] || x).join(", ")}` }) : null,
+        pairRx(i, n),
       ))),
       h("p", { class: "sub", text: `Subtotal monturas (precio web): ${money(o.frame_subtotal)}` }),
     );
@@ -394,9 +407,15 @@
         e.actor && e.actor !== "web" ? h("span", { class: "t-who", text: e.actor }) : null,
       ))),
     );
-    if (o.utm_source || o.utm_campaign) {
-      history.append(h("p", { class: "hint", text: `Vino de: ${[o.utm_source, o.utm_medium, o.utm_campaign, o.utm_content].filter(Boolean).join(" · ")}` }));
-    }
+    // Where the customer came from: ad tags, the first page they saw, the page they ordered from.
+    const from = [];
+    if (o.utm_source || o.utm_campaign) from.push(`Vino de: ${[o.utm_source, o.utm_medium, o.utm_campaign, o.utm_content].filter(Boolean).join(" · ")}`);
+    if (o.utm_term) from.push(`Palabra del anuncio: ${o.utm_term}`);
+    if (o.landing) from.push(`Entró por: ${o.landing}`);
+    if (o.page) from.push(`Pidió desde: ${o.page}`);
+    if (o.fbclid) from.push(`Clic de Facebook/Instagram (fbclid): ${o.fbclid}`);
+    if (o.gclid) from.push(`Clic de Google (gclid): ${o.gclid}`);
+    for (const line of from) history.append(h("p", { class: "hint hint--from", text: line }));
 
     const saveBtn = h("button", { type: "button", class: "btn btn--primary", disabled: true, text: "Sin cambios", onclick: save });
     async function save() {
@@ -431,7 +450,7 @@
       h("div", { class: "d-stage" }, h("span", { class: "f-label", text: "Etapa" }), stageSel, h("span", { class: "days", text: `${daysIn(o.status_at)} en esta etapa` })),
       h("div", { class: "d-body" },
         contact, pairs,
-        section("Receta para EyeBuyDirect", rxBlock(o)),
+        section(anyOwn ? "Receta del pedido (pares sin receta propia)" : "Receta para EyeBuyDirect", rxBlock(o.prescription, o.rx)),
         addr, price, ebd, notes, history,
       ),
       h("div", { class: "d-foot" }, h("button", { type: "button", class: "btn btn--ghost", text: "Cerrar", onclick: closeDetail }), saveBtn),

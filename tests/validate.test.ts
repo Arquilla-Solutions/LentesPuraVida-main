@@ -77,3 +77,59 @@ test("board edits: only listed fields, checked", () => {
   assert.throws(() => validatePatch({}), Invalid);
   assert.throws(() => validatePatch({ notes: "x".repeat(4001) }), Invalid);
 });
+
+// ---------- Receta per pair (items[n].rx_override) ----------
+const reading = { od: { sph: 1.5, cyl: 0, axis: null, add: 2 }, oi: { sph: 1.75, cyl: 0, axis: null, add: 2 }, pd: { single: 62 } };
+const withPairs = (...overrides: unknown[]) => {
+  const b = base();
+  const first = b.items[0];
+  return { ...b, items: [first, ...overrides.map((rx_override) => ({ ...first, slug: "apollo", qty: 1, rx_override }))] };
+};
+
+test("receta per pair: good overrides pass, missing means the order's receta", () => {
+  const o = validateOrder(withPairs(
+    { prescription: "typed", rx: reading, for: "  Mamá  " },
+    { prescription: "whatsapp", rx: null },
+    { prescription: "none" },
+  ));
+  assert.equal(o.items[0].rx_override, null);
+  assert.deepEqual(o.items[1].rx_override, { prescription: "typed", rx: reading, for: "Mamá" });
+  assert.deepEqual(o.items[2].rx_override, { prescription: "whatsapp", rx: null, for: "" });
+  assert.deepEqual(o.items[3].rx_override, { prescription: "none", rx: null, for: "" });
+  assert.equal(validateOrder(withPairs(null)).items[1].rx_override, null);
+});
+test("receta per pair: unknown keys refused", () => {
+  rejects(withPairs({ prescription: "typed", rx: reading, admin: true }), /unknown field items\[1\]\.rx_override\.admin/);
+  rejects(withPairs({ prescription: "typed", rx: { ...reading, prism: 1 } }), /unknown/);
+  rejects(withPairs({ prescription: "typed", rx: { ...reading, od: { ...reading.od, base: 2 } } }), /unknown/);
+  rejects(withPairs({ prescription: "typed", rx: reading, __proto__: { x: 1 }, constructor: 1 }), /unknown/);
+});
+test("receta per pair: bad values refused", () => {
+  rejects(withPairs("typed"), /rx_override/);
+  rejects(withPairs([]), /rx_override/);
+  rejects(withPairs({ prescription: "laser" }), /rx_override\.prescription/);
+  rejects(withPairs({ prescription: "typed" }), /rx_override\.rx missing/);
+  rejects(withPairs({ prescription: "typed", rx: { ...reading, od: { ...reading.od, sph: -1.3 } } }), /rx_override\.rx\.od\.sph/);
+  rejects(withPairs({ prescription: "typed", rx: { ...reading, oi: { ...reading.oi, axis: 90 } } }), /axis without cyl/);
+  rejects(withPairs({ prescription: "typed", rx: { ...reading, pd: { single: 99 } } }), /pd/);
+  rejects(withPairs({ prescription: "typed", rx: reading, for: "<b>Mamá</b>" }), /for characters/);
+  rejects(withPairs({ prescription: "typed", rx: reading, for: "Mamá\u0000" }), /for characters/);
+  rejects(withPairs({ prescription: "typed", rx: reading, for: 5 }), /for must be text/);
+});
+test("receta per pair: rx only with typed (whatsapp / none carry no numbers)", () => {
+  rejects(withPairs({ prescription: "none", rx: reading }), /rx only with typed/);
+  rejects(withPairs({ prescription: "whatsapp", rx: reading }), /rx only with typed/);
+});
+test("receta per pair: 'para quién' max 40 characters", () => {
+  validateOrder(withPairs({ prescription: "none", for: "A".repeat(40) }));
+  rejects(withPairs({ prescription: "none", for: "A".repeat(41) }), /for length/);
+});
+test("receta per pair: the biggest real order still fits in 16 KB", () => {
+  const full = { prescription: "typed", rx: { ...reading, od: { sph: -12, cyl: -6, axis: 180, add: 3.5 }, pd: { right: 35.5, left: 35.5 } }, for: "Á".repeat(40) };
+  const b = withPairs(...Array(9).fill(full));
+  b.items.forEach((i: any) => { i.frame = "x".repeat(60); i.color = "Carey (Tortoise)/Dorado mate xx".slice(0, 40); i.extras = ["azul"]; });
+  const big = { ...b, name: "María José Pérez Rodríguez de la Cruz", turnstile: "t".repeat(2048), utm_source: "s".repeat(120), utm_medium: "m".repeat(120), utm_campaign: "c".repeat(120), utm_content: "x".repeat(120), utm_term: "t".repeat(120), fbclid: "f".repeat(120), gclid: "g".repeat(120), landing: "/" + "l".repeat(119), page: "/checkout" };
+  assert.equal(validateOrder(big).items.length, 10);
+  const size = new TextEncoder().encode(JSON.stringify(big)).length;
+  assert.ok(size < 16 * 1024, `payload ${size} bytes`);
+});

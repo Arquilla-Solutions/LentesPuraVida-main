@@ -15,12 +15,14 @@ async function load(env: Env, id: number) {
   const order = await env.DB.prepare("SELECT * FROM orders WHERE id = ?").bind(id).first<Record<string, any>>();
   if (!order) return null;
   const [items, events] = await env.DB.batch([
-    env.DB.prepare("SELECT slug, frame, color, lens, extras_json, qty, frame_price FROM order_items WHERE order_id = ? ORDER BY position").bind(id),
+    env.DB.prepare("SELECT slug, frame, color, lens, extras_json, qty, frame_price, rx_override_json FROM order_items WHERE order_id = ? ORDER BY position").bind(id),
     env.DB.prepare("SELECT at, kind, from_status, to_status, actor, detail FROM order_events WHERE order_id = ? ORDER BY at, id").bind(id),
   ]);
   order.rx = order.rx_json ? JSON.parse(order.rx_json) : null;
   delete order.rx_json;
-  order.items = (items.results as any[]).map(({ extras_json, ...i }) => ({ ...i, extras: JSON.parse(extras_json) }));
+  order.items = (items.results as any[]).map(({ extras_json, rx_override_json, ...i }) => ({
+    ...i, extras: JSON.parse(extras_json), rx_override: rx_override_json ? JSON.parse(rx_override_json) : null,
+  }));
   order.events = events.results;
   return order;
 }
