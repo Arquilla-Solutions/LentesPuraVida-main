@@ -8,14 +8,16 @@ import ProductCard from "@/components/ProductCard.astro";
 import QuoteButton from "@/components/QuoteButton.astro";
 import { getSwatch, type Product } from "@/data/products";
 import { SITE_URL } from "@/lib/seo";
-import { isProductView, photographedColors, primaryThumb, scanFramePhotos, type View } from "@/lib/photos";
+import { photographedColors, primaryThumb, scanFramePhotos, type View } from "@/lib/photos";
 import { categoryLabel, visibleProducts, CATEGORIES } from "@/lib/catalog";
 import { shareJpeg } from "@/lib/images";
 import { getImage } from "astro:assets";
 import { EXTRAS, LENSES } from "@/lib/store";
 import { STEPS } from "@/data/steps";
 import TrustList from "@/components/TrustList.astro";
-import { FIT, SHIP_NOTICE, ratingText } from "@/data/trust";
+import { FIT, SHIP_NOTICE, STORE_RATING, ratingText } from "@/data/trust";
+import { REVIEWS } from "@/data/reviews";
+import LensBuilder from "@/components/LensBuilder.astro";
 import { INCLUDES, INCLUDES_EXTRAS_NOTE, INCLUDES_TITLE } from "@/data/includes";
 
 export async function getStaticPaths() {
@@ -28,14 +30,13 @@ const frame = scanFramePhotos()[product.name];
 const colors = photographedColors(frame);
 const firstColor = colors[0]?.spanish ?? "";
 
-// Gallery order: front, on a woman, on a man, side, top.
-const ORDER: View[] = ["front", "onWoman", "onMan", "side", "top"];
-const VIEW_LABEL: Record<View, string> = {
+// Gallery: frame-only views (no photos of people). Front first, then the 3/4 view ("Top" files)
+// and the side. Colors without any frame-only shot never reach this page (lib/photos.ts).
+const ORDER: View[] = ["front", "top", "side"];
+const VIEW_LABEL: Partial<Record<View, string>> = {
   front: "de frente",
-  onWoman: "puestos en una mujer",
-  onMan: "puestos en un hombre",
+  top: "en ángulo",
   side: "de lado",
-  top: "desde arriba",
 };
 
 const savings = product.comparePrice - product.framePrice;
@@ -62,6 +63,11 @@ const related = visibleProducts
   .filter((p) => p.slug !== product.slug)
   .sort((a, b) => Number(b.shape === product.shape) - Number(a.shape === product.shape))
   .slice(0, 4);
+
+// Three customer quotes, a different set per frame so the pages do not repeat each other.
+const idx = visibleProducts.findIndex((p) => p.slug === product.slug);
+const quotes = [0, 1, 2].map((k) => REVIEWS[(idx * 3 + k) % REVIEWS.length]);
+const size = product.sizes.find((s) => s.label === product.primarySize) ?? product.sizes[0];
 
 const seoTitle = `Lentes ${product.name} de ${materialLabel}, $${product.framePrice} | Lentes Pura Vida`;
 const seoDescription = `Lentes ${product.name}, ${product.shape.toLowerCase()} de ${materialLabel}: $${product.framePrice} la montura. Envío a toda Costa Rica. Escriba su receta y le cotizamos el mismo día.`;
@@ -146,41 +152,40 @@ const productJsonLd: Record<string, unknown>[] = [
 
   <main id="contenido">
     <div class="wrap">
-      <nav class="crumbs" aria-label="Ruta">
-        <ol>
-          <li><a href="/lentes">Lentes</a></li>
-          <li><a href={mainCat.path}>{mainCat.label}</a></li>
-          <li aria-current="page">{product.name}</li>
-        </ol>
-      </nav>
-
       <div class="pdp">
         <div class="pdp-media">
           {colors.map((c, ci) => {
             const views = ORDER.filter((v) => c.photos[v]);
             return (
               <div class="gallery" data-gallery={c.spanish} hidden={ci !== 0}>
-                <span class="made-badge">Hecho en EE.UU.</span>
-                <div class="gallery-track" data-track tabindex="0" aria-label={`Fotos de los lentes ${product.name} en color ${c.spanish}`}>
-                  {views.map((v, vi) => (
-                    <div class="gallery-slide" data-slide={vi} data-vt={vi === 0 ? product.slug : undefined}>
-                      <Photo
-                        img={c.photos[v]!}
-                        alt={`Lentes ${product.name} color ${c.spanish.toLowerCase()}, ${VIEW_LABEL[v]}`}
-                        kind={isProductView(v) ? "product" : "person"}
-                        ratio="4 / 3"
-                        sizes="(min-width: 1024px) 680px, 100vw"
-                        widths={[400, 640, 960]}
-                        eager={ci === 0 && vi === 0}
-                      />
+                <div class="gallery-main">
+                  <span class="badge made-badge">Hecho en EE.UU.</span>
+                  <div class="gallery-track" data-track tabindex="0" aria-label={`Fotos de los lentes ${product.name} en color ${c.spanish}`}>
+                    {views.map((v, vi) => (
+                      <div class="gallery-slide" data-slide={vi} data-vt={vi === 0 && ci === 0 ? product.slug : undefined}>
+                        <Photo
+                          img={c.photos[v]!}
+                          alt={`Lentes ${product.name} color ${c.spanish.toLowerCase()}, ${VIEW_LABEL[v]}`}
+                          kind="product"
+                          ratio="4 / 3"
+                          sizes="(min-width: 1280px) 620px, (min-width: 1024px) 50vw, 100vw"
+                          widths={[400, 640]}
+                          eager={ci === 0 && vi === 0}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                  {views.length > 1 && (
+                    <div class="gallery-dots" aria-hidden="true">
+                      {views.map((_, vi) => <span class={vi === 0 ? "is-on" : undefined} data-dot={vi}></span>)}
                     </div>
-                  ))}
+                  )}
                 </div>
                 {views.length > 1 && (
                   <div class="thumbs" role="group" aria-label="Escoger foto">
                     {views.map((v, vi) => (
                       <button type="button" class="thumb" data-go={vi} aria-current={vi === 0 ? "true" : "false"} aria-label={`Ver ${VIEW_LABEL[v]}`}>
-                        <Photo img={c.photos[v]!} alt="" kind={isProductView(v) ? "product" : "person"} ratio="1 / 1" sizes="84px" widths={[96, 168]} />
+                        <Photo img={c.photos[v]!} alt="" kind="product" ratio="1 / 1" sizes="76px" widths={[96, 160]} />
                       </button>
                     ))}
                   </div>
@@ -190,23 +195,32 @@ const productJsonLd: Record<string, unknown>[] = [
           })}
         </div>
 
-        <div class="pdp-info">
+        <div class="pdp-info" data-pdp-info>
+          <nav class="crumbs" aria-label="Ruta">
+            <ol>
+              <li><a href="/lentes">Lentes</a></li>
+              <li><a href={mainCat.path}>{mainCat.label}</a></li>
+              <li aria-current="page">{product.name}</li>
+            </ol>
+          </nav>
           <p class="pdp-kicker">{cat} · {product.material} · {product.shape}</p>
           <h1>{product.name}</h1>
           {product.rating && (
             <p class="pdp-rating">
               <Icon name="lucide:star" size={16} aria-hidden="true" class="ti" />
-              <span><strong>{ratingText(product.rating.score)} de 5</strong> · {product.rating.count.toLocaleString("es-CR")} opiniones</span>
+              <span><strong>{ratingText(product.rating.score)} de 5</strong> · <a href="#opiniones">{product.rating.count.toLocaleString("es-CR")} opiniones</a></span>
             </p>
           )}
 
-          <div class="price">
-            <span class="price-amount">${product.framePrice}</span>
-            <span class="price-note">solo montura</span>
+          <div class="pdp-price">
+            <div class="price">
+              <span class="price-amount">${product.framePrice}</span>
+              <span class="price-note">solo montura</span>
+            </div>
+            <p class="price-compare">
+              En una óptica local, desde <s>${product.comparePrice}</s>. Usted ahorra <strong>${savings}</strong>.
+            </p>
           </div>
-          <p class="price-compare">
-            En una óptica local, desde <s>${product.comparePrice}</s>. Usted ahorra <strong>${savings}</strong>.
-          </p>
 
           {colors.length > 0 && (
             <div class="colors">
@@ -269,73 +283,125 @@ const productJsonLd: Record<string, unknown>[] = [
             <li><Icon name="lucide:search" size={18} aria-hidden="true" class="ti" />{FIT[0]}</li>
             <li><Icon name="lucide:message-circle" size={18} aria-hidden="true" class="ti" />{FIT[1]}</li>
           </ul>
+          <p class="pdp-ship">
+            <Icon name="lucide:truck" size={18} aria-hidden="true" class="ti" />
+            <span><strong>Envío a las 7 provincias.</strong> Llega en 10 a 14 días hábiles, con guía rastreable. {SHIP_NOTICE}</span>
+          </p>
           <p class="pdp-norx"><a class="btn-tertiary" href="/como-funciona#receta">¿No tiene receta? Le explicamos cómo hacer</a></p>
-          <p class="pdp-desc">{product.desc}</p>
+        </div>
 
-          <div class="includes">
-            <h2>{INCLUDES_TITLE}</h2>
-            <ul>
-              {INCLUDES.map((t) => <li><Icon name="lucide:check" size={16} aria-hidden="true" /> {t}</li>)}
-            </ul>
+        <div class="pdp-more">
+          <section class="pdp-sec includes" aria-labelledby="h-includes">
+            <div>
+              <h2 id="h-includes">{INCLUDES_TITLE}</h2>
+              <ul class="includes-list">
+                {INCLUDES.map((t) => <li><Icon name="lucide:check" size={18} aria-hidden="true" /> {t}</li>)}
+              </ul>
+            </div>
             <p class="small">{INCLUDES_EXTRAS_NOTE} <a class="btn-tertiary" href="/lentes-y-tratamientos">¿Qué es cada uno?</a></p>
-          </div>
+          </section>
 
-          <div class="folds faq">
-            {product.sizes.length > 0 && (
-              <details class="faq-item">
-                <summary>Medidas</summary>
+          <section class="pdp-sec pdp-builder" aria-labelledby="h-builder">
+            <h2 id="h-builder">Arme sus lentes {product.name}</h2>
+            <p class="lead">Toque las capas que le interesan y vea cómo cambia el lente. Le cotizamos esa combinación por WhatsApp.</p>
+            <LensBuilder variant="compact" frame={product.name} place="product-builder" labelledby="h-builder" />
+          </section>
+
+          {size && (
+            <section class="pdp-sec" aria-labelledby="h-medidas">
+              <h2 id="h-medidas">Medidas y talla</h2>
+              <div class="fit-box">
+                <svg class="fit-art" viewBox="0 0 320 120" role="img" aria-label={`Medidas de la talla ${size.label}: lente ${size.lens} mm, puente ${size.bridge} mm, patilla ${size.temple} mm`}>
+                  <g fill="none" stroke="currentColor" stroke-width="2"><rect x="14" y="34" width="120" height="74" rx="26"/><rect x="186" y="34" width="120" height="74" rx="26"/><path d="M134 52c14-12 38-12 52 0"/></g>
+                  <g stroke="var(--accent-ink)" stroke-width="1.5"><path d="M14 20h120M14 15v10M134 15v10"/><path d="M140 20h40M140 15v10M180 15v10"/></g>
+                  <text x="74" y="12" text-anchor="middle">Lente {size.lens}</text>
+                  <text x="160" y="12" text-anchor="middle">Puente {size.bridge}</text>
+                  <text x="246" y="26" text-anchor="middle">Patilla {size.temple}</text>
+                </svg>
                 <div>
-                  <div class="measure">
-                    <svg width="120" height="44" viewBox="0 0 120 44" aria-hidden="true"><g fill="none" stroke="currentColor" stroke-width="1.5"><rect x="4" y="8" width="46" height="30" rx="10"/><rect x="70" y="8" width="46" height="30" rx="10"/><path d="M50 16c4-4 16-4 20 0"/></g><g stroke="#8a6a1f" stroke-width="1.5"><path d="M4 4h46M50 4h20"/></g></svg>
-                    <span class="small">Ancho del lente · puente · patilla, en mm</span>
-                  </div>
-                  <dl class="specs">
+                  <dl class="sizes">
                     {product.sizes.map((s) => (
-                      <>
+                      <div>
                         <dt>Talla {s.label}</dt>
                         <dd>{s.lens}-{s.bridge}-{s.temple} mm</dd>
-                      </>
+                      </div>
                     ))}
                   </dl>
-                  <p class="small" style="margin: 12px 0 0">
+                  <p>
                     Compare con los tres números por dentro de la patilla de sus lentes actuales. Si están a 2 mm o menos,
                     le va a quedar parecido. Si tiene dudas, mándenos una foto por WhatsApp.
                   </p>
                 </div>
+              </div>
+            </section>
+          )}
+
+          <section class="pdp-sec" aria-labelledby="h-detalles">
+            <h2 id="h-detalles">Detalles, envío y garantía</h2>
+            <div class="folds faq">
+              <details class="faq-item" open>
+                <summary>Material y detalles</summary>
+                <div>
+                  <p>{product.desc}</p>
+                  <dl class="specs">
+                    <dt>Material</dt><dd>{product.material}</dd>
+                    <dt>Forma</dt><dd>{product.shape}</dd>
+                    <dt>Aro</dt><dd>{product.rim}</dd>
+                    {product.weight !== null && (<><dt>Peso</dt><dd>Unos {product.weight} g</dd></>)}
+                    {product.features.length > 0 && (<><dt>Detalles</dt><dd>{product.features.join(", ")}</dd></>)}
+                    <dt>Lentes</dt><dd>Monofocales, bifocales o progresivos</dd>
+                  </dl>
+                </div>
               </details>
-            )}
-            <details class="faq-item">
-              <summary>Material y detalles</summary>
+              <details class="faq-item">
+                <summary>Envío y garantía</summary>
+                <div>
+                  <TrustList class="trust-list fold-trust" />
+                  <p>Llega en 10 a 14 días hábiles, con guía rastreable. {SHIP_NOTICE} Envío gratis en pedidos de $300 o más.</p>
+                  <p>Si llegan con un defecto de fábrica, se los reemplazamos sin costo.</p>
+                  <p><a class="btn-tertiary" href="/envios-y-garantia">Más detalles</a></p>
+                </div>
+              </details>
+              <details class="faq-item">
+                <summary>Cómo funciona</summary>
+                <div>
+                  <ol class="fold-steps">
+                    {STEPS.map((st) => <li><strong>{st.h}.</strong> {st.p}</li>)}
+                  </ol>
+                  <p><a class="btn-tertiary" href="/como-funciona">Ver el proceso completo</a></p>
+                </div>
+              </details>
+            </div>
+          </section>
+
+          <section class="pdp-sec" id="opiniones" aria-labelledby="h-opiniones">
+            <div class="pdp-reviews-head">
               <div>
-                <dl class="specs">
-                  <dt>Material</dt><dd>{product.material}</dd>
-                  <dt>Forma</dt><dd>{product.shape}</dd>
-                  <dt>Aro</dt><dd>{product.rim}</dd>
-                  {product.weight !== null && (<><dt>Peso</dt><dd>Unos {product.weight} g</dd></>)}
-                  {product.features.length > 0 && (<><dt>Detalles</dt><dd>{product.features.join(", ")}</dd></>)}
-                  <dt>Lentes</dt><dd>Monofocales, bifocales o progresivos</dd>
-                </dl>
+                <h2 id="h-opiniones">Opiniones</h2>
+                <div class="score">
+                  <span class="score-n">{ratingText((product.rating ?? STORE_RATING).score)}</span>
+                  <span class="score-meta">
+                    <span class="stars" aria-hidden="true">★★★★★</span>
+                    <span>de 5 · {(product.rating ?? STORE_RATING).count.toLocaleString("es-CR")} opiniones</span>
+                  </span>
+                </div>
               </div>
-            </details>
-            <details class="faq-item">
-              <summary>Cómo funciona</summary>
-              <div>
-                <ol class="fold-steps">
-                  {STEPS.map((st) => <li><strong>{st.h}.</strong> {st.p}</li>)}
-                </ol>
-                <p style="margin: 0"><a class="btn-tertiary" href="/como-funciona">Ver el proceso completo</a></p>
-              </div>
-            </details>
-            <details class="faq-item">
-              <summary>Envío y garantía</summary>
-              <div>
-                <TrustList class="trust-list fold-trust" />
-                <p class="small">Llega en 10 a 14 días hábiles, con guía rastreable. {SHIP_NOTICE} Envío gratis en pedidos de $300 o más.</p>
-                <p class="small">Si llegan con un defecto de fábrica, se los reemplazamos sin costo.</p>
-                <p style="margin: 0"><a class="btn-tertiary" href="/envios-y-garantia">Más detalles</a></p>
-              </div>
-            </details>
-          </div>
+              <p>
+                {product.rating
+                  ? `Calificación del modelo ${product.name}. Abajo, lo que nos cuentan clientes de Lentes Pura Vida sobre su compra.`
+                  : "Calificación de los clientes de Lentes Pura Vida. Esto nos cuentan sobre su compra."}
+              </p>
+            </div>
+            <div class="quotes">
+              {quotes.map((r) => (
+                <figure class="quote">
+                  <span class="stars" aria-hidden="true">★★★★★</span>
+                  <blockquote>“{r.quote}”</blockquote>
+                  <figcaption><strong>{r.name}</strong><span>{r.meta}</span></figcaption>
+                </figure>
+              ))}
+            </div>
+          </section>
         </div>
       </div>
     </div>
@@ -386,7 +452,13 @@ const productJsonLd: Record<string, unknown>[] = [
       void next.offsetWidth;
       next.classList.add("is-swap");
     }
-    document.querySelectorAll<HTMLAnchorElement>("a[data-wa][data-frame]").forEach((a) => {
+    // The lens builder keeps its own message (its options); it only learns the color.
+    document.querySelectorAll<HTMLElement>("[data-lb]").forEach((lb) => {
+      const frame = lb.querySelector<HTMLElement>("a[data-wa]")?.dataset.frame;
+      if (frame) lb.dataset.intro = `Hola, me interesan los lentes ${frame} en color ${color}`;
+      lb.dispatchEvent(new Event("change"));
+    });
+    document.querySelectorAll<HTMLAnchorElement>("a[data-wa][data-frame]:not([data-lb] a)").forEach((a) => {
       const frame = a.dataset.frame;
       a.dataset.color = color;
       a.dataset.msg = `Hola, me interesan los lentes ${frame} en color ${color}. ¿Me ayudan a cotizarlos?`;
@@ -415,15 +487,31 @@ const productJsonLd: Record<string, unknown>[] = [
         track.scrollTo({ left: i * track.clientWidth, behavior: "smooth" });
       }),
     );
+    const dots = g.querySelectorAll<HTMLElement>("[data-dot]");
     let raf = 0;
     track.addEventListener("scroll", () => {
       cancelAnimationFrame(raf);
       raf = requestAnimationFrame(() => {
-        const i = Math.round(track.scrollLeft / track.clientWidth);
+        const i = Math.round(track.scrollLeft / Math.max(1, track.clientWidth));
         thumbs.forEach((t) => t.setAttribute("aria-current", String(Number(t.dataset.go) === i)));
+        dots.forEach((d) => d.classList.toggle("is-on", Number(d.dataset.dot) === i));
       });
     }, { passive: true });
   });
+
+  // Desktop buy box: sticky. When it is taller than the window it sticks by its bottom edge
+  // instead, so the lower part (button, shipping) is never out of reach while scrolling.
+  const info = document.querySelector<HTMLElement>("[data-pdp-info]");
+  if (info && "ResizeObserver" in window) {
+    const place = () => {
+      const head = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 68;
+      const top = head + 24;
+      const fit = innerHeight - info.offsetHeight - 24;
+      info.style.setProperty("--pdp-top", `${Math.min(top, fit)}px`);
+    };
+    new ResizeObserver(place).observe(info);
+    addEventListener("resize", place, { passive: true });
+  }
 
   // Add to cart: color (from the swatches above), lens type (required) and extras.
   // The frame photo flies to the cart icon, the badge bumps, then the cart slides in.

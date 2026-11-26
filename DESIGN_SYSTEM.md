@@ -133,6 +133,23 @@ polarizados exclude each other (with a note in a live region) and the WhatsApp m
 no cart: it never touches `EXTRAS`/`LENSES`. Its classes are `lb-*` on purpose: never reuse `.opt-card`/`.opt-check`
 here (e2e hooks on the product page).
 
+## Shop (shop.css)
+
+- **Catalog** (`CatalogPage.astro`): h1 + intro, category chips (links), then the grid (2 / 3 from 768 / 4 from 1280).
+  Every frame is in the HTML; with no JS the filters stay hidden and all frames show. With JS: filters by forma,
+  material and color family (`colorFamiliesIn`/`productFamilies` in `lib/catalog.ts`, from photographed colors only)
+  and sort (Destacados, precio, nombre). The choice lives in the URL (`?forma=&material=&color=&orden=`).
+  Phone: sticky "Filtrar y ordenar" bar under the header opens a bottom sheet (focus trap, Escape, scrim; changes
+  preview the count, "Ver N modelos" applies, closing without applying restores). Desktop: the same form as a sticky
+  left rail (applies at once), sort as a select, active filters as removable chips. Help row (medidas, revisión,
+  WhatsApp) after the grid.
+- **Product page**: phone = gallery (swipe, dots) → buy box → sections. Desktop = gallery (thumbnail column + big
+  photo) and the sections on the left, the buy box sticky on the right; when the buy box is taller than the window
+  it sticks by its bottom edge (`--pdp-top`, set by a ResizeObserver). Gallery views: front, 3/4 ("Top"), side.
+  Sections: Su cotización incluye, Arme sus lentes (compact LensBuilder), Medidas y talla, Detalles/envío/garantía
+  (accordions), Opiniones (frame rating, else the store rating, plus three store testimonials rotated per frame),
+  related frames.
+
 ## Motion
 
 - Tokens: `--dur-1` 120ms (press), `--dur-2` 200ms (hover), `--dur-3` 320ms (drawers, folds), `--dur-4` 600ms (reveals);

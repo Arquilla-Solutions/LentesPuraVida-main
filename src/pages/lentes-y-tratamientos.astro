@@ -3,6 +3,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import QuoteButton from "@/components/QuoteButton.astro";
+import LensBuilder from "@/components/LensBuilder.astro";
 import { MESSAGES } from "@/lib/whatsapp";
 import { SITE_URL } from "@/lib/seo";
 
@@ -66,6 +67,10 @@ const jsonLd = {
         <div class="lens-list">
           {OPTIONAL.map((l) => (<div><h3>{l.h}</h3><p>{l.p}</p></div>))}
         </div>
+
+        <h2 id="h-builder">Vea cómo se suman las capas</h2>
+        <p>Toque cada opción y mire qué le hace al lente. Fotocromáticos y polarizados no van juntos.</p>
+        <LensBuilder variant="compact" place="tratamientos-builder" labelledby="h-builder" />
 
         <div class="callout">
           <p><strong>¿No sabe cuál le conviene?</strong> Mándenos su receta y cuéntenos para qué usa más los lentes: computadora, manejar o leer.</p>

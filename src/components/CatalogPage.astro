@@ -1,4 +1,9 @@
 ---
+// Catalog: /lentes and /lentes/mujer|hombre|unisex. Every frame is in the HTML, so with no
+// JavaScript the page is a plain grid. The script adds filters (forma, material, color),
+// sorting and the phone "Filtrar y ordenar" sheet, and keeps the choice in the URL
+// (?forma=redondos&material=metal&color=negro,carey&orden=precio-asc) so it can be shared.
+import { Icon } from "astro-icon/components";
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
@@ -6,11 +11,15 @@ import ProductCard from "@/components/ProductCard.astro";
 import QuoteButton from "@/components/QuoteButton.astro";
 import { SITE_URL } from "@/lib/seo";
 import { MESSAGES } from "@/lib/whatsapp";
+import { FIT } from "@/data/trust";
 import {
-  CATEGORIES,
   activeCategories,
+  colorFamiliesIn,
+  materialGroup,
+  productFamilies,
   productsIn,
   shapeGroup,
+  slugify,
   visibleProducts,
   type Category,
 } from "@/lib/catalog";
@@ -18,7 +27,9 @@ import {
 interface Props { category?: Category }
 const { category } = Astro.props;
 
-const list = category ? productsIn(category.id) : visibleProducts;
+// "Destacados": frames with a rating first, then spreadsheet order (same as the home rail).
+const base = category ? productsIn(category.id) : visibleProducts;
+const list = [...base].sort((a, b) => (b.rating ? 1 : 0) - (a.rating ? 1 : 0));
 const path = category ? category.path : "/lentes";
 const title = category ? category.title : "Lentes recetados y monturas en Costa Rica | Lentes Pura Vida";
 const description = category
@@ -29,9 +40,28 @@ const intro = category
   ? category.intro
   : "Monturas de $30 y $45 para mujer, hombre y unisex. Escoja la que le guste y le cotizamos los lentes según su receta.";
 
-const shapes = [...new Set(list.map((p) => shapeGroup(p.shape)))].sort();
-const materials = [...new Set(list.map((p) => (p.material.startsWith("Mixto") ? "Metal" : p.material)))].sort();
+const tally = (values: string[]) => {
+  const m = new Map<string, number>();
+  values.forEach((v) => m.set(v, (m.get(v) ?? 0) + 1));
+  return [...m.entries()].sort((a, b) => a[0].localeCompare(b[0], "es")).map(([label, count]) => ({ id: slugify(label), label, count }));
+};
+const shapes = tally(list.map((p) => shapeGroup(p.shape)));
+const materials = tally(list.map((p) => materialGroup(p.material)));
+const families = colorFamiliesIn(list);
+const SORTS = [
+  { id: "destacados", label: "Destacados" },
+  { id: "precio-asc", label: "Precio: menor a mayor" },
+  { id: "precio-desc", label: "Precio: mayor a menor" },
+  { id: "nombre", label: "Nombre" },
+];
+const GROUPS = [
+  { key: "forma", legend: "Forma", options: shapes },
+  { key: "material", legend: "Material", options: materials },
+  { key: "color", legend: "Color", options: families },
+].filter((g) => g.options.length > 1);
+
 const isEmpty = list.length === 0;
+const modelos = (n: number) => `${n} ${n === 1 ? "modelo" : "modelos"}`;
 
 const jsonLd: Record<string, unknown>[] = [
   {
@@ -78,71 +108,143 @@ const jsonLd: Record<string, unknown>[] = [
       </nav>
 
       <header class="catalog-head">
-        <h1>{h1}</h1>
-        <p>{intro}</p>
+        <div class="catalog-title">
+          <h1>{h1}</h1>
+          {!isEmpty && <p class="catalog-total">{modelos(list.length)}</p>}
+        </div>
+        <p class="catalog-intro">{intro}</p>
       </header>
 
-      <div class="filters">
-        <nav class="chips" aria-label="Categorías">
-          <a class="chip" href="/lentes" aria-current={!category ? "page" : undefined}>Todos <small>{visibleProducts.length}</small></a>
-          {activeCategories().map((c) => (
-            <a class="chip" href={c.path} aria-current={category?.id === c.id ? "page" : undefined}>
-              {c.label} <small>{productsIn(c.id).length}</small>
-            </a>
-          ))}
-        </nav>
-        {!isEmpty && shapes.length > 1 && (
-          <div class="filters-js" data-filters>
-            <div class="filter-row">
-              <span id="f-forma">Forma</span>
-              <div class="chips" role="group" aria-labelledby="f-forma">
-                <button type="button" class="chip" data-filter="shape" data-value="" aria-pressed="true">Todas</button>
-                {shapes.map((s) => <button type="button" class="chip" data-filter="shape" data-value={s} aria-pressed="false">{s}</button>)}
-              </div>
-            </div>
-            {materials.length > 1 && (
-              <div class="filter-row">
-                <span id="f-material">Material</span>
-                <div class="chips" role="group" aria-labelledby="f-material">
-                  <button type="button" class="chip" data-filter="material" data-value="" aria-pressed="true">Todos</button>
-                  {materials.map((m) => <button type="button" class="chip" data-filter="material" data-value={m} aria-pressed="false">{m}</button>)}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-      </div>
+      <nav class="chips catalog-cats" aria-label="Categorías">
+        <a class="chip" href="/lentes" aria-current={!category ? "page" : undefined}>Todos <small>{visibleProducts.length}</small></a>
+        {activeCategories().map((c) => (
+          <a class="chip" href={c.path} aria-current={category?.id === c.id ? "page" : undefined}>
+            {c.label} <small>{productsIn(c.id).length}</small>
+          </a>
+        ))}
+      </nav>
+    </div>
 
-      {isEmpty ? (
+    {isEmpty ? (
+      <div class="wrap">
         <div class="empty">
           <h2>Pronto agregaremos lentes en esta categoría</h2>
           <p>Mientras tanto, escríbanos y le ayudamos a encontrar una montura que le sirva.</p>
           <QuoteButton variant="primary" label="Preguntar por WhatsApp" message={MESSAGES.kids} place="catalog-empty" primary />
         </div>
-      ) : (
-        <>
-          <h2 class="catalog-count" aria-live="polite" data-count>{list.length} modelos</h2>
-          <div class="grid grid--4" data-grid>
-            {list.map((p, i) => (
-              <ProductCard
-                product={p}
-                eager={i < 2}
-                filterAttrs={{
-                  "data-shape": shapeGroup(p.shape),
-                  "data-material": p.material.startsWith("Mixto") ? "Metal" : p.material,
-                }}
-              />
-            ))}
+      </div>
+    ) : (
+      <div class="catalog" data-catalog>
+        <div class="cat-bar" data-cat-bar>
+          <div class="wrap cat-bar-in">
+            <p class="cat-bar-count" aria-hidden="true"><strong data-count-n>{list.length}</strong> <span data-count-word>modelos</span></p>
+            <button type="button" class="btn-secondary btn-sm cat-bar-btn" data-sheet-open aria-expanded="false" aria-controls="filtros">
+              <Icon name="lucide:sliders-horizontal" size={18} aria-hidden="true" />
+              <span>Filtrar y ordenar</span>
+              <span class="cat-n" data-active-n hidden></span>
+            </button>
           </div>
-          <p class="empty" data-none hidden>No hay modelos con esos filtros. Pruebe con otra forma o material.</p>
-        </>
-      )}
-    </div>
+        </div>
+
+        <div class="wrap cat-layout">
+          <div class="cat-scrim" data-scrim hidden></div>
+          <div class="cat-panel" id="filtros" data-panel aria-labelledby="filtros-h">
+            <div class="cat-panel-head">
+              <h2 id="filtros-h" class="cat-panel-title">Filtrar y ordenar</h2>
+              <button type="button" class="cat-x" data-sheet-close aria-label="Cerrar">
+                <Icon name="lucide:x" size={22} aria-hidden="true" />
+              </button>
+            </div>
+            <form class="cat-form" data-filters onsubmit="return false">
+              <fieldset class="cat-group cat-group--sort">
+                <legend>Ordenar por</legend>
+                {SORTS.map((s, i) => (
+                  <label class="cat-opt cat-opt--radio">
+                    <input type="radio" name="orden" value={s.id} checked={i === 0} />
+                    <span class="cat-mark" aria-hidden="true"></span>
+                    <span class="cat-opt-label">{s.label}</span>
+                  </label>
+                ))}
+              </fieldset>
+              {GROUPS.map((g) => (
+                <fieldset class="cat-group">
+                  <legend>{g.legend}</legend>
+                  {g.options.map((o) => (
+                    <label class="cat-opt">
+                      <input type="checkbox" name={g.key} value={o.id} data-label={o.label} />
+                      <span class="cat-mark" aria-hidden="true"></span>
+                      {"sw" in o && <span class="dot" style={`--sw: ${(o as { sw: string }).sw}`} aria-hidden="true"></span>}
+                      <span class="cat-opt-label">{o.label}</span>
+                      <span class="cat-opt-n">{o.count}</span>
+                    </label>
+                  ))}
+                </fieldset>
+              ))}
+            </form>
+            <div class="cat-panel-foot">
+              <button type="button" class="btn-tertiary" data-clear>Borrar filtros</button>
+              <button type="button" class="btn-primary" data-apply>Ver <span data-preview>{modelos(list.length)}</span></button>
+            </div>
+          </div>
+
+          <div class="cat-results">
+            <h2 class="sr-only">Modelos</h2>
+            <div class="cat-tools">
+              <p class="cat-count" data-count aria-live="polite">{modelos(list.length)}</p>
+              <div class="cat-active" data-active hidden></div>
+              <label class="cat-sort">
+                <span>Ordenar por</span>
+                <select data-sort>
+                  {SORTS.map((s) => <option value={s.id}>{s.label}</option>)}
+                </select>
+              </label>
+            </div>
+
+            <div class="grid cat-grid" data-grid>
+              {list.map((p, i) => (
+                <ProductCard
+                  product={p}
+                  eager={i < 2}
+                  sizes="(min-width: 1280px) 220px, (min-width: 1024px) 24vw, (min-width: 768px) 30vw, 46vw"
+                  filterAttrs={{
+                    "data-forma": slugify(shapeGroup(p.shape)),
+                    "data-material": slugify(materialGroup(p.material)),
+                    "data-color": productFamilies(p).join(" "),
+                    "data-price": String(p.framePrice),
+                    "data-name": p.name,
+                    "data-pos": String(i),
+                  }}
+                />
+              ))}
+            </div>
+
+            <div class="cat-none" data-none hidden>
+              <h2 class="h3">No hay modelos con esos filtros</h2>
+              <p>Pruebe quitando un filtro, o escríbanos y le ayudamos a encontrar uno parecido.</p>
+              <button type="button" class="btn-secondary" data-clear-all>Borrar filtros</button>
+            </div>
+
+            <aside class="cat-help" aria-label="Ayuda para escoger">
+              <div class="cat-help-item">
+                <svg width="64" height="24" viewBox="0 0 64 24" aria-hidden="true" class="cat-help-art"><g fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="6" width="24" height="16" rx="6"/><rect x="38" y="6" width="24" height="16" rx="6"/><path d="M26 10c3-3 9-3 12 0"/></g><path d="M2 2h24" stroke="var(--accent-ink)" stroke-width="1.5"/></svg>
+                <p><strong>¿Cuál talla le queda?</strong> Compare con los tres números por dentro de la patilla de sus lentes actuales. Cada modelo trae sus medidas.</p>
+              </div>
+              <div class="cat-help-item">
+                <p><strong>Revisamos todo con usted.</strong> {FIT[0]}</p>
+              </div>
+              <div class="cat-help-item cat-help-item--wa">
+                <p><strong>¿Dudas entre dos modelos?</strong> Mándenos una foto suya y le decimos cuál le favorece.</p>
+                <QuoteButton label="Preguntar por WhatsApp" message="Hola, quiero ayuda para escoger unos lentes." place="catalog-help" variant="tertiary" />
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    )}
 
     {!isEmpty && (
-      <section class="band" style="margin-top: var(--section)">
+      <section class="band" style="margin-top: var(--section-y)">
         <div class="wrap">
-          <hr class="rule" />
           <h2>¿No sabe cuál escoger?</h2>
           <p>Cuéntenos qué busca o mándenos una foto suya y le recomendamos dos o tres modelos que le queden bien.</p>
           <QuoteButton variant="primary" label="Pedir ayuda por WhatsApp" message="Hola, quiero ayuda para escoger unos lentes." place="catalog-band" primary />
@@ -155,35 +257,219 @@ const jsonLd: Record<string, unknown>[] = [
 
 <script>
   // Keep the current category chip in view on phones (the chip row scrolls sideways).
-  const active = document.querySelector<HTMLElement>(".chips .chip[aria-current='page']");
+  const active = document.querySelector<HTMLElement>(".catalog-cats .chip[aria-current='page']");
   const row = active?.parentElement;
   if (active && row && row.scrollWidth > row.clientWidth) {
     row.scrollLeft = active.offsetLeft - (row.clientWidth - active.offsetWidth) / 2;
   }
-  const box = document.querySelector("[data-filters]");
-  const grid = document.querySelector("[data-grid]");
-  if (box && grid) {
-    const state: Record<string, string> = { shape: "", material: "" };
-    const count = document.querySelector("[data-count]");
-    const none = document.querySelector<HTMLElement>("[data-none]");
-    box.querySelectorAll<HTMLButtonElement>("[data-filter]").forEach((btn) => {
-      btn.addEventListener("click", () => {
-        const key = btn.dataset.filter!;
-        state[key] = btn.dataset.value ?? "";
-        box.querySelectorAll<HTMLButtonElement>(`[data-filter="${key}"]`).forEach((b) =>
-          b.setAttribute("aria-pressed", String(b === btn)),
-        );
-        let n = 0;
-        grid.querySelectorAll<HTMLElement>(".card").forEach((card) => {
-          const ok =
-            (!state.shape || card.dataset.shape === state.shape) &&
-            (!state.material || card.dataset.material === state.material);
-          card.hidden = !ok;
-          if (ok) n++;
-        });
-        if (count) count.textContent = `${n} ${n === 1 ? "modelo" : "modelos"}`;
-        if (none) none.hidden = n > 0;
+
+  const root = document.querySelector<HTMLElement>("[data-catalog]");
+  const form = root?.querySelector<HTMLFormElement>("[data-filters]");
+  const grid = root?.querySelector<HTMLElement>("[data-grid]");
+  if (root && form && grid) {
+    type State = { forma: string[]; material: string[]; color: string[]; orden: string };
+    const KEYS = ["forma", "material", "color"] as const;
+    const SORT_IDS = ["destacados", "precio-asc", "precio-desc", "nombre"];
+    const cards = Array.from(grid.querySelectorAll<HTMLElement>(".card"));
+    const $ = <T extends Element = HTMLElement>(s: string) => root.querySelector<T>(s);
+    const panel = $("[data-panel]")!;
+    const scrim = $("[data-scrim]")!;
+    const openBtn = $<HTMLButtonElement>("[data-sheet-open]")!;
+    const sortSel = $<HTMLSelectElement>("[data-sort]")!;
+    const activeBox = $("[data-active]")!;
+    const none = $("[data-none]")!;
+    const phone = matchMedia("(max-width: 1023px)");
+    const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+    const modelos = (n: number) => `${n} ${n === 1 ? "modelo" : "modelos"}`;
+
+    // Labels for the removable chips, read once from the form.
+    const labelOf: Record<string, string> = {};
+    form.querySelectorAll<HTMLInputElement>("input[type=checkbox]").forEach((i) => (labelOf[`${i.name}:${i.value}`] = i.dataset.label ?? i.value));
+
+    const fromForm = (): State => {
+      const fd = new FormData(form);
+      return {
+        forma: fd.getAll("forma").map(String),
+        material: fd.getAll("material").map(String),
+        color: fd.getAll("color").map(String),
+        orden: String(fd.get("orden") ?? "destacados"),
+      };
+    };
+    const toForm = (s: State) => {
+      form.querySelectorAll<HTMLInputElement>("input").forEach((i) => {
+        i.checked = i.type === "radio" ? i.value === s.orden : (s[i.name as (typeof KEYS)[number]] ?? []).includes(i.value);
       });
+    };
+    const fromUrl = (): State => {
+      const q = new URLSearchParams(location.search);
+      const known = (k: string) => new Set(Array.from(form.querySelectorAll<HTMLInputElement>(`input[name="${k}"]`)).map((i) => i.value));
+      const list = (k: string) => (q.get(k) ?? "").split(",").filter((v) => known(k).has(v));
+      const orden = q.get("orden") ?? "";
+      return { forma: list("forma"), material: list("material"), color: list("color"), orden: SORT_IDS.includes(orden) ? orden : "destacados" };
+    };
+    const matches = (c: HTMLElement, s: State) =>
+      KEYS.every((k) => !s[k].length || s[k].some((v) => (c.dataset[k] ?? "").split(" ").includes(v)));
+    const countFor = (s: State) => cards.filter((c) => matches(c, s)).length;
+    const activeN = (s: State) => KEYS.reduce((n, k) => n + s[k].length, 0);
+
+    let committed = fromUrl();
+
+    const render = (s: State, animate = true) => {
+      // Sort: reorder the cards in the DOM so tab order and screen readers follow what is seen.
+      const by: Record<string, (a: HTMLElement, b: HTMLElement) => number> = {
+        destacados: (a, b) => +a.dataset.pos! - +b.dataset.pos!,
+        "precio-asc": (a, b) => +a.dataset.price! - +b.dataset.price! || +a.dataset.pos! - +b.dataset.pos!,
+        "precio-desc": (a, b) => +b.dataset.price! - +a.dataset.price! || +a.dataset.pos! - +b.dataset.pos!,
+        nombre: (a, b) => a.dataset.name!.localeCompare(b.dataset.name!, "es"),
+      };
+      const sorted = [...cards].sort(by[s.orden] ?? by.destacados);
+      let n = 0;
+      sorted.forEach((c) => {
+        const ok = matches(c, s);
+        c.hidden = !ok;
+        if (ok) {
+          if (animate && !reduce.matches) c.style.setProperty("--i", String(Math.min(n, 8)));
+          n++;
+        }
+        grid.append(c);
+      });
+      if (animate && !reduce.matches) {
+        grid.classList.remove("is-refresh");
+        void grid.offsetWidth;
+        grid.classList.add("is-refresh");
+      }
+      root.querySelectorAll("[data-count]").forEach((el) => (el.textContent = modelos(n)));
+      $("[data-count-n]")!.textContent = String(n);
+      $("[data-count-word]")!.textContent = n === 1 ? "modelo" : "modelos";
+      none.hidden = n > 0;
+      sortSel.value = s.orden;
+      const an = activeN(s);
+      const badge = $("[data-active-n]")!;
+      badge.hidden = an === 0;
+      badge.textContent = String(an);
+      openBtn.setAttribute("aria-label", an ? `Filtrar y ordenar, ${an} ${an === 1 ? "filtro activo" : "filtros activos"}` : "Filtrar y ordenar");
+
+      // Removable chips for the active filters.
+      activeBox.replaceChildren();
+      KEYS.forEach((k) =>
+        s[k].forEach((v) => {
+          const b = document.createElement("button");
+          b.type = "button";
+          b.className = "chip chip--x";
+          b.dataset.remove = `${k}:${v}`;
+          b.setAttribute("aria-label", `Quitar filtro ${labelOf[`${k}:${v}`]}`);
+          b.textContent = labelOf[`${k}:${v}`];
+          activeBox.append(b);
+        }),
+      );
+      if (an > 1) {
+        const all = document.createElement("button");
+        all.type = "button";
+        all.className = "btn-tertiary cat-clear";
+        all.dataset.clearAll = "";
+        all.textContent = "Borrar todo";
+        activeBox.append(all);
+      }
+      activeBox.hidden = an === 0;
+
+      // URL: only what differs from the default, so the plain page keeps a clean address.
+      const q = new URLSearchParams(location.search);
+      KEYS.forEach((k) => (s[k].length ? q.set(k, s[k].join(",")) : q.delete(k)));
+      s.orden !== "destacados" ? q.set("orden", s.orden) : q.delete("orden");
+      const qs = q.toString().replace(/%2C/g, ",");
+      history.replaceState(history.state, "", `${location.pathname}${qs ? `?${qs}` : ""}${location.hash}`);
+    };
+
+    const commit = (s: State, animate = true) => {
+      committed = s;
+      toForm(s);
+      render(s, animate);
+    };
+    const clear = (): State => ({ forma: [], material: [], color: [], orden: committed.orden });
+
+    // ---------- Phone sheet ----------
+    let isOpen = false;
+    let lastFocus: HTMLElement | null = null;
+    const focusables = () =>
+      Array.from(panel.querySelectorAll<HTMLElement>("button, input, select, a[href]")).filter((el) => el.offsetParent !== null);
+    const preview = () => {
+      const n = countFor(fromForm());
+      $("[data-preview]")!.textContent = modelos(n);
+      ($<HTMLButtonElement>("[data-apply]")!).disabled = n === 0;
+    };
+    const open = () => {
+      if (isOpen) return;
+      isOpen = true;
+      lastFocus = document.activeElement as HTMLElement;
+      toForm(committed);
+      preview();
+      panel.setAttribute("role", "dialog");
+      panel.setAttribute("aria-modal", "true");
+      scrim.hidden = false;
+      document.documentElement.classList.add("is-locked");
+      requestAnimationFrame(() => {
+        panel.classList.add("is-open");
+        scrim.classList.add("is-open");
+      });
+      openBtn.setAttribute("aria-expanded", "true");
+      setTimeout(() => panel.querySelector<HTMLElement>("[data-sheet-close]")?.focus(), 30);
+    };
+    const close = (restore = true) => {
+      if (!isOpen) return;
+      isOpen = false;
+      if (restore) toForm(committed);
+      panel.classList.remove("is-open");
+      scrim.classList.remove("is-open");
+      panel.removeAttribute("role");
+      panel.removeAttribute("aria-modal");
+      document.documentElement.classList.remove("is-locked");
+      openBtn.setAttribute("aria-expanded", "false");
+      setTimeout(() => (scrim.hidden = true), reduce.matches ? 0 : 320);
+      (lastFocus ?? openBtn).focus({ preventScroll: true });
+    };
+    openBtn.addEventListener("click", open);
+    $("[data-sheet-close]")!.addEventListener("click", () => close());
+    scrim.addEventListener("click", () => close());
+    $("[data-apply]")!.addEventListener("click", () => {
+      commit(fromForm());
+      close(false);
+      root.scrollIntoView({ behavior: reduce.matches ? "auto" : "smooth", block: "start" });
     });
+    $("[data-clear]")!.addEventListener("click", () => {
+      toForm(clear());
+      if (isOpen) preview();
+      else commit(clear());
+    });
+    panel.addEventListener("keydown", (e) => {
+      if (!isOpen) return;
+      if (e.key === "Escape") { e.preventDefault(); close(); return; }
+      if (e.key !== "Tab") return;
+      const f = focusables();
+      if (!f.length) return;
+      const first = f[0], last = f[f.length - 1];
+      if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+    });
+    phone.addEventListener("change", () => close());
+
+    // ---------- Changes ----------
+    // In the sheet a change only previews the count; on desktop (the side rail) it applies at once.
+    form.addEventListener("change", () => (isOpen ? preview() : commit(fromForm())));
+    sortSel.addEventListener("change", () => commit({ ...committed, orden: sortSel.value }));
+    activeBox.addEventListener("click", (e) => {
+      const t = (e.target as HTMLElement).closest<HTMLButtonElement>("button");
+      if (!t) return;
+      if (t.dataset.remove) {
+        const [k, v] = t.dataset.remove.split(":") as [(typeof KEYS)[number], string];
+        commit({ ...committed, [k]: committed[k].filter((x) => x !== v) });
+        (activeBox.querySelector<HTMLElement>("button") ?? openBtn).focus({ preventScroll: true });
+      } else if ("clearAll" in t.dataset) {
+        commit(clear());
+      }
+    });
+    $("[data-clear-all]")!.addEventListener("click", () => commit(clear()));
+
+    commit(committed, false);
+    root.classList.add("is-ready");
   }
 </script>

@@ -1,6 +1,6 @@
 // Catalog helpers shared by the home, the catalog pages and the product pages.
 import { products as allProducts, type Product } from "@/data/products";
-import { scanFramePhotos } from "./photos";
+import { photographedColors, scanFramePhotos } from "./photos";
 
 const framePhotos = scanFramePhotos();
 
@@ -109,3 +109,42 @@ export const featuredProducts = (n: number) =>
     .slice(0, n);
 
 export const modelCount = visibleProducts.length;
+
+/** Material groups for the catalog filter ("Mixto (plástico y metal)" counts as metal). */
+export const materialGroup = (material: string) => (material.startsWith("Mixto") ? "Metal" : material);
+
+/** Color families for the catalog filter, from the Spanish color names of the photographed colors.
+ * Order matters: "Gris transparente" is a clear frame, "Negro y blanco" a black one. */
+const COLOR_FAMILIES: Array<{ id: string; label: string; test: RegExp; sw: string }> = [
+  { id: "negro", label: "Negro", test: /^negro/i, sw: "#16161a" },
+  { id: "carey", label: "Carey y café", test: /^(carey|marr|beige)/i, sw: "linear-gradient(135deg,#7a3f1a 0%,#3a1a0a 50%,#a86b3a 100%)" },
+  { id: "transparente", label: "Transparente y blanco", test: /^(transparente|gris transparente|blanco)/i, sw: "linear-gradient(135deg,#f0eee9 0%,#d4cfc4 100%)" },
+  { id: "gris", label: "Gris", test: /^gris/i, sw: "#6c6e7a" },
+  { id: "azul", label: "Azul", test: /^azul/i, sw: "#2f4f86" },
+  { id: "verde", label: "Verde", test: /^(verde|menta)/i, sw: "#3f6b4a" },
+  { id: "rosa", label: "Rosa y rojo", test: /^(rosa|rojo|borgo|floral)/i, sw: "#c4607a" },
+  { id: "amarillo", label: "Amarillo y naranja", test: /^(amarillo|naranja)/i, sw: "#e2b24f" },
+];
+
+export const colorFamily = (spanish: string) => COLOR_FAMILIES.find((f) => f.test.test(spanish));
+
+/** Families present in a list of products, in the fixed order above, with how many frames have each. */
+export const colorFamiliesIn = (list: Product[]) => {
+  const ids = new Map<string, number>();
+  for (const p of list) for (const id of productFamilies(p)) ids.set(id, (ids.get(id) ?? 0) + 1);
+  return COLOR_FAMILIES.filter((f) => ids.has(f.id)).map((f) => ({ id: f.id, label: f.label, sw: f.sw, count: ids.get(f.id)! }));
+};
+
+/** Family ids of a frame's photographed colors (only colors the site actually shows). */
+export const productFamilies = (p: Product) => {
+  const out = new Set<string>();
+  for (const c of photographedColors(framePhotos[p.name])) {
+    const f = colorFamily(c.spanish);
+    if (f) out.add(f.id);
+  }
+  return [...out];
+};
+
+/** URL-safe value for a filter option ("Rectangulares" -> "rectangulares", "Plástico" -> "plastico"). */
+export const slugify = (s: string) =>
+  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
