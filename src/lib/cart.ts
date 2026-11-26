@@ -2,6 +2,7 @@
 // Only frame prices are added up. Lenses and extras are quoted by WhatsApp from the
 // customer's prescription, so the cart never shows a lens price or a grand total.
 import { EXTRAS, LENSES, extraLabel, lensLabel, signed } from "./store";
+import { FREE_SHIP } from "../data/trust";
 
 export interface CartColor { n: string; t: string; b: string } // name, thumbnail url, swatch css
 export interface CartItem {
@@ -66,6 +67,13 @@ export function updateItem(id: string, patch: Partial<CartItem>) {
 
 export function removeItem(id: string) {
   save(getItems().filter((i) => i.id !== id), { removed: id });
+}
+
+/** Puts a removed line back where it was (the "Deshacer" after Quitar). */
+export function restoreItem(item: CartItem, at: number) {
+  const items = getItems().filter((i) => i.id !== item.id);
+  items.splice(Math.max(0, Math.min(at, items.length)), 0, item);
+  save(items, { restored: item.id });
 }
 
 export function clearCart() { save([]); }
@@ -256,7 +264,7 @@ function editPanel(i: CartItem): HTMLElement {
   return form;
 }
 
-function itemRow(i: CartItem, opts: { open?: boolean; fresh?: boolean }): HTMLElement {
+function itemRow(i: CartItem, opts: { open?: boolean; fresh?: boolean; n?: number; total?: number }): HTMLElement {
   const href = `/lentes/${i.slug}`;
   const thumb = thumbOf(i);
   const extras = describeExtras(i);
@@ -274,7 +282,11 @@ function itemRow(i: CartItem, opts: { open?: boolean; fresh?: boolean }): HTMLEl
       ),
       h("p", { class: "ci-meta", text: `${i.color} · ${describeLens(i)}` }),
       extras ? h("p", { class: "ci-meta", text: `Extras: ${extras}` }) : null,
-      h("p", { class: "ci-quote", text: i.qty > 1 ? `${money(i.price)} c/u, solo montura. Lentes: se cotizan según su receta` : "Solo montura. Lentes: se cotizan según su receta" }),
+      h("p", { class: "ci-quote", text: i.qty > 1 ? `${money(i.price)} c/u, solo montura. Los lentes se cotizan por WhatsApp` : "Solo montura. Los lentes se cotizan por WhatsApp" }),
+      h("p", { class: "ci-rx" }, h("span", { class: "ci-rx-dot", "aria-hidden": "true" }),
+        h("span", { text: (opts.n ?? 0) === 0
+          ? "Receta: la indica al continuar"
+          : "Receta: la misma u otra para este par, la escoge al continuar" })),
       h("div", { class: "ci-actions" },
         qty,
         h("button", { type: "button", class: "ci-link", text: "Editar", "aria-expanded": opts.open ? "true" : "false", "data-act": "edit", "data-id": i.id, "data-focus": `${i.id}:edit` }),
@@ -293,9 +305,37 @@ export function mountCartList(list: HTMLElement, onChange?: (items: CartItem[]) 
   const announce = document.querySelector<HTMLElement>("[data-cart-live]");
   const say = (t: string) => { if (announce) { announce.textContent = ""; setTimeout(() => (announce.textContent = t), 30); } };
 
+  // Quitar shows a "Deshacer" bar for a few seconds (in [data-cart-undo-host]); Deshacer puts the
+  // line back in the same place. Focus moves to Deshacer so keyboard users can undo at once.
+  const scope = list.closest<HTMLElement>("[data-cart-scope]");
+  const undoHost = scope?.querySelector<HTMLElement>("[data-cart-undo-host]") ?? null;
+  let undoTimer = 0;
+  const hideUndo = () => { clearTimeout(undoTimer); if (undoHost) { undoHost.hidden = true; undoHost.replaceChildren(); } };
+  const offerUndo = (it: CartItem, at: number) => {
+    if (!undoHost) return;
+    clearTimeout(undoTimer);
+    const undo = h("button", { type: "button", class: "cart-undo-btn", text: "Deshacer" });
+    undoHost.replaceChildren(h("p", { class: "cart-undo-text", text: `Quitamos los lentes ${it.name}.` }), undo);
+    undoHost.hidden = false;
+    say(`Se quitaron los lentes ${it.name} del carrito. Puede deshacerlo.`);
+    undo.addEventListener("click", () => {
+      hideUndo();
+      restoreItem(it, at);
+      fresh = it.id;
+      say(`Los lentes ${it.name} volvieron al carrito.`);
+      render(`${it.id}:edit`);
+    });
+    undo.focus();
+    undoTimer = window.setTimeout(() => {
+      const hadFocus = undoHost.contains(document.activeElement);
+      hideUndo();
+      if (hadFocus) scope?.querySelector<HTMLElement>("[data-cart-focus-after-remove]")?.focus();
+    }, 7000);
+  };
+
   const render = (focusKey?: string) => {
     const items = getItems();
-    list.replaceChildren(...items.map((i) => itemRow(i, { open: open.has(i.id), fresh: i.id === fresh })));
+    list.replaceChildren(...items.map((i, n) => itemRow(i, { open: open.has(i.id), fresh: i.id === fresh, n, total: items.length })));
     fresh = "";
     if (focusKey) list.querySelector<HTMLElement>(`[data-focus="${focusKey}"]`)?.focus();
     onChange?.(items);
@@ -317,7 +357,12 @@ export function mountCartList(list: HTMLElement, onChange?: (items: CartItem[]) 
       if (open.has(id)) list.querySelector<HTMLElement>(`[data-edit="${id}"] input`)?.focus();
     } else if (act === "remove") {
       const row = btn.closest<HTMLElement>(".ci")!;
-      const done = () => { removeItem(id); open.delete(id); say(`Se quitaron los lentes ${it.name} del carrito.`); render(); list.closest<HTMLElement>("[data-cart-scope]")?.querySelector<HTMLElement>("[data-cart-focus-after-remove]")?.focus(); };
+      const at = getItems().findIndex((i) => i.id === id);
+      const done = () => {
+        removeItem(id); open.delete(id); render();
+        if (undoHost) offerUndo(it, at);
+        else { say(`Se quitaron los lentes ${it.name} del carrito.`); scope?.querySelector<HTMLElement>("[data-cart-focus-after-remove]")?.focus(); }
+      };
       if (matchMedia("(prefers-reduced-motion: reduce)").matches || !row.animate) return done();
       row.style.overflow = "hidden";
       row.animate(
@@ -387,5 +432,29 @@ export function summaryRows(items: CartItem[]): HTMLElement[] {
         h("p", { class: "co-item-meta", text: `${i.color} · ${describeLens(i)}${extras ? ` · ${extras}` : ""}` }),
       ),
     );
+  });
+}
+
+/** Free shipping progress from the frame subtotal. Lenses also count toward the real total,
+ *  so under the line the copy says "en monturas" and that lenses add to it. */
+export function shipProgress(subtotal: number) {
+  const left = Math.max(0, FREE_SHIP - subtotal);
+  return {
+    done: left === 0,
+    pct: Math.min(1, subtotal / FREE_SHIP),
+    text: left === 0 ? "Su pedido tiene envío gratis" : `Envío gratis desde ${money(FREE_SHIP)}`,
+    note: left === 0 ? "Las monturas ya pasan de " + money(FREE_SHIP) + "." : `Lleva ${money(subtotal)} en monturas. Los lentes también suman al total.`,
+  };
+}
+
+/** Paints every [data-ship] bar inside root. */
+export function paintShip(root: ParentNode, subtotal = frameSubtotal()) {
+  const s = shipProgress(subtotal);
+  root.querySelectorAll<HTMLElement>("[data-ship]").forEach((el) => {
+    el.classList.toggle("is-done", s.done);
+    el.querySelector<HTMLElement>("[data-ship-text]")!.textContent = s.text;
+    el.querySelector<HTMLElement>("[data-ship-note]")!.textContent = s.note;
+    el.style.setProperty("--ship", String(s.pct));
+    el.querySelector<HTMLElement>("[role='progressbar']")?.setAttribute("aria-valuenow", String(Math.round(s.pct * 100)));
   });
 }

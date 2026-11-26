@@ -26,3 +26,7 @@ export const FIT = [
 // Said next to the shipping copy (shipping page, product fold, order confirmation).
 // "Guía rastreable" stays where it already is.
 export const SHIP_NOTICE = "Le avisamos cuando esté en camino.";
+
+// Free shipping on orders of this total or more (FAQ "envío gratis en pedidos de $300 o más").
+// The cart bar measures frames only, and says lenses also count toward the total.
+export const FREE_SHIP = 300;

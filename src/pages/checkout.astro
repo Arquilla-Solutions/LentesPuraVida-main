@@ -1,13 +1,24 @@
 ---
-// Checkout: the customer's details, then "Confirmar pedido" opens WhatsApp with the whole
-// order already written. Nothing is charged here. The order is also saved to the order board
-// (LEAD_ENDPOINT, POST /api/order) with a Turnstile bot check; WhatsApp opens even if that fails.
+// Checkout in three steps (Lentes y receta, Datos y entrega, Revisar y enviar), phone first.
+// One <form data-checkout> holds every step; the script shows one at a time (hash per step,
+// browser back goes to the previous step). Without JS all steps show stacked and still submit.
+// "Confirmar pedido" opens WhatsApp with the whole order already written. Nothing is charged here.
+// The order is also saved to the order board (LEAD_ENDPOINT, POST /api/order) with a Turnstile
+// bot check; WhatsApp opens even if that fails.
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import RxFields from "@/components/RxFields.astro";
 import WaIcon from "@/components/WaIcon.astro";
 import { LEAD_ENDPOINT, TURNSTILE_SITE_KEY, WHATSAPP_NUMBER } from "@/lib/contact";
 import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
+import { NEXT_STEPS } from "@/data/steps";
+
+const STEP_NAMES = ["Lentes y receta", "Datos y entrega", "Revisar y enviar"];
+const PAY_HINTS: Record<string, string> = {
+  sinpe: "Le pasamos los datos por WhatsApp.",
+  transferencia: "Le pasamos la cuenta por WhatsApp.",
+};
+const arrow = '<svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 ---
 
 <BaseLayout
@@ -19,12 +30,6 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
   <Header minimal />
   <main id="contenido" class="co">
     <div class="wrap">
-      <ol class="flow-steps" aria-label="Pasos del pedido">
-        <li><a href="/carrito">Carrito</a></li>
-        <li aria-current="step">Sus datos</li>
-        <li>Listo</li>
-      </ol>
-
       <div class="co-empty cart-empty cart-empty--page" data-cart-empty>
         <p class="cart-empty-title">Su carrito está vacío</p>
         <p class="muted">Escoja sus lentes primero y después confirma el pedido aquí.</p>
@@ -33,62 +38,49 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
 
       <div class="co-grid cart-page" data-cart-page>
         <div class="co-main">
-          <h1 class="co-title">Confirme su pedido</h1>
-          <p class="muted co-intro">Unos datos y listo. No se cobra nada aquí: le mandamos el precio total por WhatsApp el mismo día.</p>
+          <div class="co-top" data-co-top>
+            <h1 class="co-title">Confirme su pedido</h1>
+            <p class="muted co-intro">Tres pasos cortos. No se cobra nada aquí: le mandamos el precio total por WhatsApp el mismo día.</p>
+            <nav class="co-steps" aria-label="Pasos del pedido" data-co-steps>
+              <ol>
+                {STEP_NAMES.map((n, i) => (
+                  <li data-step-li={i + 1}>
+                    <button type="button" class="co-step-btn" data-go-step={i + 1}>
+                      <span class="co-step-num" aria-hidden="true"><span>{i + 1}</span><svg width="14" height="14" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></span>
+                      <span class="co-step-name">{n}</span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+              <div class="co-progress" aria-hidden="true"><span></span></div>
+            </nav>
+          </div>
 
           <details class="co-sum-phone" data-sum-phone>
             <summary>
-              <span>Ver su pedido <span class="muted" data-cart-n></span></span>
+              <span class="co-sum-phone-label">Su pedido <span class="muted" data-cart-n></span></span>
               <strong data-cart-subtotal></strong>
             </summary>
             <ul class="co-items" data-co-items></ul>
+            <p class="co-sum-note">Subtotal solo montura. Los lentes se cotizan por WhatsApp.</p>
           </details>
 
           <form class="co-form" data-checkout novalidate>
-            <section class="co-sec" aria-labelledby="h-datos">
-              <h2 id="h-datos" class="co-h"><span class="co-num" aria-hidden="true">1</span> Sus datos</h2>
-              <div class="field">
-                <label for="f-name">Nombre y apellido</label>
-                <input id="f-name" name="name" type="text" autocomplete="name" required maxlength="80" aria-describedby="e-name" />
-                <p class="field-err" id="e-name" hidden>Escriba su nombre, por favor.</p>
-              </div>
-              <div class="field">
-                <label for="f-wa">Número de WhatsApp</label>
-                <div class="field-tel">
-                  <span class="field-prefix" aria-hidden="true">+506</span>
-                  <input id="f-wa" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" required maxlength="20" placeholder="8888 8888" aria-describedby="h-wa e-wa" />
-                </div>
-                <p class="field-help" id="h-wa">Por aquí le mandamos el precio total.</p>
-                <p class="field-err" id="e-wa" hidden>Revise el número: son 8 dígitos.</p>
-              </div>
-            </section>
+            <p class="co-alert" data-co-alert role="alert" hidden></p>
 
-            <section class="co-sec" aria-labelledby="h-envio">
-              <h2 id="h-envio" class="co-h"><span class="co-num" aria-hidden="true">2</span> ¿A dónde se los enviamos?</h2>
-              <div class="field-row">
-                <div class="field">
-                  <label for="f-prov">Provincia</label>
-                  <select id="f-prov" name="province" required aria-describedby="e-prov">
-                    <option value="">Escoja</option>
-                    {Object.keys(PROVINCES).map((p) => <option value={p}>{p}</option>)}
-                  </select>
-                  <p class="field-err" id="e-prov" hidden>Escoja la provincia.</p>
+            <!-- Step 1: Lentes y receta -->
+            <section class="co-step" id="paso-1" data-step="1" aria-labelledby="h-receta">
+              <h2 id="h-receta" class="co-h" tabindex="-1"><span class="co-num" aria-hidden="true">1</span> Lentes y receta</h2>
+              <div class="co-pairs">
+                <div class="co-pairs-head">
+                  <h3 class="co-sub">Sus lentes</h3>
+                  <a class="btn-tertiary btn-sm" href="/carrito">Editar el carrito</a>
                 </div>
-                <div class="field">
-                  <label for="f-canton">Cantón</label>
-                  <select id="f-canton" name="canton" required disabled aria-describedby="e-canton">
-                    <option value="">Primero la provincia</option>
-                  </select>
-                  <p class="field-err" id="e-canton" hidden>Escoja el cantón.</p>
-                </div>
+                <ul class="co-items co-items--step" data-co-items></ul>
               </div>
-              <p class="field-help">Las señas exactas se las pedimos por WhatsApp cuando confirme.</p>
-            </section>
-
-            <section class="co-sec" aria-labelledby="h-receta">
-              <h2 id="h-receta" class="co-h"><span class="co-num" aria-hidden="true">3</span> Su receta</h2>
-              <p class="field-help rx-same" data-rx-same hidden>Misma receta para todos los pares.</p>
-              <RxFields labelledby="h-receta" />
+              <h3 class="co-sub co-sub--q" id="h-rx-q">¿Cómo nos da su receta?</h3>
+              <p class="field-help rx-same" data-rx-same hidden>Esta receta es para todos los pares, salvo los que marque abajo.</p>
+              <RxFields labelledby="h-rx-q" />
               <div class="rx-pairs" data-rx-pairs hidden></div>
               <template data-rx-pair-tpl>
                 <div class="rx-pair">
@@ -108,34 +100,120 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
               </template>
             </section>
 
-            <section class="co-sec" aria-labelledby="h-pago">
-              <h2 id="h-pago" class="co-h"><span class="co-num" aria-hidden="true">4</span> ¿Cómo prefiere pagar?</h2>
-              <fieldset class="pills" aria-labelledby="h-pago">
+            <!-- Step 2: Datos y entrega -->
+            <section class="co-step" id="paso-2" data-step="2" aria-labelledby="h-datos">
+              <h2 id="h-datos" class="co-h" tabindex="-1"><span class="co-num" aria-hidden="true">2</span> Datos y entrega</h2>
+              <div class="field">
+                <label for="f-name">Nombre y apellido</label>
+                <input id="f-name" name="name" type="text" autocomplete="name" required maxlength="80" aria-describedby="e-name" />
+                <p class="field-err" id="e-name" hidden>Escriba su nombre y apellido, solo con letras.</p>
+              </div>
+              <div class="field">
+                <label for="f-wa">Número de WhatsApp</label>
+                <div class="field-tel">
+                  <span class="field-prefix" aria-hidden="true">+506</span>
+                  <input id="f-wa" name="whatsapp" type="tel" inputmode="tel" autocomplete="tel-national" required maxlength="20" placeholder="8888 8888" aria-describedby="h-wa e-wa" />
+                </div>
+                <p class="field-help" id="h-wa">Por aquí le mandamos el precio total.</p>
+                <p class="field-err" id="e-wa" hidden>Revise el número: son 8 dígitos y empieza con 2, 4, 5, 6, 7 u 8.</p>
+              </div>
+              <div class="field-row">
+                <div class="field">
+                  <label for="f-prov">Provincia</label>
+                  <select id="f-prov" name="province" required aria-describedby="e-prov" autocomplete="address-level1">
+                    <option value="">Escoja</option>
+                    {Object.keys(PROVINCES).map((p) => <option value={p}>{p}</option>)}
+                  </select>
+                  <p class="field-err" id="e-prov" hidden>Escoja la provincia.</p>
+                </div>
+                <div class="field">
+                  <label for="f-canton">Cantón</label>
+                  <select id="f-canton" name="canton" required disabled aria-describedby="e-canton" autocomplete="address-level2">
+                    <option value="">Primero la provincia</option>
+                  </select>
+                  <p class="field-err" id="e-canton" hidden>Escoja el cantón.</p>
+                </div>
+              </div>
+              <ul class="co-ship">
+                <li>Llega en 10 a 14 días hábiles, con guía rastreable.</li>
+                <li>Le avisamos cuando esté en camino.</li>
+                <li>Las señas exactas se las pedimos por WhatsApp cuando confirme.</li>
+              </ul>
+
+              <h3 class="co-sub co-sub--q" id="h-pago">¿Cómo prefiere pagar?</h3>
+              <fieldset class="pills co-pay" aria-labelledby="h-pago">
                 {PAYMENTS.map((p, i) => (
                   <label class="pill">
                     <input type="radio" name="payment" value={p.label} checked={i === 0} />
-                    <span>{p.label}</span>
+                    <span>
+                      <strong>{p.label}</strong>
+                      <small>{PAY_HINTS[p.id]}</small>
+                    </span>
                   </label>
                 ))}
               </fieldset>
-              <p class="field-help">🔒 Usted paga solo cuando le confirmemos el precio total y esté de acuerdo.</p>
+              <p class="field-help">Usted paga solo cuando le confirmemos el precio total y esté de acuerdo.</p>
             </section>
 
-            <div class="co-ts" data-turnstile></div>
-            <button type="submit" class="btn-primary btn-block btn-lg co-submit">
-              <WaIcon size={20} />
-              <span>Confirmar pedido</span>
-            </button>
-            <p class="co-after">📲 Se abre WhatsApp con su pedido ya escrito. Solo toque enviar.</p>
+            <!-- Step 3: Revisar y enviar -->
+            <section class="co-step" id="paso-3" data-step="3" aria-labelledby="h-revisar">
+              <h2 id="h-revisar" class="co-h" tabindex="-1"><span class="co-num" aria-hidden="true">3</span> Revisar y enviar</h2>
+              <div class="co-review" data-review hidden>
+                <div class="rv">
+                  <div class="rv-head"><h3>Sus lentes</h3><button type="button" class="btn-tertiary btn-sm" data-go-step="1" aria-label="Editar sus lentes">Editar</button></div>
+                  <ul class="co-items" data-co-items></ul>
+                  <div class="sum-row rv-total"><span>Subtotal <span class="muted">solo montura</span></span><strong data-cart-subtotal></strong></div>
+                  <p class="rv-note">Lentes, extras y envío: se los cotizamos por WhatsApp según su receta.</p>
+                </div>
+                <div class="rv">
+                  <div class="rv-head"><h3>Receta</h3><button type="button" class="btn-tertiary btn-sm" data-go-step="1" aria-label="Editar la receta">Editar</button></div>
+                  <div data-rv-rx></div>
+                </div>
+                <div class="rv">
+                  <div class="rv-head"><h3>Datos y entrega</h3><button type="button" class="btn-tertiary btn-sm" data-go-step="2" aria-label="Editar datos y entrega">Editar</button></div>
+                  <dl class="rv-dl" data-rv-datos></dl>
+                </div>
+              </div>
+
+              <div class="co-next">
+                <h3 class="co-sub">Qué pasa después</h3>
+                <ol class="timeline timeline--compact">
+                  {NEXT_STEPS.map((s) => <li><h4>{s.h}</h4><p>{s.p}</p></li>)}
+                </ol>
+              </div>
+            </section>
+
+            <div class="co-bar" data-co-bar>
+              <div class="co-bar-inner">
+                <div class="co-bar-sum">
+                  <span class="co-bar-label">Subtotal <span>solo montura</span></span>
+                  <strong data-cart-subtotal></strong>
+                </div>
+                <button type="button" class="co-back btn-tertiary btn-sm" data-co-back hidden>Atrás</button>
+                <button type="button" class="btn-primary btn-lg co-next-btn" data-co-next>
+                  <span>Siguiente</span><Fragment set:html={arrow} />
+                </button>
+                <div class="co-ts" data-turnstile></div>
+                <button type="submit" class="btn-primary btn-block btn-lg co-submit">
+                  <WaIcon size={20} />
+                  <span>Confirmar pedido</span>
+                </button>
+              </div>
+              <p class="co-after" data-co-after>Nada se cobra ahora. Se abre WhatsApp con su pedido ya escrito: solo toque enviar.</p>
+            </div>
           </form>
         </div>
 
         <aside class="summary co-aside" aria-labelledby="h-co-sum">
           <h2 id="h-co-sum" class="summary-title">Su pedido</h2>
           <ul class="co-items" data-co-items></ul>
-          <div class="sum-row"><span>Monturas <span class="muted" data-cart-n></span></span><strong data-cart-subtotal></strong></div>
-          <div class="sum-row sum-row--soft"><span>Lentes y extras</span><span>Se cotizan según su receta</span></div>
-          <div class="sum-row sum-row--soft"><span>Envío</span><span>Se incluye en su cotización</span></div>
+          <div class="sum-row"><span>Subtotal <span class="muted">solo montura <span data-cart-n></span></span></span><strong data-cart-subtotal></strong></div>
+          <div class="sum-row sum-row--soft"><span>Lentes y extras</span><span>Se cotizan por WhatsApp según su receta</span></div>
+          <div class="sum-row sum-row--soft"><span>Envío</span><span>Va en su cotización</span></div>
+          <ul class="checks">
+            <li>No se cobra nada ahora</li>
+            <li>Paga por SINPE Móvil o transferencia, cuando esté de acuerdo</li>
+          </ul>
           <a class="btn-tertiary small" href="/carrito">Editar el carrito</a>
         </aside>
       </div>
@@ -149,7 +227,7 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
 
 <script>
   import {
-    adSource, clearCart, countItems, frameSubtotal, getItems, makeCode, money, orderLead, orderMessage, summaryRows,
+    adSource, clearCart, countItems, frameSubtotal, getItems, makeCode, money, orderLead, orderMessage, rxLines, summaryRows,
     type Order, type RxEye, type RxTyped,
   } from "@/lib/cart";
   import { cartParams, orderWasSaved, track } from "@/lib/tracking";
@@ -157,6 +235,8 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
   const { PROVINCES, waNumber, leadEndpoint, withAdd, tsKey } = (window as any).__lpvCheckout as {
     PROVINCES: Record<string, string[]>; waNumber: string; leadEndpoint: string; withAdd: string[]; tsKey: string;
   };
+  const reduceMotion = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let restoring = false; // true while the saved draft is being put back
 
   // One order code per visit to this page, so a retry or double tap saves one order, not two.
   const orderCode = makeCode();
@@ -182,11 +262,11 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
     try { return tsWidget != null ? String((window as any).turnstile.getResponse(tsWidget) || "") : ""; } catch { return ""; }
   };
 
-  // Order summary (phone fold and desktop side panel).
+  // Order summary: phone fold, step 1, the review and the desktop side panel.
   const paintSummary = () => {
     const items = getItems();
     const n = countItems(items);
-    document.querySelectorAll("[data-cart-n]").forEach((el) => (el.textContent = `(${n})`));
+    document.querySelectorAll("[data-cart-n]").forEach((el) => (el.textContent = `(${n} ${n === 1 ? "par" : "pares"})`));
     document.querySelectorAll("[data-cart-subtotal]").forEach((el) => (el.textContent = money(frameSubtotal(items))));
     document.querySelectorAll<HTMLElement>("[data-co-items]").forEach((ul) => {
       ul.replaceChildren(...summaryRows(items));
@@ -199,11 +279,14 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
   const form = document.querySelector<HTMLFormElement>("[data-checkout]")!;
   const prov = form.querySelector<HTMLSelectElement>("#f-prov")!;
   const canton = form.querySelector<HTMLSelectElement>("#f-canton")!;
-  prov.addEventListener("change", () => {
+  const nameIn = form.querySelector<HTMLInputElement>("#f-name")!;
+  const waIn = form.querySelector<HTMLInputElement>("#f-wa")!;
+  const fillCantons = () => {
     const list = PROVINCES[prov.value] ?? [];
     canton.replaceChildren(new Option(list.length ? "Escoja" : "Primero la provincia", ""), ...list.map((c) => new Option(c, c)));
     canton.disabled = !list.length;
-  });
+  };
+  prov.addEventListener("change", fillCantons);
 
   const setErr = (input: HTMLElement, show: boolean) => {
     const err = document.getElementById(`e-${input.id.slice(2)}`);
@@ -285,9 +368,10 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
   // Pairs after the first can each have their own receta (reading glasses, a pair for Mamá).
   // Off by default, so a one-pair checkout looks exactly as before.
   const cartItems = getItems();
-  type PairBlock = { item: (typeof cartItems)[number]; on: () => boolean; who: HTMLInputElement; rx: ReturnType<typeof mountRx> };
+  type PairBlock = { item: (typeof cartItems)[number]; on: () => boolean; toggle: HTMLInputElement; who: HTMLInputElement; rx: ReturnType<typeof mountRx> };
   const pairBlocks: PairBlock[] = [];
-  const mainRx = mountRx(form.querySelector<HTMLElement>(".co-sec[aria-labelledby='h-receta']")!, "",
+  const step1 = form.querySelector<HTMLElement>("[data-step='1']")!;
+  const mainRx = mountRx(step1, "",
     () => cartItems.some((i, n) => !pairBlocks[n - 1]?.on() && withAdd.includes(i.lens)));
   if (cartItems.length > 1) {
     const tpl = form.querySelector<HTMLTemplateElement>("[data-rx-pair-tpl]")!;
@@ -312,35 +396,20 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
       toggle.addEventListener("change", () => {
         body.hidden = !toggle.checked;
         mainRx.syncAdd();
-        if (toggle.checked) row.querySelector<HTMLInputElement>(`#f-${p}for`)?.focus();
+        if (toggle.checked && !restoring) row.querySelector<HTMLInputElement>(`#f-${p}for`)?.focus();
       });
-      pairBlocks.push({ item, on: () => toggle.checked, who: row.querySelector<HTMLInputElement>(`#f-${p}for`)!, rx });
+      pairBlocks.push({ item, on: () => toggle.checked, toggle, who: row.querySelector<HTMLInputElement>(`#f-${p}for`)!, rx });
     });
   }
 
-  // Remember what they typed (same browser only), so going back to the cart loses nothing.
-  const DRAFT = "lpv_checkout_draft";
-  try {
-    const d = JSON.parse(localStorage.getItem(DRAFT) || "{}");
-    if (d.name) (form.elements.namedItem("name") as HTMLInputElement).value = d.name;
-    if (d.whatsapp) (form.elements.namedItem("whatsapp") as HTMLInputElement).value = d.whatsapp;
-    if (d.province && PROVINCES[d.province]) {
-      prov.value = d.province;
-      prov.dispatchEvent(new Event("change"));
-      if (d.canton) canton.value = d.canton;
-    }
-  } catch {}
-  form.addEventListener("input", () => {
-    try {
-      localStorage.setItem(DRAFT, JSON.stringify({
-        name: (form.elements.namedItem("name") as HTMLInputElement).value,
-        whatsapp: (form.elements.namedItem("whatsapp") as HTMLInputElement).value,
-        province: prov.value, canton: canton.value,
-      }));
-    } catch {}
-  });
-
+  // ---------- WhatsApp number: formatted as they type ("8888 8888"), +506 shown in front ----------
   const digits = (v: string) => v.replace(/\D/g, "");
+  const localDigits = (v: string) => {
+    let d = digits(v);
+    if (d.length > 8 && d.startsWith("506")) d = d.slice(3);
+    return d.slice(0, 8);
+  };
+  const fmtPhone = (d: string) => (d.length > 4 ? `${d.slice(0, 4)} ${d.slice(4)}` : d);
   const phoneOk = (v: string) => {
     const d = digits(v);
     return /^[245678]\d{7}$/.test(d) || /^506[245678]\d{7}$/.test(d);
@@ -349,38 +418,312 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
     const d = digits(v).replace(/^506(?=\d{8}$)/, "");
     return `+506 ${d.slice(0, 4)} ${d.slice(4)}`;
   };
+  waIn.addEventListener("input", () => {
+    const caret = waIn.selectionStart ?? waIn.value.length;
+    const before = localDigits(waIn.value.slice(0, caret)).length;
+    const next = fmtPhone(localDigits(waIn.value));
+    if (next === waIn.value) return;
+    waIn.value = next;
+    // Put the caret back after the same number of digits.
+    let pos = 0, seen = 0;
+    while (pos < next.length && seen < before) { if (/\d/.test(next[pos])) seen++; pos++; }
+    try { waIn.setSelectionRange(pos, pos); } catch {}
+  });
 
+  // ---------- Validation, in plain Spanish ----------
+  // Same characters the server accepts for a name (letters, spaces, . ' -).
+  const NAME = /^[\p{L}\p{M}][\p{L}\p{M} .'-]{1,79}$/u;
+  const nameOk = (v: string) => NAME.test(v.trim().replace(/\s+/g, " ")) && v.trim().length >= 2;
+  const fieldChecks: Record<string, () => boolean> = {
+    "f-name": () => nameOk(nameIn.value),
+    "f-wa": () => phoneOk(waIn.value),
+    "f-prov": () => !!prov.value,
+    "f-canton": () => !!canton.value,
+  };
+  const stepChecks = (n: number): [HTMLElement, boolean][] => {
+    if (n === 1) return [...mainRx.checks(), ...pairBlocks.flatMap((b) => (b.on() ? b.rx.checks() : []))];
+    if (n === 2) return [nameIn, waIn, prov, canton].map((el) => [el, fieldChecks[el.id]()]);
+    return [];
+  };
+  // On blur: only once they have typed something, so tabbing through is not a wall of red.
+  form.addEventListener("focusout", (e) => {
+    const t = e.target as HTMLInputElement;
+    const check = fieldChecks[t.id];
+    if (!check) return;
+    if (t.id === "f-canton" && !prov.value) return;
+    if (t.value.trim() || t.getAttribute("aria-invalid")) setErr(t, !check());
+  });
   form.addEventListener("change", (e) => {
     const t = e.target as HTMLInputElement;
-    if (t.getAttribute("aria-invalid")) setErr(t, false);
+    if (t.getAttribute("aria-invalid") && (fieldChecks[t.id]?.() ?? true)) setErr(t, false);
   });
   form.addEventListener("input", (e) => {
     const t = e.target as HTMLInputElement;
-    if (t.getAttribute("aria-invalid") && (t.name !== "whatsapp" || phoneOk(t.value)) && t.value.trim()) setErr(t, false);
+    if (t.getAttribute("aria-invalid") && (fieldChecks[t.id]?.() ?? !!t.value.trim())) setErr(t, false);
+  });
+  // The "Faltan datos" note goes away once nothing in the step is marked any more.
+  const syncAlert = () => {
+    if (alertBox.hidden) return;
+    const cur = sections[step - 1];
+    if (cur && !cur.querySelector("[aria-invalid='true']") && [...cur.querySelectorAll<HTMLElement>(".rx-zero")].every((z) => z.hidden)) alertBox.hidden = true;
+  };
+  form.addEventListener("change", () => setTimeout(syncAlert));
+  form.addEventListener("input", () => setTimeout(syncAlert));
+
+  const alertBox = form.querySelector<HTMLElement>("[data-co-alert]")!;
+  /** Marks every problem in the step; focuses the first with a short message. Returns true when clean. */
+  const validateStep = (n: number, focus = true) => {
+    let first: HTMLElement | null = null, bad = 0;
+    for (const [el, ok] of stepChecks(n)) { setErr(el, !ok); if (!ok) { bad++; first ??= el; } }
+    if (!first) { alertBox.hidden = true; return true; }
+    if (focus) {
+      alertBox.textContent = bad === 1 ? "Falta un dato. Lo marcamos en rojo." : `Faltan ${bad} datos. Los marcamos en rojo.`;
+      alertBox.hidden = false;
+      first.focus({ preventScroll: true });
+      first.scrollIntoView({ behavior: reduceMotion() ? "auto" : "smooth", block: "center" });
+    }
+    return false;
+  };
+
+  // ---------- Steps ----------
+  // Hash per step (#lentes, #datos, #revisar; no element has those ids, so the page never jumps).
+  const HASH = ["", "#lentes", "#datos", "#revisar"];
+  const sections = [...form.querySelectorAll<HTMLElement>("[data-step]")];
+  const stepsNav = document.querySelector<HTMLElement>("[data-co-steps]")!;
+  const bar = form.querySelector<HTMLElement>("[data-co-bar]")!;
+  const nextBtn = bar.querySelector<HTMLButtonElement>("[data-co-next]")!;
+  const backBtn = bar.querySelector<HTMLButtonElement>("[data-co-back]")!;
+  const submitBtn = form.querySelector<HTMLButtonElement>(".co-submit")!;
+  const review = form.querySelector<HTMLElement>("[data-review]")!;
+  let step = 1;
+  let reached = 1; // furthest step the customer has opened (tappable in the progress bar)
+
+  const firstBadStep = (upTo: number) => {
+    for (let n = 1; n < upTo; n++) if (!stepChecks(n).every(([, ok]) => ok)) return n;
+    return upTo;
+  };
+
+  const paintSteps = () => {
+    stepsNav.querySelectorAll<HTMLElement>("[data-step-li]").forEach((li) => {
+      const n = Number(li.dataset.stepLi);
+      const btn = li.querySelector<HTMLButtonElement>("button")!;
+      li.classList.toggle("is-done", n < step || (n !== step && n < reached));
+      li.classList.toggle("is-current", n === step);
+      if (n === step) btn.setAttribute("aria-current", "step"); else btn.removeAttribute("aria-current");
+      btn.disabled = n > reached || n === step;
+      btn.setAttribute("aria-label", `Paso ${n} de 3: ${btn.querySelector(".co-step-name")!.textContent}${n < step ? ", listo" : ""}`);
+    });
+    stepsNav.style.setProperty("--p", String((step - 1) / 2));
+    nextBtn.hidden = step === 3;
+    submitBtn.hidden = step !== 3;
+    backBtn.hidden = step === 1;
+    bar.dataset.step = String(step);
+  };
+
+  const show = (n: number, opts: { push?: boolean; focus?: boolean } = {}) => {
+    const dir = n >= step ? "fwd" : "back";
+    const changed = n !== step;
+    step = n;
+    reached = Math.max(reached, n);
+    sections.forEach((sec) => {
+      const on = Number(sec.dataset.step) === n;
+      sec.hidden = !on;
+      sec.classList.remove("is-in-fwd", "is-in-back");
+      if (on && changed && !reduceMotion()) { void sec.offsetWidth; sec.classList.add(`is-in-${dir}`); }
+    });
+    if (n === 3) paintReview();
+    alertBox.hidden = true;
+    paintSteps();
+    // history.state.depth counts the steps pushed in this visit, so "Atrás" never leaves the page.
+    const depth = Number(history.state?.depth) || 0;
+    if (opts.push) history.pushState({ coStep: n, depth: depth + 1 }, "", HASH[n]);
+    else history.replaceState({ coStep: n, depth }, "", HASH[n]);
+    if (opts.focus !== false && changed) {
+      const offset = (parseFloat(getComputedStyle(document.documentElement).scrollPaddingTop) || 0) + 12;
+      const y = Math.max(0, stepsNav.getBoundingClientRect().top + scrollY - offset);
+      if (Math.abs(scrollY - y) > 4) window.scrollTo({ top: y, behavior: reduceMotion() ? "auto" : "smooth" });
+      sections[n - 1].querySelector<HTMLElement>(".co-h")!.focus({ preventScroll: true });
+    }
+    saveDraft();
+  };
+
+  const goNext = () => {
+    if (!validateStep(step)) return;
+    show(step + 1, { push: true });
+  };
+  nextBtn.addEventListener("click", goNext);
+  backBtn.addEventListener("click", () => {
+    if (Number(history.state?.depth) > 0) history.back();
+    else show(step - 1);
+  });
+  document.addEventListener("click", (e) => {
+    const t = (e.target as HTMLElement).closest<HTMLElement>("[data-go-step]");
+    if (!t) return;
+    const n = Number(t.dataset.goStep);
+    if (n < step) show(n, { push: true });
+    else if (n <= reached) show(Math.min(n, firstBadStep(n)), { push: true });
+  });
+  window.addEventListener("popstate", (e) => {
+    const want = Number((e.state && e.state.coStep) || HASH.indexOf(location.hash) || 1) || 1;
+    // Never jump forward past a step that still has a problem.
+    show(Math.max(1, Math.min(want, firstBadStep(want), reached)), { focus: true });
   });
 
+  // ---------- Review (step 3) ----------
+  const rxSummary = (mode: string, rx: RxTyped | null): Node[] => {
+    if (mode === "typed" && rx) {
+      const ul = document.createElement("ul");
+      ul.className = "rv-rx";
+      rxLines(rx).forEach((l) => { const li = document.createElement("li"); li.textContent = l; ul.append(li); });
+      return [ul];
+    }
+    const p = document.createElement("p");
+    p.textContent = mode === "none" ? "No la tiene: le ayudamos. Si se hace el examen, mándenos el recibo y le rebajamos hasta $10."
+      : "Nos manda una foto por WhatsApp, en el mismo chat del pedido.";
+    return [p];
+  };
+  const paintReview = () => {
+    const items = getItems();
+    const rxBox = review.querySelector<HTMLElement>("[data-rv-rx]")!;
+    const own = pairBlocks.filter((b) => b.on());
+    const nodes: Node[] = [];
+    if (own.length < items.length) {
+      if (own.length) {
+        const h = document.createElement("p");
+        h.className = "rv-for";
+        const ids = new Set(own.map((b) => b.item.id));
+        const n = items.map((it, k) => (ids.has(it.id) ? 0 : k + 1)).filter(Boolean);
+        h.textContent = `${n.length === 1 ? "Par" : "Pares"} ${n.join(", ")}`;
+        nodes.push(h);
+      }
+      nodes.push(...rxSummary(mainRx.mode(), mainRx.mode() === "typed" ? mainRx.read() : null));
+    }
+    own.forEach((b) => {
+      const k = items.findIndex((i) => i.id === b.item.id);
+      const h = document.createElement("p");
+      h.className = "rv-for";
+      const who = b.who.value.trim();
+      h.textContent = `Par ${k + 1}: ${b.item.name}${who ? ` (${who})` : ""}`;
+      nodes.push(h, ...rxSummary(b.rx.mode(), b.rx.mode() === "typed" ? b.rx.read() : null));
+    });
+    rxBox.replaceChildren(...nodes);
+    const dl = review.querySelector<HTMLElement>("[data-rv-datos]")!;
+    const pay = (form.querySelector<HTMLInputElement>("input[name='payment']:checked")?.value) || "SINPE Móvil";
+    const rows: [string, string][] = [
+      ["Nombre", nameIn.value.trim()],
+      ["WhatsApp", phoneOk(waIn.value) ? prettyPhone(waIn.value) : waIn.value],
+      ["Envío a", canton.value && prov.value ? `${canton.value}, ${prov.value}` : ""],
+      ["Llega en", "10 a 14 días hábiles, con guía rastreable"],
+      ["Pago", pay],
+    ];
+    dl.replaceChildren(...rows.flatMap(([k, v]) => {
+      const dt = document.createElement("dt"); dt.textContent = k;
+      const dd = document.createElement("dd"); dd.textContent = v;
+      return [dt, dd];
+    }));
+    review.hidden = false;
+  };
+
+  // ---------- Saved progress (same browser only) ----------
+  // Every field except the Turnstile token, plus the step and which pairs use their own receta.
+  // Pair fields only come back if the cart is the same as when they were typed.
+  const DRAFT = "lpv_checkout_draft";
+  const cartSig = cartItems.map((i) => i.id).join(",");
+  const SKIP = /^(cf-turnstile-response|g-recaptcha-response)$/;
+  const saveDraft = () => {
+    if (restoring) return;
+    try {
+      const fields: Record<string, string | boolean> = {};
+      for (const el of Array.from(form.elements) as HTMLInputElement[]) {
+        if (!el.name || SKIP.test(el.name) || el.type === "submit" || el.type === "button") continue;
+        if (el.type === "radio") { if (el.checked) fields[el.name] = el.value; }
+        else if (el.type === "checkbox") fields[el.name] = el.checked;
+        else fields[el.name] = el.value;
+      }
+      localStorage.setItem(DRAFT, JSON.stringify({
+        v: 2, step, reached, cart: cartSig, fields,
+        pairs: pairBlocks.map((b) => b.on()),
+        // Kept at the top level too, like the first version of the draft.
+        name: nameIn.value, whatsapp: waIn.value, province: prov.value, canton: canton.value,
+      }));
+    } catch {}
+  };
+  form.addEventListener("input", saveDraft);
+  form.addEventListener("change", saveDraft);
+
+  let startStep = 1;
+  try {
+    const d = JSON.parse(localStorage.getItem(DRAFT) || "{}");
+    restoring = true;
+    const fields: Record<string, string | boolean> = d.fields || {};
+    const sameCart = d.cart === cartSig;
+    if (sameCart && Array.isArray(d.pairs)) {
+      d.pairs.forEach((on: boolean, k: number) => {
+        const b = pairBlocks[k];
+        if (b && on) { b.toggle.checked = true; b.toggle.dispatchEvent(new Event("change", { bubbles: true })); }
+      });
+    }
+    const set = (name: string, v: string | boolean) => {
+      if (!sameCart && /^p\d+-/.test(name)) return;
+      const list = form.querySelectorAll<HTMLInputElement>(`[name="${CSS.escape(name)}"]`);
+      list.forEach((el) => {
+        if (el.type === "radio") el.checked = el.value === v;
+        else if (el.type === "checkbox") el.checked = v === true;
+        else el.value = String(v);
+      });
+      list.forEach((el) => el.dispatchEvent(new Event("change", { bubbles: true })));
+    };
+    const prv = (fields.province as string) || d.province;
+    if (prv && PROVINCES[prv]) {
+      prov.value = prv;
+      fillCantons();
+      const c = (fields.canton as string) || d.canton;
+      if (c) canton.value = c;
+    }
+    if (d.name) nameIn.value = d.name;
+    if (d.whatsapp) waIn.value = fmtPhone(localDigits(d.whatsapp));
+    for (const [k, v] of Object.entries(fields)) {
+      if (["name", "whatsapp", "province", "canton"].includes(k)) continue;
+      // Selects with cilindro first, so the eje next to it is enabled before its value lands.
+      if (/-axis$/.test(k)) continue;
+      set(k, v);
+    }
+    for (const [k, v] of Object.entries(fields)) if (/-axis$/.test(k)) set(k, v);
+    if (sameCart && d.step >= 1 && d.step <= 3) startStep = d.step;
+    if (sameCart && d.reached >= 1 && d.reached <= 3) reached = d.reached;
+  } catch {}
+  restoring = false;
+
+  // Start on the hash, else the saved step, but never past a step with a problem.
+  {
+    const fromHash = HASH.indexOf(location.hash);
+    const want = fromHash > 0 ? fromHash : startStep;
+    reached = Math.max(reached, want);
+    const n = Math.max(1, firstBadStep(want));
+    form.classList.add("is-stepped");
+    show(n, { focus: false });
+  }
+
+  // ---------- Submit ----------
+  let sending = false;
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
+    // Enter in a field on steps 1 and 2 means "Siguiente".
+    if (form.classList.contains("is-stepped") && step < 3) { goNext(); return; }
+    if (sending) return;
     const items = getItems();
     if (!items.length) { location.href = "/carrito"; return; }
+    // Re-check everything; jump to the first step with a problem.
+    for (const n of [1, 2]) {
+      if (!stepChecks(n).every(([, ok]) => ok)) {
+        if (form.classList.contains("is-stepped")) show(n, { push: true, focus: false });
+        validateStep(n);
+        return;
+      }
+    }
     const fd = new FormData(form);
     const name = String(fd.get("name") ?? "").trim();
     const wa = String(fd.get("whatsapp") ?? "");
-    const checks: [HTMLElement, boolean][] = [
-      [form.querySelector("#f-name")!, name.length >= 2],
-      [form.querySelector("#f-wa")!, phoneOk(wa)],
-      [prov, !!prov.value],
-      [canton, !!canton.value],
-      ...mainRx.checks(),
-      ...pairBlocks.flatMap((b) => (b.on() ? b.rx.checks() : [])),
-    ];
-    let first: HTMLElement | null = null;
-    for (const [el, ok] of checks) { setErr(el, !ok); if (!ok && !first) first = el; }
-    if (first) {
-      first.focus();
-      first.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
-      return;
-    }
 
     const order: Order = {
       code: orderCode,
@@ -408,6 +751,11 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
     // Open WhatsApp from the tap itself (browsers allow that), even if the board save fails.
     const win = window.open(waUrl, "_blank");
     if (win) { try { win.opener = null; } catch {} }
+
+    // Short loading state while the save runs.
+    sending = true;
+    submitBtn.classList.add("is-loading");
+    submitBtn.setAttribute("aria-busy", "true");
 
     // Save the order to the board, then fire the Pixel Lead only if it actually saved
     // (201, or the same-ref already-saved 200). A blocked checkout is not counted.

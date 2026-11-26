@@ -3,6 +3,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import ProductCard from "@/components/ProductCard.astro";
+import ShipBar from "@/components/ShipBar.astro";
 import { featuredProducts } from "@/lib/catalog";
 
 const suggestions = featuredProducts(4);
@@ -19,7 +20,7 @@ const suggestions = featuredProducts(4);
     <div class="wrap">
       <ol class="flow-steps" aria-label="Pasos del pedido">
         <li aria-current="step">Carrito</li>
-        <li>Sus datos</li>
+        <li>Pedido</li>
         <li>Listo</li>
       </ol>
       <header class="cart-head">
@@ -31,25 +32,31 @@ const suggestions = featuredProducts(4);
         <div class="cart-empty"><p>Para usar el carrito necesita JavaScript. También puede escribirnos por WhatsApp desde cualquier modelo.</p></div>
       </noscript>
 
+      <div class="cart-undo cart-undo--page" data-cart-undo-host hidden></div>
+
       <div class="cart-page" data-cart-page>
         <ul class="ci-list ci-list--page" data-cart-list aria-label="Lentes en su carrito"></ul>
-        <aside class="summary" aria-labelledby="h-sum">
+        <aside class="summary cart-sum" aria-labelledby="h-sum">
           <h2 id="h-sum" class="summary-title">Resumen</h2>
-          <div class="sum-row"><span>Monturas <span class="muted" data-cart-n></span></span><strong data-cart-subtotal></strong></div>
-          <div class="sum-row sum-row--soft"><span>Lentes y extras</span><span>Se cotizan según su receta</span></div>
-          <div class="sum-row sum-row--soft"><span>Envío</span><span>Se incluye en su cotización</span></div>
-          <a class="btn-primary btn-block" href="/checkout">Continuar con el pedido</a>
-          <ul class="summary-perks">
-            <li><span class="e" aria-hidden="true">🔒</span>No se cobra nada aquí</li>
-            <li><span class="e" aria-hidden="true">💬</span>Precio total por WhatsApp el mismo día</li>
-            <li><span class="e" aria-hidden="true">📲</span>Paga por SINPE Móvil o transferencia</li>
+          <ShipBar />
+          <div class="sum-row"><span>Subtotal <span class="muted">solo montura <span data-cart-n></span></span></span><strong data-cart-subtotal></strong></div>
+          <div class="sum-row sum-row--soft"><span>Lentes y extras</span><span>Se cotizan por WhatsApp según su receta</span></div>
+          <div class="sum-row sum-row--soft"><span>Envío</span><span>Va en su cotización</span></div>
+          <a class="btn-primary btn-block cart-go" href="/checkout">
+            <span>Continuar</span>
+            <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </a>
+          <ul class="checks">
+            <li>No se cobra nada ahora</li>
+            <li>Le confirmamos el precio total por WhatsApp</li>
+            <li>Paga por SINPE Móvil o transferencia, cuando esté de acuerdo</li>
           </ul>
         </aside>
       </div>
 
       <div class="cart-empty cart-empty--page" data-cart-empty>
         <p class="cart-empty-title">Su carrito está vacío</p>
-        <p class="muted">Escoja la montura que le guste, con su color y tipo de lente, y aparece aquí.</p>
+        <p class="muted">Escoja los lentes que le gusten, con su color y tipo de lente, y aparecen aquí.</p>
         <a class="btn-primary" href="/lentes">Ver los lentes</a>
       </div>
     </div>
@@ -70,7 +77,7 @@ const suggestions = featuredProducts(4);
 </BaseLayout>
 
 <script>
-  import { countItems, frameSubtotal, money, mountCartList } from "@/lib/cart";
+  import { countItems, frameSubtotal, money, mountCartList, paintShip } from "@/lib/cart";
   const page = document.querySelector<HTMLElement>("[data-cart-page]")!;
   const list = page.querySelector<HTMLElement>("[data-cart-list]")!;
   const sub = document.querySelector<HTMLElement>("[data-cart-sub]")!;
@@ -79,5 +86,6 @@ const suggestions = featuredProducts(4);
     sub.textContent = n ? `${n} ${n === 1 ? "par de lentes" : "pares de lentes"}` : "";
     page.querySelector("[data-cart-n]")!.textContent = `(${n})`;
     page.querySelector("[data-cart-subtotal]")!.textContent = money(frameSubtotal());
+    paintShip(page);
   });
 </script>

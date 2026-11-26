@@ -1,0 +1,12 @@
+---
+// Free shipping progress (drawer, /carrito). Painted by paintShip() in lib/cart.ts.
+import { FREE_SHIP } from "@/data/trust";
+---
+<div class="ship" data-ship>
+  <p class="ship-text">
+    <svg class="ship-icon" width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7h11v9H3zM14 10h4l3 3v3h-7" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="7" cy="17.5" r="1.8" fill="var(--surface)" stroke="currentColor" stroke-width="1.8"/><circle cx="17" cy="17.5" r="1.8" fill="var(--surface)" stroke="currentColor" stroke-width="1.8"/></svg>
+    <span data-ship-text>Envío gratis desde ${FREE_SHIP}</span>
+  </p>
+  <div class="ship-track" role="progressbar" aria-label="Avance hacia el envío gratis" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="ship-fill"></span></div>
+  <p class="ship-note" data-ship-note></p>
+</div>
