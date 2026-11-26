@@ -152,7 +152,7 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
     adSource, clearCart, countItems, frameSubtotal, getItems, makeCode, money, orderLead, orderMessage, summaryRows,
     type Order, type RxEye, type RxTyped,
   } from "@/lib/cart";
-  import { cartParams, track } from "@/lib/tracking";
+  import { cartParams, orderWasSaved, track } from "@/lib/tracking";
 
   const { PROVINCES, waNumber, leadEndpoint, withAdd, tsKey } = (window as any).__lpvCheckout as {
     PROVINCES: Record<string, string[]>; waNumber: string; leadEndpoint: string; withAdd: string[]; tsKey: string;
@@ -359,7 +359,7 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
     if (t.getAttribute("aria-invalid") && (t.name !== "whatsapp" || phoneOk(t.value)) && t.value.trim()) setErr(t, false);
   });
 
-  form.addEventListener("submit", (e) => {
+  form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const items = getItems();
     if (!items.length) { location.href = "/carrito"; return; }
@@ -405,15 +405,21 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
     const waUrl = `https://wa.me/${waNumber}?text=${encodeURIComponent(message)}`;
     const lead = orderLead(order);
 
-    // Save the order to the board. keepalive lets it finish after the page changes. Its answer
-    // is ignored on purpose: the customer is never blocked, WhatsApp always opens.
+    // Open WhatsApp from the tap itself (browsers allow that), even if the board save fails.
+    const win = window.open(waUrl, "_blank");
+    if (win) { try { win.opener = null; } catch {} }
+
+    // Save the order to the board, then fire the Pixel Lead only if it actually saved
+    // (201, or the same-ref already-saved 200). A blocked checkout is not counted.
+    let saved = false;
     if (leadEndpoint) {
       try {
-        fetch(leadEndpoint, {
+        const res = await fetch(leadEndpoint, {
           method: "POST", keepalive: true, credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ...lead, turnstile: tsToken() }),
-        }).catch(() => {});
+        });
+        saved = await orderWasSaved(res);
       } catch {}
     }
     (window as any).lpvLeads = [...((window as any).lpvLeads || []), lead];
@@ -424,13 +430,8 @@ import { LENSES_WITH_ADD, PAYMENTS, PROVINCES } from "@/lib/store";
       localStorage.removeItem(DRAFT);
     } catch {}
 
-    // Pixel Lead: frame subtotal, slugs and count only. The order code is the eventID so a
-    // later server-side (Conversions API) event can be matched to this one.
-    track("Lead", cartParams(items), order.code);
+    if (saved) track("Lead", cartParams(items), order.code);
 
-    // Open WhatsApp from the tap itself (browsers allow that), then show the confirmation here.
-    const win = window.open(waUrl, "_blank");
-    if (win) { try { win.opener = null; } catch {} }
     clearCart();
     location.assign(`/pedido-recibido${win ? "" : "?wa=0"}`);
   });

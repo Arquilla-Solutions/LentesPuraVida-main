@@ -56,3 +56,14 @@ export function cartParams(items: Line[]) {
     currency: "USD",
   };
 }
+
+/** True when /api/order saved the order: 201, or the idempotent already-saved 200 with ok:true. */
+export async function orderWasSaved(res: Response): Promise<boolean> {
+  if (res.status !== 201 && res.status !== 200) return false;
+  try {
+    const body = (await res.json()) as { ok?: unknown };
+    return body.ok === true;
+  } catch {
+    return false;
+  }
+}
