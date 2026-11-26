@@ -189,7 +189,7 @@ details.footer-col[open] > ul { animation: unfold var(--dur-3) var(--ease-out); 
   display: flex; flex-wrap: wrap; gap: 4px var(--space-m); margin-top: var(--space-m); padding-top: var(--space-s); border-top: var(--border);
   font-size: var(--fs-caption); color: var(--ink-subtle);
 }
-.footer-bottom a { color: var(--ink-muted); text-underline-offset: 3px; }
+.footer-bottom a { color: var(--ink-muted); text-underline-offset: 3px; display: inline-block; padding: 13px 0; margin: -13px 0; } /* 44px tap height without moving the row */
 .footer-bottom a:hover { color: var(--ink); }
 @media (max-width: 767px) { .footer-credit { flex-basis: 100%; } }
 @media (min-width: 768px) {

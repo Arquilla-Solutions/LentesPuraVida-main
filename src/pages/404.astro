@@ -2,7 +2,16 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
+import Photo from "@/components/Photo.astro";
+import ProductCard from "@/components/ProductCard.astro";
 import QuoteButton from "@/components/QuoteButton.astro";
+import { activeCategories, featuredProducts, modelCount, visibleProducts } from "@/lib/catalog";
+import { colorPhotos, mainView, scanFramePhotos } from "@/lib/photos";
+
+// A frame lying a little crooked on the stage: the page is "lost", the frames are not.
+const photos = scanFramePhotos();
+const lost = mainView(colorPhotos(photos["Potter"], "matte black")?.photos ?? photos[visibleProducts[0].name].colors[0].photos)!;
+const picks = featuredProducts(4);
 ---
 
 <BaseLayout
@@ -13,15 +22,38 @@ import QuoteButton from "@/components/QuoteButton.astro";
 >
   <Header />
   <main id="contenido">
-    <div class="wrap narrow nf">
-      <h1>No encontramos esa página</h1>
-      <p class="lead">Puede que el enlace haya cambiado. 🔍 Pruebe por aquí:</p>
-      <div class="cta-row">
-        <a class="btn-primary" href="/lentes">Ver los modelos</a>
-        <a class="btn-secondary" href="/">Ir al inicio</a>
+    <section class="wrap nf">
+      <div class="nf-stage" aria-hidden="true">
+        <span class="nf-code">404</span>
+        <div class="nf-frame">
+          <Photo img={lost} alt="" ratio="2 / 1" sizes="(min-width: 1024px) 420px, 70vw" widths={[320, 480, 640]} class="ph--bare" eager />
+        </div>
       </div>
-      <p style="margin-top: 24px"><QuoteButton place="404" variant="tertiary" label="Preguntar por WhatsApp" /></p>
-    </div>
+      <div class="nf-copy">
+        <h1>No encontramos esa página</h1>
+        <p class="lead">Puede que el enlace haya cambiado. Los lentes siguen aquí: pruebe por uno de estos caminos.</p>
+        <div class="cta-row">
+          <a class="btn-primary btn-block-phone" href="/lentes">Ver los {modelCount} modelos</a>
+          <a class="btn-tertiary" href="/">Ir al inicio</a>
+        </div>
+        <nav class="nf-cats" aria-label="Buscar por estilo">
+          {activeCategories().map((c) => <a class="chip" href={c.path}>{c.label}</a>)}
+          <a class="chip" href="/como-funciona">Cómo funciona</a>
+        </nav>
+      </div>
+    </section>
+
+    <section class="section section--alt nf-picks" aria-labelledby="h-picks">
+      <div class="wrap">
+        <div class="section-head section-head--row">
+          <h2 id="h-picks">Quizás buscaba uno de estos</h2>
+          <QuoteButton place="404" variant="tertiary" label="O pregúntenos por WhatsApp" />
+        </div>
+        <div class="grid nf-grid">
+          {picks.map((p) => <ProductCard product={p} sizes="(min-width: 1024px) 280px, 46vw" />)}
+        </div>
+      </div>
+    </section>
   </main>
   <Footer />
 </BaseLayout>

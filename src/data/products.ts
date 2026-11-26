@@ -1,4 +1,4 @@
-// AUTO-GENERATED from catalogo_lentes_pura_vida.xlsx — edit the spreadsheet & re-run /tmp/gen_products.py to regenerate.
+// AUTO-GENERATED from catalogo_lentes_pura_vida.xlsx - edit the spreadsheet & re-run /tmp/gen_products.py to regenerate.
 
 export interface ProductSize { label: string; lens: number; bridge: number; temple: number; }
 export interface ProductRating { score: number; count: number; }

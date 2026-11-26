@@ -9,6 +9,14 @@ import { MESSAGES } from "@/lib/whatsapp";
 import { SITE_URL } from "@/lib/seo";
 import { STEPS } from "@/data/steps";
 
+// One "good to know" line under each step (the old "Bueno saber" list, placed where it applies).
+const NOTES = [
+  "Los $30 o $45 que ve son <strong>solo la montura</strong>. Los lentes se cotizan según su receta.",
+  "¿No tiene receta? <a href=\"#sin-receta\">Vea qué hacer</a>.",
+  "Antes de cobrarle confirmamos receta, color, talla y monto.",
+  "Llega en 10 a 14 días hábiles a su casa, oficina o sucursal de Correos de Costa Rica.",
+];
+
 const jsonLd = [
   faqJsonLd(ALL_FAQ),
   {
@@ -26,55 +34,65 @@ const jsonLd = [
   title="Cómo pedir lentes recetados en Costa Rica | Lentes Pura Vida"
   description="Escoja la montura, escriba su receta o mándela por WhatsApp y le enviamos el precio total el mismo día. Pago por SINPE Móvil. Envío a todo el país."
   canonical="/como-funciona"
+  imageAlt="Cómo pedir sus lentes en Lentes Pura Vida"
   jsonLd={jsonLd}
 >
   <Header current="como-funciona" />
   <main id="contenido">
-    <div class="wrap narrow">
-      <header class="page-head">
-        <h1>Cómo pedir sus lentes</h1>
-        <p class="lead">Cuatro pasos, sin cuentas ni contraseñas. Una persona le atiende por WhatsApp.</p>
-      </header>
+    <header class="wrap ch">
+      <nav class="crumbs" aria-label="Ruta"><ol><li><a href="/">Inicio</a></li><li aria-current="page">Cómo funciona</li></ol></nav>
+      <h1>Cómo pedir sus lentes</h1>
+      <p class="lead">Cuatro pasos, sin cuentas ni contraseñas. Una persona le atiende por WhatsApp.</p>
+    </header>
 
-      <div class="prose">
-        <h2 class="sr-only">Los pasos</h2>
-        <ol class="steps steps--stack">
-          {STEPS.map((st) => (
+    <!-- The four steps as one journey, each with the detail that matters at that step. -->
+    <section class="section journey" aria-labelledby="h-steps">
+      <div class="wrap journey-grid">
+        <div class="journey-side">
+          <h2 id="h-steps">Los cuatro pasos</h2>
+          <p>Del carrito a su casa. Nada se cobra hasta que usted esté de acuerdo con el precio total.</p>
+          <a class="btn-primary btn-block-phone journey-btn" href="/lentes" data-primary>Ver los modelos</a>
+        </div>
+        <ol class="journey-steps" data-reveal="stagger">
+          {STEPS.map((st, i) => (
             <li>
-              <h3><span class="step-e" aria-hidden="true">{st.e}</span>{st.h}</h3>
-              <p>{st.p}</p>
+              <span class="journey-n" aria-hidden="true">{i + 1}</span>
+              <div>
+                <h3>{st.h}</h3>
+                <p>{st.p}</p>
+                <p class="journey-note" set:html={NOTES[i]} />
+              </div>
             </li>
           ))}
         </ol>
-
-        <h2>Bueno saber</h2>
-        <ul class="elist">
-          <li><span class="e" aria-hidden="true">👓</span><span>Los $30 o $45 que ve son <strong>solo la montura</strong>. Los lentes se cotizan según su receta.</span></li>
-          <li><span class="e" aria-hidden="true">📝</span><span>Su receta la puede <strong>escribir al confirmar</strong> el pedido o <strong>mandar en foto</strong> por WhatsApp.</span></li>
-          <li><span class="e" aria-hidden="true">🔍</span><span>Antes de cobrarle confirmamos receta, color, talla y monto.</span></li>
-          <li><span class="e" aria-hidden="true">📲</span><span>Paga por SINPE Móvil o transferencia, solo cuando esté de acuerdo.</span></li>
-          <li><span class="e" aria-hidden="true">🚚</span><span>Llega en 10 a 14 días hábiles a su casa, oficina o sucursal de Correos de Costa Rica.</span></li>
-        </ul>
-
-        <div class="cta-row" style="margin: 32px 0 0">
-          <a class="btn-primary" href="/lentes" data-primary>Ver los modelos</a>
-          <QuoteButton place="como-funciona" variant="tertiary" label="Preguntar por WhatsApp" />
-        </div>
-
-        <div class="callout" id="sin-receta">
-          <p><strong>¿No tiene receta?</strong> Hágase el examen de la vista donde usted confíe, con un optometrista u oftalmólogo.</p>
-          <p>Si nos manda el recibo del examen, le rebajamos hasta $10.</p>
-          <p><QuoteButton variant="tertiary" label="Preguntar por WhatsApp" message={MESSAGES.noRx} place="como-funciona-norx" /></p>
-        </div>
-
-        <h2 id="preguntas">Preguntas frecuentes</h2>
       </div>
-      <Faq items={ALL_FAQ} />
-    </div>
+    </section>
 
-    <section class="band" style="margin-top: var(--section)">
+    <!-- No prescription yet. -->
+    <section class="wrap norx-wrap" aria-labelledby="h-norx">
+      <div class="norx" id="sin-receta" data-reveal>
+        <div class="norx-copy">
+          <h2 id="h-norx" class="h3">¿No tiene receta?</h2>
+          <p>Hágase el examen de la vista donde usted confíe, con un optometrista u oftalmólogo. Después escriba la receta al confirmar el pedido o mándenos una foto por WhatsApp.</p>
+          <QuoteButton variant="secondary" label="Preguntar por WhatsApp" message={MESSAGES.noRx} place="como-funciona-norx" />
+        </div>
+        <p class="norx-promo"><span class="norx-big">$10</span><span>Si nos manda el recibo del examen, le rebajamos hasta $10.</span></p>
+      </div>
+    </section>
+
+    <section class="section faq-sec" aria-labelledby="preguntas">
+      <div class="wrap faq-grid">
+        <div class="faq-side">
+          <h2 id="preguntas">Preguntas frecuentes</h2>
+          <p>Toque una pregunta para ver la respuesta.</p>
+          <a class="btn-tertiary" href="/lentes-y-tratamientos">Tipos de lentes y tratamientos</a>
+        </div>
+        <Faq items={ALL_FAQ} />
+      </div>
+    </section>
+
+    <section class="band">
       <div class="wrap">
-        <hr class="rule" />
         <h2>¿Tiene otra pregunta?</h2>
         <p>Escríbanos. Le responde una persona, no un robot.</p>
         <QuoteButton variant="primary" label="Escribir por WhatsApp" message="Hola, tengo una pregunta sobre los lentes." place="como-funciona-band" primary />

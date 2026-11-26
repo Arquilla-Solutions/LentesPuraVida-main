@@ -19,6 +19,9 @@ export interface Props {
   canonical?: string;
   image?: string;
   imageAlt?: string;
+  /** Share-preview title/description when they should differ from the SEO ones (no fixed prices in shares). */
+  ogTitle?: string;
+  ogDescription?: string;
   ogType?: "website" | "product" | "article";
   noIndex?: boolean;
   keywords?: string;
@@ -35,6 +38,8 @@ const {
   canonical,
   image,
   imageAlt,
+  ogTitle,
+  ogDescription,
   ogType = "website",
   noIndex = false,
   keywords,
@@ -226,8 +231,8 @@ const websiteJsonLd = {
     <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta property="og:title" content={ogTitle ?? title} />
+    <meta property="og:description" content={ogDescription ?? description} />
     <meta property="og:type" content={ogType} />
     <meta property="og:site_name" content={SITE_NAME} />
     <meta property="og:locale" content={SITE_LOCALE} />
@@ -242,8 +247,8 @@ const websiteJsonLd = {
     {imageAlt && <meta property="og:image:alt" content={imageAlt} />}
 
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:title" content={ogTitle ?? title} />
+    <meta name="twitter:description" content={ogDescription ?? description} />
     <meta name="twitter:image" content={imageUrl} />
     {imageAlt && <meta name="twitter:image:alt" content={imageAlt} />}
 

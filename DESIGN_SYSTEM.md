@@ -3,7 +3,7 @@
 Source of truth for how the site looks. Code lives in `src/styles/` (one entry, `site.css`, imports in this order):
 `tokens.css` (all values) → `fonts.css` → `base.css` (reset, type, layout) → `components.css` (buttons, forms, cards,
 lens builder...) → `pages.css` (page sections) → `chrome.css` (announcement, header, phone menu, footer) → `home.css`
-(home sections) → `motion.css`. Change values in `tokens.css`, not in rules.
+(home sections) → `shop.css` → `checkout.css` → `content.css` (content pages) → `motion.css`. Change values in `tokens.css`, not in rules.
 
 ## Fonts
 
@@ -149,6 +149,27 @@ here (e2e hooks on the product page).
   Sections: Su cotización incluye, Arme sus lentes (compact LensBuilder), Medidas y talla, Detalles/envío/garantía
   (accordions), Opiniones (frame rating, else the store rating, plus three store testimonials rotated per frame),
   related frames.
+
+## Content pages (content.css)
+
+Every content page opens with `.ch`: crumbs, the h1, a lead (`.ch--split` puts a side block next to it on desktop).
+Then each section has its own job and layout:
+
+- **/envios-y-garantia**: `.keyfacts` (three numbers beside the head), `.tl` timeline (5 steps; `.tl-span` brackets the
+  last three as "10 a 14 días hábiles": a vertical rail on phones, a bar above from 1024px), provinces grid + free
+  shipping card, warranty statement + what to do, payment cards. One green band at the end.
+- **/sobre-nosotros**: frames on the stage (no people), `.facts`, then the story as numbered `.chapter`s (number + h2
+  sticky on the left from 1024px): the problem, how we do it (`.cutlist` of what we don't charge for), who we are
+  (`.pull` quote), what to expect.
+- **/como-funciona**: `.journey` (the 4 STEPS, each with its "good to know" note; the button sits after the steps on
+  phones and in the sticky side column on desktop), `.norx` block with the $10 exam promo, FAQ in the home `.faq-grid`.
+- **/lentes-y-tratamientos**: `.lt-card`s with a small SVG of where the graduación sits (rows on phones, 4 across on
+  desktop), included vs optional treatments (`.treat-col`), the compact LensBuilder next to its heading, one help action.
+- **/privacidad**: `.legal`: summary box + numbered table of contents (sticky on desktop) and numbered sections, 36em column.
+- **/404**: a frame on the stage over a faint "404", one primary, category chips, four frames.
+
+Widths for text in these pages use `em`, not `ch`: `ch` follows the "0" of whichever font is showing, so text rewraps
+when the web font arrives and shifts layout.
 
 ## Motion
 

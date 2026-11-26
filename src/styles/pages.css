@@ -1,27 +1,6 @@
 /* Page sections and flows: header, hero, catalog, product page, cart, checkout, confirmation, footer.
    Built on tokens.css and components.css. Later redesign sessions rebuild these per page. */
 
-/* ---------- Steps ---------- */
-.steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; counter-reset: step; }
-.steps li {
-  counter-increment: step; border-top: 1px solid var(--line); padding-top: 18px;
-  display: grid; grid-template-columns: 34px 1fr; column-gap: 12px; align-content: start;
-}
-.steps li::before {
-  content: counter(step); grid-row: 1 / span 2; font-family: var(--font-display); font-size: 34px; line-height: 1;
-  color: var(--brand);
-}
-.steps h3 { margin: 4px 0 6px; text-wrap: pretty; }
-.steps p { margin: 0; color: var(--ink-muted); }
-.steps .step-e { margin-right: 8px; }
-@media (min-width: 768px) { .steps:not(.steps--stack) { grid-template-columns: repeat(2, 1fr); gap: 32px; } }
-@media (min-width: 1024px) {
-  .steps:not(.steps--stack) { grid-template-columns: repeat(4, 1fr); }
-  .steps:not(.steps--stack) li { display: block; padding-top: 20px; }
-  .steps:not(.steps--stack) li::before { display: block; font-size: 40px; margin-bottom: 14px; }
-}
-.steps--stack { margin-top: 32px; }
-
 /* ---------- Two-column blocks ---------- */
 .split { display: grid; gap: 32px; align-items: start; }
 @media (min-width: 1024px) { .split { grid-template-columns: 1.1fr 1fr; gap: 72px; } }
@@ -58,31 +37,8 @@
 .empty { padding: 32px; text-align: center; background: var(--surface-alt); border-radius: var(--radius-md); }
 .empty p { color: var(--ink-muted); }
 
-/* ---------- Long-read pages ---------- */
-.page-head { padding: 32px 0 8px; }
-@media (min-width: 1024px) { .page-head { padding: 56px 0 16px; } }
-.page-head .lead { margin: 16px 0 0; }
-.prose h2 { font-size: 28px; margin: 48px 0 14px; }
-@media (min-width: 1024px) { .prose h2 { font-size: 34px; } }
-.prose h3 { margin: 28px 0 8px; color: var(--ink); }
-.prose p, .prose li { color: var(--ink-muted); }
-.prose strong { color: var(--ink); }
-.prose ul { padding-left: 20px; }
-.prose li { margin-bottom: 8px; }
-.prose .cta-row { margin-top: 12px; }
-.callout { background: var(--surface-alt); border-left: 2px solid var(--brand); padding: 18px 20px; border-radius: 0 var(--radius-md) var(--radius-md) 0; margin: 24px 0; }
-.callout p:last-child { margin: 0; }
-.lens-list { display: grid; gap: 0; border-top: 1px solid var(--line); margin-top: 20px; }
-.lens-list > div { padding: 22px 0; border-bottom: 1px solid var(--line); }
-.lens-list h3 { margin: 0 0 6px; }
-.lens-list p { margin: 0 0 8px; }
-.prose .label-e { margin: 20px 0 0; font-weight: 600; color: var(--ink); }
-.prose .label-e + .lens-list { margin-top: 12px; }
-.facts { list-style: none; margin: 28px 0 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-.facts li { padding: 18px 8px; text-align: center; font-size: 14px; color: var(--ink-muted); }
-.facts li + li { border-left: 1px solid var(--line); }
-@media (min-width: 768px) { .facts strong { font-size: 26px; } }
-.facts strong { display: block; font-family: var(--font-display); font-weight: 500; font-size: 22px; color: var(--ink); line-height: 1.1; margin-bottom: 4px; }
+/* Content pages (/envios-y-garantia, /sobre-nosotros, /como-funciona, /lentes-y-tratamientos,
+   /privacidad, /404): see content.css. */
 
 /* ---------- Phone sticky bar ---------- */
 .sticky-bar {
@@ -100,11 +56,6 @@
 .sticky-btn { flex: none; }
 @media (min-width: 1024px) { .sticky-bar { display: none; } }
 @media (max-width: 1023px) { .site-footer { padding-bottom: 96px; } }
-
-/* ---------- 404 ---------- */
-.nf { padding: 72px 0 var(--section-y); text-align: center; }
-.nf h1 { margin-bottom: 12px; }
-.nf .cta-row { justify-content: center; margin-top: 24px; }
 
 /* ---------- Product page: buy box ---------- */
 .buy { margin-top: 4px; }

@@ -2,9 +2,21 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
+import Photo from "@/components/Photo.astro";
 import QuoteButton from "@/components/QuoteButton.astro";
+import { Icon } from "astro-icon/components";
 import { SITE_URL } from "@/lib/seo";
-import { modelCount } from "@/lib/catalog";
+import { modelCount, visibleProducts } from "@/lib/catalog";
+import { altView, colorPhotos, mainView, scanFramePhotos } from "@/lib/photos";
+import { FIT } from "@/data/trust";
+
+// Two frames on the warm stage (frame-only shots, no people). A missing frame or color
+// falls back to the first visible frame, so a renamed folder never breaks the build.
+const photos = scanFramePhotos();
+const shot = (frame: string, color: string) =>
+  colorPhotos(photos[frame], color)?.photos ?? photos[visibleProducts[0].name].colors[0].photos;
+const stageMain = mainView(shot("Delaware", "tortoise"))!;
+const stageBack = altView(shot("District", "matte pink")) ?? mainView(shot("District", "matte pink"))!;
 
 const aboutJsonLd: Record<string, unknown> = {
   "@context": "https://schema.org",
@@ -35,63 +47,107 @@ const aboutJsonLd: Record<string, unknown> = {
 >
   <Header current="nosotros" />
   <main id="contenido">
-    <div class="wrap narrow">
-      <header class="page-head">
+    <header class="wrap ch about-head">
+      <div class="ch-copy">
+        <nav class="crumbs" aria-label="Ruta"><ol><li><a href="/">Inicio</a></li><li aria-current="page">Sobre nosotros</li></ol></nav>
         <h1>Ver bien no debería ser un lujo.</h1>
-        <p class="lead">
-          Traemos a Costa Rica lentes hechos en Estados Unidos, a un precio justo para cualquier familia.
-        </p>
-        <ul class="facts">
-          <li><strong>Hasta 60%</strong>menos que en la óptica</li>
-          <li><strong>EE.UU.</strong>laboratorio certificado</li>
-          <li><strong>10 a 14</strong>días a su casa</li>
-        </ul>
-      </header>
-
-      <div class="prose">
-        <h2>En Costa Rica, ver bien sale caro</h2>
-        <p>
-          Un par de lentes recetados en una óptica local cuesta entre <strong>$110 y $250 o más</strong>.
-        </p>
-        <p>
-          La diferencia no está en la calidad. Está en el alquiler del local, las marcas de moda y los vendedores a
-          comisión. Y eso lo termina pagando usted.
-        </p>
-
-        <h2>Cómo lo hacemos</h2>
-        <p>
-          Trabajamos directo con un laboratorio óptico certificado en Estados Unidos. Ahí hacen cada par con su receta exacta.
-        </p>
-        <ul class="elist">
-          <li><span class="e" aria-hidden="true">🛒</span><span><strong>Tienda 100% en línea.</strong> Sin local ni vendedores a comisión.</span></li>
-          <li><span class="e" aria-hidden="true">💵</span><span><strong>Precio claro.</strong> La montura tiene precio fijo. Los lentes se cotizan según su receta, sin extras que no necesita.</span></li>
-          <li><span class="e" aria-hidden="true">💬</span><span><strong>Un solo chat.</strong> Receta, color, talla, pago y envío, todo por WhatsApp.</span></li>
-        </ul>
-
-        <h2>Quiénes somos</h2>
-        <!-- Pending Sebastian's OK: names and a real photo of the family go here. -->
-        <p>
-          Somos un negocio familiar. Cada cotización la hacemos nosotros: revisamos su receta, le explicamos las
-          opciones en palabras sencillas y le acompañamos hasta que sus lentes le queden bien.
-        </p>
-        <p>
-          Detrás de cada par hay una mamá que necesita ver el cuaderno de su hijo, un abuelo que vuelve a leer el
-          periódico, una estudiante que por fin toma apuntes sin entrecerrar los ojos.
-        </p>
-
-        <h2>Lo que puede esperar</h2>
-        <ul class="elist">
-          <li><span class="e" aria-hidden="true">👓</span><span>Optómetras certificados</span></li>
-          <li><span class="e" aria-hidden="true">📲</span><span>Pago por SINPE Móvil o transferencia</span></li>
-          <li><span class="e" aria-hidden="true">🚚</span><span>Envío a todo CR con guía rastreable</span></li>
-          <li><span class="e" aria-hidden="true">✅</span><span>Garantía de fábrica, con reemplazo sin costo</span></li>
-        </ul>
+        <p class="lead">Traemos a Costa Rica lentes hechos en Estados Unidos, a un precio justo para cualquier familia.</p>
       </div>
+      <div class="about-stage" aria-hidden="true">
+        <div class="about-frame about-frame--back">
+          <Photo img={stageBack} alt="" ratio="2 / 1" sizes="(min-width: 1024px) 300px, 50vw" widths={[320, 480]} class="ph--bare" eager />
+        </div>
+        <div class="about-frame about-frame--main">
+          <Photo img={stageMain} alt="" ratio="2 / 1" sizes="(min-width: 1024px) 460px, 80vw" widths={[400, 640]} class="ph--bare" eager />
+        </div>
+      </div>
+      <ul class="facts">
+        <li><strong>Hasta 60%</strong>menos que en la óptica</li>
+        <li><strong>EE.UU.</strong>laboratorio certificado</li>
+        <li><strong>10 a 14</strong>días hábiles a su casa</li>
+      </ul>
+    </header>
+
+    <div class="wrap story">
+      <!-- 1. The problem. -->
+      <section class="chapter" aria-labelledby="h-c1">
+        <div class="chapter-side">
+          <span class="chapter-n" aria-hidden="true">1</span>
+          <h2 id="h-c1">En Costa Rica, ver bien sale caro</h2>
+        </div>
+        <div class="chapter-body" data-reveal>
+          <p class="chapter-price">
+            Un par de lentes recetados en una óptica local cuesta entre <strong>$110 y $250 o más</strong>.
+          </p>
+          <p>
+            La diferencia no está en la calidad. Está en el alquiler del local, las marcas de moda y los vendedores a
+            comisión. Y eso lo termina pagando usted.
+          </p>
+        </div>
+      </section>
+
+      <!-- 2. What we do instead. -->
+      <section class="chapter" aria-labelledby="h-c2">
+        <div class="chapter-side">
+          <span class="chapter-n" aria-hidden="true">2</span>
+          <h2 id="h-c2">Cómo lo hacemos</h2>
+        </div>
+        <div class="chapter-body" data-reveal>
+          <p>
+            Trabajamos directo con un laboratorio óptico certificado en Estados Unidos. Ahí hacen cada par con su receta exacta.
+          </p>
+          <div class="cutlist">
+            <p class="cutlist-title">Lo que no le cobramos</p>
+            <ul>
+              <li><s>Alquiler del local</s></li>
+              <li><s>Marcas de moda</s></li>
+              <li><s>Vendedores a comisión</s></li>
+            </ul>
+          </div>
+          <dl class="principles">
+            <div><dt>Tienda 100% en línea</dt><dd>Sin local ni vendedores a comisión.</dd></div>
+            <div><dt>Precio claro</dt><dd>La montura tiene precio fijo. Los lentes se cotizan según su receta, sin extras que no necesita.</dd></div>
+            <div><dt>Un solo chat</dt><dd>Receta, color, talla, pago y envío, todo por WhatsApp.</dd></div>
+          </dl>
+        </div>
+      </section>
+
+      <!-- 3. Who we are. -->
+      <section class="chapter" aria-labelledby="h-c3">
+        <div class="chapter-side">
+          <span class="chapter-n" aria-hidden="true">3</span>
+          <h2 id="h-c3">Quiénes somos</h2>
+        </div>
+        <div class="chapter-body" data-reveal>
+          <!-- Pending Sebastian's OK: names and a real photo of the family go here. -->
+          <p>
+            Somos un negocio familiar. Cada cotización la hacemos nosotros: revisamos su receta, le explicamos las
+            opciones en palabras sencillas y le acompañamos hasta que sus lentes le queden bien.
+          </p>
+          <blockquote class="pull">{FIT[1]}</blockquote>
+        </div>
+      </section>
+
+      <!-- 4. What to expect. -->
+      <section class="chapter" aria-labelledby="h-c4">
+        <div class="chapter-side">
+          <span class="chapter-n" aria-hidden="true">4</span>
+          <h2 id="h-c4">Lo que puede esperar</h2>
+        </div>
+        <div class="chapter-body" data-reveal>
+          <ul class="expect">
+            <li><Icon name="lucide:badge-check" size={22} aria-hidden="true" /><span>Optómetras certificados</span></li>
+            <li><Icon name="lucide:smartphone" size={22} aria-hidden="true" /><span>Pago por SINPE Móvil o transferencia</span></li>
+            <li><Icon name="lucide:truck" size={22} aria-hidden="true" /><span>Envío a todo Costa Rica con guía rastreable</span></li>
+            <li><Icon name="lucide:shield-check" size={22} aria-hidden="true" /><span>Garantía de fábrica, con reemplazo sin costo</span></li>
+          </ul>
+          <a class="btn-tertiary" href="/envios-y-garantia">Envíos y garantía en detalle</a>
+        </div>
+      </section>
     </div>
 
-    <section class="band" style="margin-top: var(--section)">
+    <section class="band">
       <div class="wrap">
-        <hr class="rule" />
         <h2>Encuentre sus lentes</h2>
         <p>{modelCount} modelos, hasta 60% menos que en la óptica. Le mandamos el precio total por WhatsApp.</p>
         <a class="btn-primary" href="/lentes" data-primary>Ver los {modelCount} modelos</a>

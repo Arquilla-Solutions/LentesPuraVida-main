@@ -4,14 +4,16 @@ import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import QuoteButton from "@/components/QuoteButton.astro";
 import LensBuilder from "@/components/LensBuilder.astro";
+import { Icon } from "astro-icon/components";
 import { MESSAGES } from "@/lib/whatsapp";
 import { SITE_URL } from "@/lib/seo";
 
+// Each lens type carries a small drawing (fig) of where the graduación sits in the lens.
 const LENSES = [
-  { h: "Monofocales (visión sencilla)", p: "Una sola graduación en todo el lente, para lejos o para leer. Los más comunes y los más económicos." },
-  { h: "Bifocales", p: "Dos zonas: arriba para lejos y abajo una ventanita para leer. La línea entre las dos se nota." },
-  { h: "Progresivos", p: "Lejos, media distancia y cerca en el mismo lente, sin línea. Lo usual después de los 40. Los primeros días hay que acostumbrarse un poco." },
-  { h: "Lentes delgados (alto índice)", p: "Con graduación alta, los lentes normales salen gruesos. Estos son más delgados y livianos. Con su receta le decimos si los necesita." },
+  { fig: "mono", h: "Monofocales (visión sencilla)", p: "Una sola graduación en todo el lente, para lejos o para leer. Los más comunes y los más económicos." },
+  { fig: "bi", h: "Bifocales", p: "Dos zonas: arriba para lejos y abajo una ventanita para leer. La línea entre las dos se nota." },
+  { fig: "prog", h: "Progresivos", p: "Lejos, media distancia y cerca en el mismo lente, sin línea. Lo usual después de los 40. Los primeros días hay que acostumbrarse un poco." },
+  { fig: "thin", h: "Lentes delgados (alto índice)", p: "Con graduación alta, los lentes normales salen gruesos. Estos son más delgados y livianos. Con su receta le decimos si los necesita." },
 ];
 
 const INCLUDED = [
@@ -25,6 +27,9 @@ const OPTIONAL = [
   { h: "Fotocromáticos", p: "Se oscurecen al sol y se aclaran bajo techo. Ojo: dentro del carro se oscurecen poco, porque el parabrisas bloquea la luz que los activa." },
   { h: "Polarizados", p: "Lentes de sol con su graduación. Quitan el brillo del agua y de la carretera." },
 ];
+
+// Same lens outline as the builder's drawing, so the page reads as one system.
+const LENS = "M44 46 Q44 38 54 38 L186 38 Q198 38 197 50 L193 118 Q189 158 148 160 L88 160 Q48 158 45 118 Z";
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -42,47 +47,115 @@ const jsonLd = {
   description="Monofocales, bifocales, progresivos, antirreflejo, filtro de luz azul y fotocromáticos, explicados en palabras sencillas para escoger sin pagar de más."
   canonical="/lentes-y-tratamientos"
   ogType="article"
+  imageAlt="Tipos de lentes y tratamientos, explicados en palabras sencillas"
   jsonLd={jsonLd}
 >
   <Header current="tratamientos" />
   <main id="contenido">
-    <div class="wrap narrow">
-      <header class="page-head">
-        <h1>Tipos de lentes, explicados sin enredos</h1>
-        <p class="lead">Para que escoja lo que de verdad necesita y no pague por extras que no va a usar.</p>
-      </header>
+    <header class="wrap ch">
+      <nav class="crumbs" aria-label="Ruta"><ol><li><a href="/">Inicio</a></li><li aria-current="page">Lentes y tratamientos</li></ol></nav>
+      <h1>Tipos de lentes, explicados sin enredos</h1>
+      <p class="lead">Para que escoja lo que de verdad necesita y no pague por extras que no va a usar.</p>
+      <nav class="toc-chips" aria-label="En esta página">
+        <a class="chip" href="#h-types">Según su receta</a>
+        <a class="chip" href="#h-treat">Tratamientos</a>
+        <a class="chip" href="#h-builder">Arme sus lentes</a>
+      </nav>
+    </header>
 
-      <div class="prose">
-        <h2>Según su receta</h2>
-        <div class="lens-list">
-          {LENSES.map((l) => (<div><h3>{l.h}</h3><p>{l.p}</p></div>))}
+    <!-- 1. Lens types, each with a drawing of where the graduación sits. -->
+    <section class="section lens-types" aria-labelledby="h-types">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="h-types">Según su receta</h2>
+          <p>El tipo de lente depende de para qué necesita ver mejor: de lejos, de cerca o las dos cosas.</p>
         </div>
+        <ul class="lt-grid" data-reveal="stagger">
+          {LENSES.map((l) => (
+            <li class="lt-card">
+              <div class="lt-fig" aria-hidden="true">
+                {l.fig === "thin" ? (
+                  <svg viewBox="0 0 160 100">
+                    <path class="lt-glass" d="M30 10 L66 10 Q46 50 66 90 L30 90 Q50 50 30 10 Z" />
+                    <path class="lt-glass lt-glass--brand" d="M106 10 L124 10 Q113 50 124 90 L106 90 Q117 50 106 10 Z" />
+                    <text x="48" y="99" text-anchor="middle">normal</text>
+                    <text x="115" y="99" text-anchor="middle">alto índice</text>
+                  </svg>
+                ) : (
+                  <svg viewBox="30 26 180 148">
+                    {l.fig === "prog" && (
+                      <defs>
+                        <linearGradient id="lt-prog" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="0.15" stop-color="#eaf0f2" />
+                          <stop offset="1" stop-color="#bfe0cf" />
+                        </linearGradient>
+                      </defs>
+                    )}
+                    <path class="lt-glass" d={LENS} fill={l.fig === "prog" ? "url(#lt-prog)" : undefined} />
+                    {l.fig === "bi" && <path class="lt-seg" d="M88 118 L152 118 Q152 148 120 148 Q88 148 88 118 Z" />}
+                    {l.fig === "prog" && (
+                      <path class="lt-corr" d="M96 40 C96 96 108 108 108 120 C108 136 84 140 84 160 M144 40 C144 96 132 108 132 120 C132 136 156 140 156 160" />
+                    )}
+                    <path class="lt-rim" d={LENS} />
+                  </svg>
+                )}
+              </div>
+              <h3>{l.h}</h3>
+              <p>{l.p}</p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
 
-        <h2>Tratamientos</h2>
-        <p class="label-e"><span aria-hidden="true">✅</span> Vienen con todos nuestros lentes</p>
-        <div class="lens-list">
-          {INCLUDED.map((l) => (<div><h3>{l.h}</h3><p>{l.p}</p></div>))}
+    <!-- 2. Treatments: what is included vs what is quoted apart. -->
+    <section class="section section--alt treat" aria-labelledby="h-treat">
+      <div class="wrap">
+        <div class="section-head">
+          <h2 id="h-treat">Tratamientos</h2>
+          <p>Dos vienen siempre. Los demás son opcionales y se cotizan aparte, solo si los quiere.</p>
         </div>
-        <p class="label-e" style="margin-top: 32px"><span aria-hidden="true">➕</span> Opcionales, se cotizan aparte</p>
-        <div class="lens-list">
-          {OPTIONAL.map((l) => (<div><h3>{l.h}</h3><p>{l.p}</p></div>))}
+        <div class="treat-grid">
+          <div class="treat-col treat-col--in" data-reveal>
+            <h3 class="treat-title"><Icon name="lucide:check" size={20} aria-hidden="true" />Vienen con todos nuestros lentes</h3>
+            <dl>
+              {INCLUDED.map((l) => (<div><dt>{l.h}</dt><dd>{l.p}</dd></div>))}
+            </dl>
+          </div>
+          <div class="treat-col" data-reveal>
+            <h3 class="treat-title"><Icon name="lucide:plus" size={20} aria-hidden="true" />Opcionales, se cotizan aparte</h3>
+            <dl>
+              {OPTIONAL.map((l) => (<div><dt>{l.h}</dt><dd>{l.p}</dd></div>))}
+            </dl>
+          </div>
         </div>
+      </div>
+    </section>
 
-        <h2 id="h-builder">Vea cómo se suman las capas</h2>
-        <p>Toque cada opción y mire qué le hace al lente. Fotocromáticos y polarizados no van juntos.</p>
+    <!-- 3. The builder: see the layers stack. -->
+    <section class="section builder-guide" aria-labelledby="h-builder">
+      <div class="wrap builder-guide-grid">
+        <div class="section-head">
+          <h2 id="h-builder">Vea cómo se suman las capas</h2>
+          <p>Toque cada opción y mire qué le hace al lente. Fotocromáticos y polarizados no van juntos.</p>
+        </div>
         <LensBuilder variant="compact" place="tratamientos-builder" labelledby="h-builder" />
+      </div>
+    </section>
 
-        <div class="callout">
-          <p><strong>¿No sabe cuál le conviene?</strong> Mándenos su receta y cuéntenos para qué usa más los lentes: computadora, manejar o leer.</p>
-          <p>Le recomendamos la opción más sencilla que le sirva.</p>
+    <!-- 4. Not sure: one action. -->
+    <section class="section section--alt help" aria-labelledby="h-help">
+      <div class="wrap help-grid">
+        <div>
+          <h2 id="h-help">¿No sabe cuál le conviene?</h2>
+          <p class="lead">Mándenos su receta y cuéntenos para qué usa más los lentes: computadora, manejar o leer. Le recomendamos la opción más sencilla que le sirva.</p>
         </div>
-        <div class="cta-row">
-          <QuoteButton variant="primary" label="Pregúntenos cuál le conviene" message={MESSAGES.lensHelp} place="tratamientos" primary />
+        <div class="help-actions">
+          <QuoteButton variant="primary" label="Pregúntenos cuál le conviene" message={MESSAGES.lensHelp} place="tratamientos" primary block="phone" />
           <a class="btn-tertiary" href="/lentes">Ver los modelos</a>
         </div>
       </div>
-    </div>
-    <div style="height: var(--section)"></div>
+    </section>
   </main>
   <Footer />
 </BaseLayout>

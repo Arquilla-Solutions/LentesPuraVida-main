@@ -5,65 +5,103 @@ import Footer from "@/components/Footer.astro";
 import QuoteButton from "@/components/QuoteButton.astro";
 // DRAFT for Sebastian to read before going live (Costa Rica Ley 8968 treats
 // health data, such as a prescription, as sensitive).
+
+const TOC = [
+  { id: "datos", h: "Qué datos le pedimos" },
+  { id: "uso", h: "Para qué los usamos" },
+  { id: "compartir", h: "Con quién los compartimos" },
+  { id: "derechos", h: "Sus derechos" },
+  { id: "sitio", h: "Este sitio web" },
+];
 ---
 
 <BaseLayout
   title="Política de privacidad | Lentes Pura Vida"
   description="Qué datos pedimos para cotizar y enviar sus lentes recetados, para qué los usamos y cómo puede pedir que los borremos."
   canonical="/privacidad"
+  imageAlt="Política de privacidad de Lentes Pura Vida"
   noSticky
 >
   <Header />
   <main id="contenido">
-    <div class="wrap narrow">
-      <header class="page-head">
-        <h1>Política de privacidad</h1>
-        <p class="lead">Última actualización: noviembre de 2026.</p>
-      </header>
-      <div class="prose">
-        <h2>Qué datos le pedimos</h2>
-        <p>
-          Para cotizar y enviarle sus lentes le pedimos su nombre, su número de WhatsApp, su receta (escrita en el
-          pedido o en foto), la dirección de entrega y, si aplica, el comprobante de pago.
-        </p>
-        <p>Su receta es un dato de salud y la tratamos con especial cuidado.</p>
+    <header class="wrap ch">
+      <nav class="crumbs" aria-label="Ruta"><ol><li><a href="/">Inicio</a></li><li aria-current="page">Privacidad</li></ol></nav>
+      <h1>Política de privacidad</h1>
+      <p class="lead">Última actualización: noviembre de 2026.</p>
+    </header>
 
-        <h2>Para qué los usamos</h2>
-        <ul>
-          <li>Cotizar sus lentes y confirmar el pedido con usted.</li>
-          <li>Hacer el pedido al laboratorio que fabrica los lentes y coordinar el envío.</li>
-          <li>Darle seguimiento y atender la garantía.</li>
-          <li>Si usted lo acepta, recordarle cuándo le toca revisarse la vista.</li>
-        </ul>
+    <div class="wrap legal">
+      <aside class="legal-side">
+        <div class="legal-summary">
+          <h2 class="h3">En pocas palabras</h2>
+          <ul>
+            <li>No vendemos sus datos a nadie.</li>
+            <li>Su receta es un dato de salud y la tratamos con especial cuidado.</li>
+            <li>Puede pedirnos ver, corregir o borrar sus datos en cualquier momento.</li>
+          </ul>
+        </div>
+        <nav class="legal-toc" aria-label="En esta página">
+          <p class="legal-toc-title">En esta página</p>
+          <ol>
+            {TOC.map((t) => <li><a href={`#${t.id}`}>{t.h}</a></li>)}
+          </ol>
+        </nav>
+      </aside>
 
-        <h2>Con quién los compartimos</h2>
-        <p>
-          Solo con quien necesita los datos para hacer y entregar sus lentes: el laboratorio óptico (su receta y medidas)
-          y la empresa de envío (su nombre, teléfono y dirección). No vendemos sus datos a nadie.
-        </p>
+      <article class="legal-body">
+        <section id="datos" aria-labelledby="h-datos">
+          <h2 id="h-datos">Qué datos le pedimos</h2>
+          <p>
+            Para cotizar y enviarle sus lentes le pedimos su nombre, su número de WhatsApp, su receta (escrita en el
+            pedido o en foto), la dirección de entrega y, si aplica, el comprobante de pago.
+          </p>
+          <p>Su receta es un dato de salud y la tratamos con especial cuidado.</p>
+        </section>
 
-        <h2>Sus derechos</h2>
-        <p>
-          Conforme a la Ley 8968 de Protección de la Persona frente al Tratamiento de sus Datos Personales, usted puede
-          pedirnos en cualquier momento ver, corregir o borrar sus datos. Escríbanos por WhatsApp y lo hacemos.
-        </p>
+        <section id="uso" aria-labelledby="h-uso">
+          <h2 id="h-uso">Para qué los usamos</h2>
+          <ul>
+            <li>Cotizar sus lentes y confirmar el pedido con usted.</li>
+            <li>Hacer el pedido al laboratorio que fabrica los lentes y coordinar el envío.</li>
+            <li>Darle seguimiento y atender la garantía.</li>
+            <li>Si usted lo acepta, recordarle cuándo le toca revisarse la vista.</li>
+          </ul>
+        </section>
 
-        <h2>Este sitio web</h2>
-        <ul>
-          <li>No necesita crear una cuenta.</li>
-          <li>Su carrito se guarda en su navegador, para que no se pierda si vuelve atrás.</li>
-          <li>Al confirmar, guardamos el pedido (con su receta, si la escribió) en nuestro propio sistema privado de pedidos, para poder procesarlo. También se abre en WhatsApp para confirmarlo con usted.</li>
-          <li>Si llega desde un anuncio, guardamos en su navegador, solo durante la visita, de qué anuncio vino, para saber qué publicidad funciona.</li>
-          <li>Usamos el píxel de Meta (Facebook e Instagram) para medir las visitas y nuestros anuncios. No le enviamos datos personales como su nombre, su teléfono o su receta.</li>
-          <li>Cuando usted hace un pedido, nuestro servidor también le avisa a Meta que hubo un pedido, con el código del pedido, el total de los lentes, la IP y el navegador de su dispositivo, para medir nuestros anuncios. Nunca le enviamos su nombre, su teléfono ni su receta.</li>
-        </ul>
+        <section id="compartir" aria-labelledby="h-compartir">
+          <h2 id="h-compartir">Con quién los compartimos</h2>
+          <p>
+            Solo con quien necesita los datos para hacer y entregar sus lentes: el laboratorio óptico (su receta y medidas)
+            y la empresa de envío (su nombre, teléfono y dirección). No vendemos sus datos a nadie.
+          </p>
+        </section>
 
-        <div class="cta-row" style="margin-top: 32px">
+        <section id="derechos" aria-labelledby="h-derechos">
+          <h2 id="h-derechos">Sus derechos</h2>
+          <p>
+            Conforme a la Ley 8968 de Protección de la Persona frente al Tratamiento de sus Datos Personales, usted puede
+            pedirnos en cualquier momento ver, corregir o borrar sus datos. Escríbanos por WhatsApp y lo hacemos.
+          </p>
+        </section>
+
+        <section id="sitio" aria-labelledby="h-sitio">
+          <h2 id="h-sitio">Este sitio web</h2>
+          <ul>
+            <li>No necesita crear una cuenta.</li>
+            <li>Su carrito se guarda en su navegador, para que no se pierda si vuelve atrás.</li>
+            <li>Al confirmar, guardamos el pedido (con su receta, si la escribió) en nuestro propio sistema privado de pedidos, para poder procesarlo. También se abre en WhatsApp para confirmarlo con usted.</li>
+            <li>Si llega desde un anuncio, guardamos en su navegador, solo durante la visita, de qué anuncio vino, para saber qué publicidad funciona.</li>
+            <li>Usamos el píxel de Meta (Facebook e Instagram) para medir las visitas y nuestros anuncios. No le enviamos datos personales como su nombre, su teléfono o su receta.</li>
+            <li>Cuando usted hace un pedido, nuestro servidor también le avisa a Meta que hubo un pedido, con el código del pedido, el total de los lentes, la IP y el navegador de su dispositivo, para medir nuestros anuncios. Nunca le enviamos su nombre, su teléfono ni su receta.</li>
+          </ul>
+        </section>
+
+        <div class="legal-contact">
+          <p><strong>¿Una consulta sobre sus datos?</strong> Escríbanos por WhatsApp.</p>
           <QuoteButton variant="secondary" label="Escribir por WhatsApp" message="Hola, tengo una consulta sobre mis datos." place="privacidad" />
         </div>
-      </div>
+      </article>
     </div>
-    <div style="height: var(--section)"></div>
   </main>
   <Footer />
 </BaseLayout>
