@@ -15,8 +15,11 @@
 
 import type { ImageMetadata } from "astro";
 
+// Only frame-alone views are imported (front, side, top). Anything imported here is published,
+// linked or not, and the site shows no photos of people, so on-face files (whatever their
+// spelling: "On Man", "on woamn", "- men"...) never match and never leave the disk.
 const FILES = import.meta.glob<{ default: ImageMetadata }>(
-  "/src/assets/Glasses/**/*.{avif,AVIF,jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP}",
+  "/src/assets/Glasses/**/*-*{front,Front,FRONT,side,Side,SIDE,top,Top,TOP}*.{avif,AVIF,jpg,JPG,jpeg,JPEG,png,PNG,webp,WEBP}",
   { eager: true },
 );
 
@@ -111,7 +114,9 @@ export function scanFramePhotos(): Record<string, FramePhotos> {
     const frame = parts[0];
     const file = parts[parts.length - 1];
     const view = viewFromFilename(file);
-    if (!view) continue;
+    // No photos of people on the site (Sebastian, 2026-11-25): only frame-alone shots are
+    // read. The on-face files stay on disk; they are simply never published.
+    if (!view || !isProductView(view)) continue;
 
     let folderName: string;
     let colorEn: string;
@@ -153,23 +158,24 @@ export function photographedColors(
   }));
 }
 
+/** Best frame-only shot of one color: front, else side, else top. */
+export const mainView = (p: ColorPhotos["photos"] | undefined): ImageMetadata | null =>
+  p?.front ?? p?.side ?? p?.top ?? null;
+
+/** Second shot of the same color for hovers: the 3/4 view ("top"), else the side view. */
+export const altView = (p: ColorPhotos["photos"] | undefined): ImageMetadata | null => {
+  const main = mainView(p);
+  return [p?.top, p?.side].find((x) => x && x !== main) ?? null;
+};
+
 /** Card thumbnail: first color's front view. */
 export function primaryThumb(frame: FramePhotos | undefined): ImageMetadata | null {
-  const p = frame?.colors[0]?.photos;
-  return p?.front ?? p?.side ?? p?.top ?? null;
+  return mainView(frame?.colors[0]?.photos);
 }
 
-/** First on-face photo of a frame, preferring the given person. */
-export function onFaceThumb(
-  frame: FramePhotos | undefined,
-  prefer: "onWoman" | "onMan" = "onWoman",
-): ImageMetadata | null {
-  if (!frame) return null;
-  const other = prefer === "onWoman" ? "onMan" : "onWoman";
-  for (const c of frame.colors) if (c.photos[prefer]) return c.photos[prefer]!;
-  for (const c of frame.colors) if (c.photos[other]) return c.photos[other]!;
-  return null;
-}
+/** A color's photos by English name (case-insensitive), else the frame's first color. */
+export const colorPhotos = (frame: FramePhotos | undefined, colorEn?: string) =>
+  (colorEn && frame?.byColor[colorEn.toLowerCase()]) || frame?.colors[0];
 
 function viewFromFilename(f: string): View | null {
   const m = f.replace(/\.[a-z]+$/i, "").match(/\s-\s*(front|side|top|on\s*man|on\s*woman)\s*$/i);

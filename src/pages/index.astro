@@ -5,32 +5,68 @@ import Footer from "@/components/Footer.astro";
 import Photo from "@/components/Photo.astro";
 import ProductCard from "@/components/ProductCard.astro";
 import QuoteButton from "@/components/QuoteButton.astro";
+import LensBuilder from "@/components/LensBuilder.astro";
 import Faq from "@/components/Faq.astro";
+import { Icon } from "astro-icon/components";
 import { SITE_URL } from "@/lib/seo";
-import { scanFramePhotos, onFaceThumb, type View } from "@/lib/photos";
-import { CATEGORIES, featuredProducts, modelCount, productsIn, visibleProducts } from "@/lib/catalog";
+import { responsive } from "@/lib/images";
+import { altView, colorPhotos, mainView, scanFramePhotos } from "@/lib/photos";
+import { CATEGORY_FRAME, activeCategories, featuredProducts, modelCount, productsIn, visibleProducts } from "@/lib/catalog";
+import { MESSAGES } from "@/lib/whatsapp";
 import { HOME_FAQ, faqJsonLd } from "@/data/faq";
 import { REVIEWS } from "@/data/reviews";
 import { STEPS } from "@/data/steps";
-import { Icon } from "astro-icon/components";
-import TrustList from "@/components/TrustList.astro";
-import { FIT, STORE_RATING, ratingText } from "@/data/trust";
+import { TRUST, FIT, STORE_RATING, ratingText } from "@/data/trust";
+import { INCLUDES } from "@/data/includes";
 
+// Frame-only photos everywhere (no people). A missing frame or color falls back to the
+// frame's first color, then to the first visible frame, so a renamed folder never breaks the build.
 const photos = scanFramePhotos();
-// Pick a specific on-face photo; falls back to any on-face photo if the file is renamed.
-const pick = (frame: string, color: string, view: View) =>
-  photos[frame]?.byColor[color]?.photos[view] ?? onFaceThumb(photos[frame]) ?? onFaceThumb(photos[visibleProducts[0].name])!;
+const shot = (frame: string, color: string) => colorPhotos(photos[frame], color)?.photos ?? photos[visibleProducts[0].name].colors[0].photos;
+const findProduct = (name: string) => visibleProducts.find((p) => p.name === name);
 
-const HERO = { frame: "Central", slug: "central", img: pick("Central", "black", "onWoman") };
-const heroProduct = visibleProducts.find((p) => p.slug === HERO.slug);
+// Hero: three frames on a warm stage. The first one is the LCP image (preloaded below).
+const HERO_MAIN = { frame: "November", color: "tortoise", alt: "Lentes November color carey, de frente" };
+const heroMain = mainView(shot(HERO_MAIN.frame, HERO_MAIN.color))!;
+const heroBack = altView(shot("Central", "matte green")) ?? mainView(shot("Central", "matte green"))!;
+const heroFront = mainView(shot("Potter", "matte black"))!;
+const heroProduct = findProduct(HERO_MAIN.frame);
+const HERO_SIZES = "(min-width: 1024px) 560px, 84vw";
+const HERO_WIDTHS = [400, 640];
+const heroPreload = await responsive(heroMain, HERO_WIDTHS);
 
-const TILES = [
-  { cat: CATEGORIES[0], img: pick("Soul", "black", "onWoman"), alt: "Mujer con lentes Soul negros" },
-  { cat: CATEGORIES[1], img: pick("Warren", "matte navy", "onMan"), alt: "Hombre con lentes Warren azul marino" },
-  { cat: CATEGORIES[2], img: pick("Bandon", "black", "onMan"), alt: "Hombre con lentes Bandon negros" },
-].filter((t) => productsIn(t.cat.id).length > 0);
+// Category tiles: one frame per category, front view with the 3/4 view on hover.
+const tiles = activeCategories()
+  .filter((c) => c.id !== "ninos")
+  .map((c) => {
+    const pick = CATEGORY_FRAME[c.id];
+    const frame = pick && photos[pick.frame] ? pick.frame : productsIn(c.id)[0].name;
+    const color = pick?.color ?? "";
+    const p = shot(frame, color);
+    return { cat: c, count: productsIn(c.id).length, front: mainView(p)!, alt: altView(p), frame };
+  });
 
 const featured = featuredProducts(8);
+
+const STATS = [
+  { big: "Hasta 60%", small: "menos que en la óptica" },
+  { big: `${ratingText(STORE_RATING.score)} de 5`, small: "en opiniones de clientes" },
+  { big: "7 de 7", small: "provincias: enviamos a todo Costa Rica" },
+];
+const WHY = [
+  { h: "Revisamos su receta con usted", p: FIT[0] },
+  { h: "Le acompañamos hasta que le queden bien", p: INCLUDES[4] + "." },
+  { h: "Hechos en EE.UU.", p: "En un laboratorio óptico certificado, con su receta exacta." },
+  { h: "Garantía de fábrica", p: "Si llegan con un defecto de fabricación, se los reemplazamos sin costo." },
+  { h: "Pago por SINPE Móvil o transferencia", p: "Paga cuando ya tiene el precio total, por escrito en su chat." },
+  { h: "Envío gratis desde $300", p: "Con guía rastreable. Le avisamos cuando esté en camino." },
+];
+
+// Price scale for the comparison: $0 to $120, frame only.
+const SCALE = 120;
+const pct = (n: number) => `${((n / SCALE) * 100).toFixed(1)}%`;
+
+const [topReview, ...restReviews] = REVIEWS;
 
 const homeJsonLd: Record<string, unknown>[] = [
   {
@@ -66,139 +102,218 @@ const homeJsonLd: Record<string, unknown>[] = [
   imageAlt="Lentes Pura Vida: lentes recetados con envío a toda Costa Rica"
   jsonLd={homeJsonLd}
 >
+  <link slot="head" rel="preload" as="image" type="image/avif" imagesrcset={heroPreload.avif} imagesizes={HERO_SIZES} fetchpriority="high" />
+
   <Header />
 
   <main id="contenido">
-    <section class="hero">
-      <div class="wrap hero-grid">
-        <div class="hero-copy">
-          <h1>Lentes recetados de calidad, hasta 60% menos que en la óptica.</h1>
-          <p class="lead">
-            Escoja sus lentes y escriba su receta al confirmar, o mándenosla por WhatsApp.
-            Le enviamos el precio total el mismo día y se los llevamos a la casa.
-          </p>
-          <div class="hero-actions">
-            <a class="btn-primary" href="/lentes" data-primary>Ver los {modelCount} modelos</a>
-            <QuoteButton place="home-hero" variant="tertiary" />
+    <!-- 1. Hero: the frames, the promise, one button. -->
+    <section class="home-hero" aria-labelledby="h-hero">
+      <div class="wrap home-hero-grid">
+        <div class="home-hero-stage">
+          <div class="hero-frame hero-frame--back" aria-hidden="true">
+            <Photo img={heroBack} alt="" ratio="2 / 1" sizes="(min-width: 1024px) 300px, 46vw" widths={[320, 480]} class="ph--bare" eager />
           </div>
-        </div>
-        <div class="hero-media">
-          <Photo
-            img={HERO.img}
-            alt="Mujer sonriendo con lentes Central negros"
-            kind="person"
-            ratio="4 / 5"
-            sizes="(min-width: 1024px) 50vw, 100vw"
-            widths={[400, 500, 800, 1200]}
-            eager
-          />
+          <div class="hero-frame hero-frame--main">
+            <Photo img={heroMain} alt={HERO_MAIN.alt} ratio="2 / 1" sizes={HERO_SIZES} widths={HERO_WIDTHS} class="ph--bare" eager />
+          </div>
+          <div class="hero-frame hero-frame--front" aria-hidden="true">
+            <Photo img={heroFront} alt="" ratio="2 / 1" sizes="(min-width: 1024px) 280px, 42vw" widths={[320, 480]} class="ph--bare" eager />
+          </div>
           {heroProduct && (
             <a class="hero-tag" href={`/lentes/${heroProduct.slug}`}>
-              Modelo <strong>{heroProduct.name}</strong> · ${heroProduct.framePrice} la montura
+              <span>Modelo <strong>{heroProduct.name}</strong></span>
+              <span class="hero-tag-price">${heroProduct.framePrice} <small>solo montura</small></span>
             </a>
           )}
+        </div>
+
+        <div class="home-hero-copy">
+          <h1 id="h-hero" class="display">Lentes recetados de calidad, hasta 60% menos que en la óptica.</h1>
+          <p class="lead">
+            Escoja la montura, mándenos su receta y le enviamos el precio total por WhatsApp el mismo día.
+            Se los llevamos a la casa.
+          </p>
+          <div class="home-hero-actions">
+            <a class="btn-primary btn-block-phone" href="/lentes" data-primary>Ver los {modelCount} modelos</a>
+            <QuoteButton place="home-hero" variant="tertiary" />
+          </div>
+          <p class="home-hero-rating">
+            <span class="stars" aria-hidden="true">★★★★★</span>
+            <span><strong>{ratingText(STORE_RATING.score)} de 5</strong> en opiniones de clientes</span>
+          </p>
         </div>
       </div>
     </section>
 
-    <div class="trust">
-      <div class="wrap">
-        <TrustList class="trust-list trust-strip" label="Por qué comprar aquí">
-          <li slot="before" class="trust-rating">
-            <Icon name="lucide:star" size={18} aria-hidden="true" class="ti ti--star" />
-            <span><strong>{ratingText(STORE_RATING.score)} de 5</strong> en opiniones de clientes</span>
-          </li>
-        </TrustList>
-        <p class="trust-fit">{FIT[0]} {FIT[1]}</p>
-      </div>
+    <!-- 2. Trust strip. -->
+    <div class="trustbar">
+      <ul class="wrap trustbar-list" aria-label="Por qué comprar aquí">
+        {TRUST.map((t) => (
+          <li><Icon name={t.icon} size={20} aria-hidden="true" class="ti" /><span>{t.text}</span></li>
+        ))}
+      </ul>
     </div>
 
-    <section class="section" id="catalogo" aria-labelledby="h-modelos">
+    <!-- 3. Shop by category. -->
+    {tiles.length > 0 && (
+      <section class="section cats" aria-labelledby="h-cats">
+        <div class="wrap">
+          <div class="cats-head" data-reveal>
+            <h2 id="h-cats">Busque por estilo</h2>
+            <a class="btn-tertiary" href="/lentes">Ver todos los lentes</a>
+          </div>
+          <ul class="cats-list" data-reveal="stagger">
+            {tiles.map((t, i) => (
+              <li>
+                <a class={`cat-tile cat-tile--${i + 1}`} href={t.cat.path}>
+                  <span class="cat-tile-text">
+                    <span class="cat-tile-name">{t.cat.label}</span>
+                    <span class="cat-tile-count">{t.count} modelos</span>
+                  </span>
+                  <span class="cat-tile-media">
+                    <Photo img={t.front} alt={`Lentes ${t.frame}, categoría ${t.cat.label.toLowerCase()}`} ratio="2 / 1" sizes="(min-width: 1024px) 360px, (min-width: 768px) 30vw, 52vw" widths={[320, 480, 640]} class="ph--bare cat-tile-main" />
+                    {t.alt && <Photo img={t.alt} alt="" ratio="2 / 1" sizes="(min-width: 1024px) 360px, 30vw" widths={[320, 480, 640]} class="ph--bare cat-tile-alt" />}
+                  </span>
+                  <span class="cat-tile-go" aria-hidden="true"><Icon name="lucide:arrow-right" size={20} /></span>
+                </a>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+    )}
+
+    <!-- 4. Featured frames. -->
+    <section class="section featured" id="catalogo" aria-labelledby="h-modelos">
       <div class="wrap">
         <div class="section-head section-head--row">
           <div>
-            <h2 id="h-modelos">Escoja sus lentes</h2>
+            <h2 id="h-modelos">Modelos favoritos</h2>
             <p>Monturas de $30 y $45. Los lentes graduados se cotizan según su receta.</p>
           </div>
           <a class="btn-secondary head-btn-desk" href="/lentes">Ver los {modelCount} modelos</a>
         </div>
         <div class="rail">
-          {featured.map((p) => <ProductCard product={p} sizes="(min-width: 1280px) 290px, (min-width: 768px) 30vw, 68vw" />)}
+          {featured.map((p) => <ProductCard product={p} sizes="(min-width: 1280px) 290px, (min-width: 768px) 30vw, 70vw" />)}
         </div>
         <a class="btn-secondary btn-block head-btn-phone" href="/lentes">Ver los {modelCount} modelos</a>
       </div>
     </section>
 
-    <section class="section section--cream" id="como-funciona" aria-labelledby="h-como">
+    <!-- 5. Why us: three numbers, six promises. -->
+    <section class="section section--alt why" aria-labelledby="h-why">
       <div class="wrap">
-        <div class="section-head">
-          <h2 id="h-como">Así de fácil es pedir sus lentes</h2>
-          <p>Usted escoge aquí. Una persona le atiende por WhatsApp en cada paso.</p>
+        <div class="why-head" data-reveal>
+          <h2 id="h-why">Por qué Lentes Pura Vida</h2>
+          <p class="lead">Buenos lentes, un precio justo y una persona que le responde. Así de simple.</p>
         </div>
-        <ol class="steps">
-          {STEPS.map((st) => (
+        <ul class="why-stats" data-reveal="stagger">
+          {STATS.map((s) => (
+            <li><span class="why-big">{s.big}</span><span class="why-small">{s.small}</span></li>
+          ))}
+        </ul>
+        <ul class="why-list" data-reveal="stagger">
+          {WHY.map((w) => (
+            <li><h3>{w.h}</h3><p>{w.p}</p></li>
+          ))}
+        </ul>
+      </div>
+    </section>
+
+    <!-- 6. Build your lenses. -->
+    <section class="section builder" aria-labelledby="h-builder">
+      <div class="wrap">
+        <div class="builder-head" data-reveal>
+          <h2 id="h-builder">Arme sus lentes</h2>
+          <p class="lead">Cualquier montura lleva la base. Toque para agregar capas y vea cómo cambia el lente.</p>
+        </div>
+        <LensBuilder variant="full" place="home-builder" labelledby="h-builder" primary />
+      </div>
+    </section>
+
+    <!-- 7. How it works. -->
+    <section class="section section--alt how" id="como-funciona" aria-labelledby="h-como">
+      <div class="wrap">
+        <div class="how-head" data-reveal>
+          <h2 id="h-como">Así de fácil es pedir sus lentes</h2>
+          <div>
+            <p>Usted escoge aquí. Una persona le atiende por WhatsApp en cada paso.</p>
+            <a class="btn-tertiary" href="/como-funciona">Ver el proceso completo</a>
+          </div>
+        </div>
+        <ol class="how-steps" data-reveal="stagger">
+          {STEPS.map((st, i) => (
             <li>
-              <h3><span class="step-e" aria-hidden="true">{st.e}</span>{st.h}</h3>
+              <span class="how-n" aria-hidden="true">{i + 1}</span>
+              <h3>{st.h}</h3>
               <p>{st.p}</p>
             </li>
           ))}
         </ol>
-        <p style="margin-top: 32px"><a class="btn-tertiary" href="/como-funciona">Ver el proceso completo</a></p>
       </div>
     </section>
 
-    {TILES.length > 0 && (
-      <section class="section" aria-labelledby="h-cats">
-        <div class="wrap">
-          <div class="section-head">
-            <h2 id="h-cats">Busque por estilo</h2>
-          </div>
-          <div class="tiles">
-            {TILES.map((t) => (
-              <a class="tile" href={t.cat.path}>
-                <Photo img={t.img} alt={t.alt} kind="person" ratio="4 / 5" sizes="(min-width: 1024px) 380px, 33vw" widths={[240, 400, 500]} />
-                <span>{t.cat.label} <span aria-hidden="true">→</span></span>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
-    )}
-
-    <section class="section section--cream" aria-labelledby="h-precio">
-      <div class="wrap split">
-        <div>
+    <!-- 8. Savings vs a local óptica. -->
+    <section class="section savings" aria-labelledby="h-precio">
+      <div class="wrap savings-grid">
+        <div class="savings-copy" data-reveal>
           <h2 id="h-precio">¿Por qué cuestan menos?</h2>
-          <p class="lead" style="margin-top: 16px">
+          <p class="lead">
             Sus lentes se hacen en un laboratorio óptico certificado en Estados Unidos, con su receta exacta.
+            Sin local, sin vendedores a comisión, sin marcas de moda. Ese ahorro es suyo.
           </p>
-          <p class="lead">Sin local, sin vendedores a comisión, sin marcas de moda. Ese ahorro es suyo.</p>
-          <ul class="elist">
-            <li><span class="e" aria-hidden="true">👓</span><span><strong>Hechos en EE.UU.</strong> por optómetras certificados.</span></li>
-            <li><span class="e" aria-hidden="true">🚚</span><span><strong>Envío gratis</strong> en pedidos de $300 o más.</span></li>
-            <li><span class="e" aria-hidden="true">💚</span><span><strong>Hasta $10 de descuento</strong> si nos manda el recibo de su examen de la vista.</span></li>
+          <ul class="perks">
+            <li><strong>Hechos en EE.UU.</strong> por optómetras certificados.</li>
+            <li><strong>Envío gratis</strong> en pedidos de $300 o más.</li>
+            <li><strong>Hasta $10 de descuento</strong> si nos manda el recibo de su examen de la vista.</li>
           </ul>
         </div>
-        <div class="compare" aria-label="Comparación de precios de la montura">
-          <div class="compare-row">
-            <span>Montura en una óptica local</span>
-            <strong class="muted">$80 a $110+</strong>
+
+        <figure class="compare-card" data-reveal>
+          <figcaption class="compare-title">Precio de la montura</figcaption>
+          <div class="compare-bars">
+            <div class="cbar cbar--them" style={`--from: ${pct(80)}; --to: 100%`}>
+              <span class="cbar-label">En una óptica local</span>
+              <span class="cbar-track"><span class="cbar-fill"></span></span>
+              <strong class="cbar-value">$80 a $110+</strong>
+            </div>
+            <div class="cbar cbar--us" style={`--from: ${pct(30)}; --to: ${pct(45)}`}>
+              <span class="cbar-label">En Lentes Pura Vida</span>
+              <span class="cbar-track"><span class="cbar-fill"></span></span>
+              <strong class="cbar-value">$30 a $45</strong>
+            </div>
+            <div class="cbar-axis" aria-hidden="true">
+              <span style="--at: 0%">$0</span><span style={`--at: ${pct(50)}`}>$50</span><span style={`--at: ${pct(100)}`}>$100</span>
+            </div>
           </div>
-          <div class="compare-row compare-row--us">
-            <span>Montura en Lentes Pura Vida</span>
-            <strong>$30 a $45</strong>
-          </div>
-        </div>
+          <p class="compare-save"><strong>Hasta 60% menos</strong> en la montura</p>
+          <p class="compare-fine">Solo la montura. Los lentes graduados se cotizan según su receta, sin paquetes cerrados.</p>
+        </figure>
       </div>
     </section>
 
-    <section class="section" aria-labelledby="h-opiniones">
+    <!-- 9. Reviews. -->
+    <section class="section section--alt voices" aria-labelledby="h-opiniones">
       <div class="wrap">
-        <div class="section-head">
-          <h2 id="h-opiniones">Lo que dicen nuestros clientes</h2>
+        <div class="voices-grid">
+          <div class="voices-summary" data-reveal>
+            <h2 id="h-opiniones">Lo que dicen nuestros clientes</h2>
+            <p class="voices-score">
+              <span class="voices-num">{ratingText(STORE_RATING.score)}</span>
+              <span class="voices-of">
+                <span class="stars" aria-hidden="true">★★★★★</span>
+                <span>de 5 en opiniones de clientes</span>
+              </span>
+            </p>
+          </div>
+          <figure class="voices-top" data-reveal>
+            <blockquote>“{topReview.quote}”</blockquote>
+            <figcaption><strong>{topReview.name}</strong><span>{topReview.meta}</span></figcaption>
+          </figure>
         </div>
-        <div class="reviews" data-reviews>
-          {REVIEWS.map((r) => (
+        <div class="reviews voices-more" data-reviews data-reveal="stagger">
+          {restReviews.map((r) => (
             <figure class="review">
               <div class="review-stars" role="img" aria-label="5 de 5 estrellas">★★★★★</div>
               <blockquote>“{r.quote}”</blockquote>
@@ -212,35 +327,42 @@ const homeJsonLd: Record<string, unknown>[] = [
       </div>
     </section>
 
-    <section class="section section--cream" aria-labelledby="h-nosotros">
-      <div class="wrap narrow">
-        <hr class="rule" />
-        <h2 id="h-nosotros">Le atiende una persona, no un robot</h2>
-        <p class="lead" style="margin-top: 16px">
-          Somos un negocio familiar. Cada cotización la hacemos nosotros.
-        </p>
-        <ul class="elist" style="margin-bottom: 28px">
-          <li><span class="e" aria-hidden="true">🔍</span><span>Revisamos su receta.</span></li>
-          <li><span class="e" aria-hidden="true">💬</span><span>Le explicamos las opciones en palabras sencillas.</span></li>
-          <li><span class="e" aria-hidden="true">💚</span><span>{FIT[1]}</span></li>
-        </ul>
-        <a class="btn-tertiary" href="/sobre-nosotros">Conozca quiénes somos</a>
+    <!-- 10. A real person. -->
+    <section class="section human" aria-labelledby="h-nosotros">
+      <div class="wrap human-grid">
+        <div class="human-copy" data-reveal>
+          <h2 id="h-nosotros">Le atiende una persona, no un robot</h2>
+          <p class="lead">Somos un negocio familiar. Cada cotización la hacemos nosotros.</p>
+          <ul class="perks">
+            <li>Revisamos su receta.</li>
+            <li>Le explicamos las opciones en palabras sencillas.</li>
+            <li>{FIT[1]}</li>
+          </ul>
+          <a class="btn-tertiary" href="/sobre-nosotros">Conozca quiénes somos</a>
+        </div>
+        <div class="chat" aria-hidden="true" data-reveal="stagger">
+          <p class="chat-b chat-b--out">{MESSAGES.general}</p>
+          <p class="chat-b chat-b--in">¡Con gusto! Mándenos una foto de su receta y le enviamos el precio total hoy mismo.</p>
+          <p class="chat-b chat-b--in">{FIT[0]}</p>
+        </div>
       </div>
     </section>
 
-    <section class="section" aria-labelledby="h-faq">
-      <div class="wrap narrow">
-        <div class="section-head">
+    <!-- 11. FAQ. -->
+    <section class="section section--alt faq-sec" aria-labelledby="h-faq">
+      <div class="wrap faq-grid">
+        <div class="faq-side" data-reveal>
           <h2 id="h-faq">Preguntas frecuentes</h2>
+          <p>Lo que más nos preguntan antes de pedir.</p>
+          <a class="btn-tertiary" href="/como-funciona#preguntas">Ver todas las preguntas</a>
         </div>
         <Faq items={HOME_FAQ} />
-        <p style="margin-top: 24px"><a class="btn-tertiary" href="/como-funciona#preguntas">Ver todas las preguntas</a></p>
       </div>
     </section>
 
+    <!-- 12. Closing band: one action. -->
     <section class="band">
       <div class="wrap">
-        <hr class="rule" />
         <h2>Escoja sus lentes y le cotizamos hoy mismo</h2>
         <p>{modelCount} modelos, hasta 60% menos que en la óptica. Sin compromiso: le mandamos el precio total por WhatsApp.</p>
         <a class="btn-primary" href="/lentes" data-primary>Ver los {modelCount} modelos</a>
@@ -253,12 +375,16 @@ const homeJsonLd: Record<string, unknown>[] = [
 </BaseLayout>
 
 <script>
-  // Reviews: show 3, reveal the rest on tap.
+  // Reviews: the first quote is featured; two more show, the rest open on tap.
   const list = document.querySelector("[data-reviews]");
   const more = document.querySelector<HTMLButtonElement>("[data-reviews-more]");
-  if (list && more && list.children.length > 3) {
+  if (list && more && list.children.length > 2) {
     more.hidden = false;
-    more.addEventListener("click", () => list.classList.add("is-open"));
+    more.addEventListener("click", () => {
+      list.classList.add("is-open");
+      (list.children[2] as HTMLElement | undefined)?.setAttribute("tabindex", "-1");
+      (list.children[2] as HTMLElement | undefined)?.focus({ preventScroll: true });
+    });
   }
   // Old links like /#catalogo-hombres now open the matching catalog page.
   const m = location.hash.match(/^#catalogo-(unisex|hombres|mujeres|ninos)$/);

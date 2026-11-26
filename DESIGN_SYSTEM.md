@@ -1,8 +1,9 @@
 # Lentes Pura Vida design system
 
 Source of truth for how the site looks. Code lives in `src/styles/` (one entry, `site.css`, imports in this order):
-`tokens.css` (all values) → `fonts.css` → `base.css` (reset, type, layout) → `components.css` (buttons, forms, cards...)
-→ `pages.css` (page sections) → `motion.css`. Change values in `tokens.css`, not in rules.
+`tokens.css` (all values) → `fonts.css` → `base.css` (reset, type, layout) → `components.css` (buttons, forms, cards,
+lens builder...) → `pages.css` (page sections) → `chrome.css` (announcement, header, phone menu, footer) → `home.css`
+(home sections) → `motion.css`. Change values in `tokens.css`, not in rules.
 
 ## Fonts
 
@@ -58,6 +59,8 @@ to change size without changing the level. Text columns max 68ch (`--measure`).
 | `--accent-ink` | #8A6A1F | Accent as text, if ever needed | 5.1:1 |
 | `--success` / `--warn` / `--error` | #1D6B45 / #8A5300 / #A63A22 | Status text and borders | all ≥ 5.4:1 on alt |
 | `--focus` | #06633C (white on the green band) | 2px focus ring, 3px offset | |
+| `--tone-rose` / `--tone-stone` / `--tone-sage` | #F3E5DE / #E7E6E0 / #E3EADF | Big frame tiles (home categories), one tone per tile | ink ≥ 14:1 |
+| `--stage` | warm radial gradient | The "stage" frames stand on: home hero, lens builder, chat block | |
 
 The green band (`.band`) is the only full-color block, at most one per page. WhatsApp green (#25D366) lives only inside the
 WhatsApp glyph, never as a button fill.
@@ -90,6 +93,17 @@ panel (`.panel`, `.panel--alt`), price (`.price`, `.price-amount`, `.price-note`
 `.stars`), color dots and swatches (`.dot`, `.swatch` 40px + ring = 50px target), accordion (`.faq-item` on native
 details/summary), breadcrumb (`.crumbs`), quantity (`.qty`).
 
+## Photos
+
+- **No photos of people, anywhere.** `src/lib/photos.ts` only imports frame-alone views (files with "- Front", "- Side",
+  "- Top" after a dash). On-face files stay on disk but are never imported, so they are never published.
+- `mainView(photos)` = front, else side, else top. `altView(photos)` = the 3/4 view ("Top" files are a 3/4 angle), else
+  side; used for every hover swap (cards, category tiles).
+- Frames always sit on a warm panel with `multiply`, so the supplier's light background disappears. `Photo.astro` does it
+  inside its own panel; `.ph--bare` drops the panel so the frame blends into whatever is behind it (the hero stage, tiles,
+  menu). With `.ph--bare`, put `mix-blend-mode: multiply` on the wrapper (the element that moves), not the img.
+- Product shots are 640 × 320. Never show one wider than about 560px CSS.
+
 ## Spacing and grid
 
 - Space scale (4px base): `--space-3xs` 4, `2xs` 8, `xs` 12, `s` 16, `m` 24, `l` 32, `xl` 48, `2xl` 64, `3xl` 96, `4xl` 128.
@@ -100,6 +114,25 @@ details/summary), breadcrumb (`.crumbs`), quantity (`.qty`).
 - Radius: `--radius-sm` 6, `--radius-md` 10 (buttons, inputs, photos), `--radius-lg` 16 (panels), `--radius-pill`.
 - Shadows: `--shadow-sm` (resting), `--shadow-md` (hover lift), `--shadow-lg` (drawer, flying photo).
 
+## Site chrome (chrome.css)
+
+- Announcement: ink bar, 36px, static. One message on phones, a second one from 1024px. Never a marquee.
+- Header: sticky, height never changes. After 24px of scroll it gets `.is-compact` (logo scales to 0.9, shadow fades
+  in): transform and opacity only. Phone: menu, centered logo, cart. Desktop: logo, categories (from
+  `activeCategories()`) + Todos, divider, Cómo funciona; WhatsApp number from 1280px; cart with `data-cart-open`.
+- Phone menu: native `<dialog>` sheet from the left, full height. Category rows with a frame photo, then plain links,
+  WhatsApp at the bottom. Focus starts on Cerrar, Escape closes, focus returns to the menu button.
+- Footer: brand + rating, contact card, link columns (`<details>` accordions under 768px, open columns above), trust
+  list, payment marks (SINPE Móvil, transferencia), legal row with the Arquilla credit.
+
+## Lens builder (`LensBuilder.astro`)
+
+"Arme sus lentes". `variant="full"` (home: big sticky drawing, layer stack) or `"compact"` (product page, lens guide).
+Native radios/checkboxes: the drawing reacts with CSS `:has()`, so it works without JS. Script: fotocromáticos and
+polarizados exclude each other (with a note in a live region) and the WhatsApp message lists the choices. No prices,
+no cart: it never touches `EXTRAS`/`LENSES`. Its classes are `lb-*` on purpose: never reuse `.opt-card`/`.opt-check`
+here (e2e hooks on the product page).
+
 ## Motion
 
 - Tokens: `--dur-1` 120ms (press), `--dur-2` 200ms (hover), `--dur-3` 320ms (drawers, folds), `--dur-4` 600ms (reveals);
@@ -109,6 +142,8 @@ details/summary), breadcrumb (`.crumbs`), quantity (`.qty`).
   Hidden only under `html.js.reveal` (added by that script after it marks what is already on screen), so no JS means no
   hiding and the first screen never waits.
 - Hover lift: `.lift` (and product cards) rise 4px with `--shadow-md` on hover-capable screens, press to 0.985 on tap.
+- Home hero: frames settle in (the main one moves but never fades, so LCP is not delayed), then float; with scroll-driven
+  animation support they drift apart on scroll (`animation-timeline: scroll()`, no JS).
 - Only `opacity` and `transform` animate. No layout shift, no scroll-jacking, no autoplaying carousels or marquees.
 - `prefers-reduced-motion: reduce` switches off every transition, animation, reveal and view transition.
 

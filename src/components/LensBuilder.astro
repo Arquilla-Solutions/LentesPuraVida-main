@@ -1,0 +1,237 @@
+---
+// "Arme sus lentes": shows how lens options stack on any frame. Presentation only: it does not
+// touch the cart (EXTRAS/LENSES in lib/store.ts) and carries no prices. The quote link opens
+// WhatsApp with the chosen options in the message.
+//
+// Built from native radios and checkboxes, so it works with no JavaScript (the drawing reacts
+// through CSS :has). The script adds two things: fotocromáticos and polarizados cannot go
+// together (picking one drops the other, with a short note), and the WhatsApp text follows
+// the choices.
+//   variant="full"    home: big drawing, the layer stack and one line per option.
+//   variant="compact" product page / lens guide: small drawing, options in two columns.
+import QuoteButton from "./QuoteButton.astro";
+import { INCLUDES } from "@/data/includes";
+
+interface Props {
+  variant?: "full" | "compact";
+  /** Frame name, when the builder sits on a product page. */
+  frame?: string;
+  place?: string;
+  /** Heading id the section uses to label the builder (for aria-labelledby). */
+  labelledby?: string;
+  /** Mark the quote link as the screen's main button (filled). */
+  primary?: boolean;
+}
+const { variant = "full", frame, place = "lens-builder", labelledby, primary = false } = Astro.props;
+const uid = `lb-${Math.random().toString(36).slice(2, 8)}`;
+
+const TYPES = [
+  { id: "sencilla", label: "Visión sencilla", word: "de visión sencilla", line: "Una sola graduación, para lejos o para cerca." },
+  { id: "progresivos", label: "Progresivos", word: "progresivos", line: "Lejos, intermedio y cerca en el mismo lente, sin línea visible." },
+];
+const LAYERS = [
+  { id: "antirreflejo", label: "Antirreflejo", word: "antirreflejo", line: "Menos reflejos de noche, al manejar y en pantallas." },
+  { id: "azul", label: "Filtro de luz azul", word: "filtro de luz azul", line: "Para muchas horas de computadora o celular." },
+  { id: "fotocromaticos", label: "Fotocromáticos", word: "fotocromáticos", line: "Se oscurecen solos al sol y se aclaran bajo techo." },
+  { id: "polarizados", label: "Polarizados", word: "polarizados", line: "Lentes de sol con su graduación. Cortan el brillo del agua y la carretera." },
+  { id: "delgados", label: "Alto índice", word: "alto índice (más delgados)", line: "Lentes más delgados y livianos, para recetas fuertes." },
+];
+const BASE = "La base, incluida en toda cotización";
+// Same words as "Su cotización incluye" (data/includes.ts).
+const baseLine = `${INCLUDES[0]}. ${INCLUDES[1]}.`;
+
+const intro = frame ? `Hola, me interesan los lentes ${frame}` : "Hola, quiero cotizar unos lentes";
+const defaultMsg = `${intro} ${TYPES[0].word}, sin extras. ¿Me ayudan a cotizarlos?`;
+
+// Lens shape: one path, mirrored for the right eye.
+const LENS = "M44 46 Q44 38 54 38 L186 38 Q198 38 197 50 L193 118 Q189 158 148 160 L88 160 Q48 158 45 118 Z";
+const MIRROR = "translate(440 0) scale(-1 1)";
+---
+
+<div
+  class={`lb lb--${variant}`}
+  data-lb
+  data-intro={intro}
+  role="group"
+  aria-labelledby={labelledby}
+>
+  <div class="lb-stage">
+    <svg class="lb-art" viewBox="0 0 440 200" role="img" aria-label="Dibujo de unos lentes que cambia con las opciones que escoja">
+      <defs>
+        <clipPath id={`${uid}-clip`}>
+          <path d={LENS} />
+          <path d={LENS} transform={MIRROR} />
+        </clipPath>
+        <linearGradient id={`${uid}-base`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#ffffff" />
+          <stop offset="1" stop-color="#eaf0f2" />
+        </linearGradient>
+        <linearGradient id={`${uid}-photo`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stop-color="#2c303b" stop-opacity="0.82" />
+          <stop offset="1" stop-color="#2c303b" stop-opacity="0.5" />
+        </linearGradient>
+        <radialGradient id={`${uid}-ar`} cx="0.5" cy="0.45" r="0.75">
+          <stop offset="0.55" stop-color="#7fd3a8" stop-opacity="0" />
+          <stop offset="1" stop-color="#6fbf9b" stop-opacity="0.55" />
+        </radialGradient>
+        <pattern id={`${uid}-lines`} width="6" height="6" patternUnits="userSpaceOnUse">
+          <path d="M0 3 H6" stroke="#ffffff" stroke-opacity="0.16" stroke-width="1" />
+        </pattern>
+      </defs>
+
+      <g clip-path={`url(#${uid}-clip)`}>
+        <rect class="lb-l lb-l-base" width="440" height="200" fill={`url(#${uid}-base)`} />
+        <g class="lb-l lb-l-blue"><rect width="440" height="200" fill="#efcf6b" /></g>
+        <g class="lb-l lb-l-photo"><rect width="440" height="200" fill={`url(#${uid}-photo)`} /></g>
+        <g class="lb-l lb-l-polar">
+          <rect width="440" height="200" fill="#2f4136" fill-opacity="0.8" />
+          <rect width="440" height="200" fill={`url(#${uid}-lines)`} />
+        </g>
+        <g class="lb-l lb-l-glare">
+          <path d="M70 200 L150 0 L184 0 L104 200 Z" fill="#ffffff" fill-opacity="0.85" />
+          <path d="M118 200 L198 0 L210 0 L130 200 Z" fill="#ffffff" fill-opacity="0.6" />
+          <path d="M290 200 L370 0 L404 0 L324 200 Z" fill="#ffffff" fill-opacity="0.85" />
+          <path d="M338 200 L418 0 L430 0 L350 200 Z" fill="#ffffff" fill-opacity="0.6" />
+        </g>
+        <rect class="lb-l lb-l-ar" width="440" height="200" fill={`url(#${uid}-ar)`} />
+        <g class="lb-l lb-l-prog">
+          <path d="M96 40 C96 96 108 108 108 120 C108 136 84 140 84 160 M144 40 C144 96 132 108 132 120 C132 136 156 140 156 160" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="4 4" />
+          <path d="M296 40 C296 96 308 108 308 120 C308 136 284 140 284 160 M344 40 C344 96 332 108 332 120 C332 136 356 140 356 160" fill="none" stroke="currentColor" stroke-width="1.4" stroke-dasharray="4 4" />
+          <text x="120" y="70" text-anchor="middle">lejos</text>
+          <text x="120" y="112" text-anchor="middle">intermedio</text>
+          <text x="120" y="150" text-anchor="middle">cerca</text>
+        </g>
+      </g>
+
+      <g class="lb-frame" fill="none" stroke="currentColor" stroke-width="8" stroke-linejoin="round" stroke-linecap="round">
+        <path d={LENS} />
+        <path d={LENS} transform={MIRROR} />
+        <path d="M197 62 Q220 46 243 62" />
+        <path d="M44 52 L10 44" />
+        <path d="M396 52 L430 44" />
+      </g>
+    </svg>
+
+    <svg class="lb-sun" viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="9" fill="currentColor" />
+      <g stroke="currentColor" stroke-width="3" stroke-linecap="round">
+        <path d="M24 4v6M24 38v6M4 24h6M38 24h6M9.9 9.9l4.2 4.2M33.9 33.9l4.2 4.2M9.9 38.1l4.2-4.2M33.9 14.1l4.2-4.2" />
+      </g>
+    </svg>
+
+    <figure class="lb-edge" aria-hidden="true">
+      <svg viewBox="0 0 40 80" class="lb-edge-art">
+        <path class="lb-edge-thick" d="M8 2 L32 2 Q19 40 32 78 L8 78 Q21 40 8 2 Z" />
+        <path class="lb-edge-thin" d="M14 2 L26 2 Q19 40 26 78 L14 78 Q21 40 14 2 Z" />
+      </svg>
+      <figcaption>Grosor</figcaption>
+    </figure>
+  </div>
+
+  <div class="lb-controls">
+    <fieldset class="lb-group">
+      <legend class="lb-legend">Tipo de lente</legend>
+      <div class="lb-types">
+        {TYPES.map((t, i) => (
+          <label class="lb-type">
+            <input type="radio" name={`${uid}-type`} value={t.id} data-word={t.word} checked={i === 0} />
+            <span class="lb-type-name">{t.label}</span>
+            <span class="lb-line">{t.line}</span>
+          </label>
+        ))}
+      </div>
+    </fieldset>
+
+    <fieldset class="lb-group">
+      <legend class="lb-legend">Agregue capas <span class="lb-legend-note">opcional</span></legend>
+      <p class="lb-base">
+        <svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" /></svg>
+        <span><strong>{BASE}</strong>{variant === "full" && <span class="lb-line">{baseLine}</span>}</span>
+      </p>
+      <ul class="lb-layers">
+        {LAYERS.map((l) => (
+          <li>
+            <label class="lb-layer">
+              <input type="checkbox" value={l.id} data-word={l.word} />
+              <span class="lb-switch" aria-hidden="true"></span>
+              <span class="lb-layer-text">
+                <span class="lb-layer-name">{l.label}</span>
+                <span class="lb-line">{l.line}</span>
+              </span>
+            </label>
+          </li>
+        ))}
+      </ul>
+      <p class="lb-note" data-lb-note aria-live="polite"></p>
+    </fieldset>
+
+    {variant === "full" && (
+      <div class="lb-stack" aria-hidden="true">
+        <p class="lb-stack-title">Su lente, capa por capa</p>
+        <ol>
+          <li class="lb-slab lb-slab--base">Lente graduado con su receta</li>
+          <li class="lb-slab lb-slab--base">Antirrayones y protección UV</li>
+          <li class="lb-slab" data-for="progresivos">Progresivo</li>
+          {LAYERS.map((l) => <li class="lb-slab" data-for={l.id}>{l.label}</li>)}
+        </ol>
+      </div>
+    )}
+
+    <div class="lb-action">
+      <QuoteButton
+        label="Cotizar con estas opciones"
+        message={defaultMsg}
+        frame={frame}
+        place={place}
+        variant={primary ? "primary" : "secondary"}
+        primary={primary}
+        block="phone"
+        class="lb-quote"
+      />
+      <p class="lb-fine">Sin precios aquí: le cotizamos esta combinación según su receta, por WhatsApp.</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  import { waHref } from "@/lib/whatsapp";
+
+  const SAY: Record<string, string> = {
+    fotocromaticos: "Los fotocromáticos y los polarizados no van juntos. Dejamos los fotocromáticos.",
+    polarizados: "Los polarizados y los fotocromáticos no van juntos. Dejamos los polarizados.",
+  };
+  const OTHER: Record<string, string> = { fotocromaticos: "polarizados", polarizados: "fotocromaticos" };
+
+  document.querySelectorAll<HTMLElement>("[data-lb]").forEach((root) => {
+    const link = root.querySelector<HTMLAnchorElement>("a[data-wa]");
+    const note = root.querySelector<HTMLElement>("[data-lb-note]");
+    const box = (v: string) => root.querySelector<HTMLInputElement>(`input[type=checkbox][value="${v}"]`);
+    let noteTimer = 0;
+
+    const update = () => {
+      const type = root.querySelector<HTMLInputElement>("input[type=radio]:checked");
+      const extras = [...root.querySelectorAll<HTMLInputElement>("input[type=checkbox]:checked")].map((i) => i.dataset.word);
+      const list = extras.length > 1 ? `${extras.slice(0, -1).join(", ")} y ${extras[extras.length - 1]}` : extras[0];
+      const msg = `${root.dataset.intro} ${type?.dataset.word ?? ""}${list ? `, con ${list}` : ", sin extras"}. ¿Me ayudan a cotizarlos?`;
+      if (link) {
+        link.dataset.msg = msg;
+        link.href = waHref(msg);
+      }
+    };
+
+    root.addEventListener("change", (e) => {
+      const input = e.target as HTMLInputElement;
+      const other = OTHER[input.value];
+      if (input.checked && other && box(other)?.checked) {
+        box(other)!.checked = false;
+        if (note) {
+          note.textContent = SAY[input.value];
+          clearTimeout(noteTimer);
+          noteTimer = window.setTimeout(() => (note.textContent = ""), 6000);
+        }
+      }
+      update();
+    });
+    update();
+  });
+</script>

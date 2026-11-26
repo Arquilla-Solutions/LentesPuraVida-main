@@ -12,16 +12,32 @@
 @keyframes vt-out { to { opacity: 0; } }
 @keyframes vt-in { from { opacity: 0; transform: translateY(8px); } }
 
-/* ---------- Hero motion (home, first screen only) ---------- */
-.hero-copy > * { animation: rise .7s var(--ease-out) both; }
-.hero-copy > :nth-child(2) { animation-delay: .08s; }
-.hero-copy > :nth-child(3) { animation-delay: .16s; }
-.hero-media .ph img { animation: settle 1.8s var(--ease-out) both; transform-origin: 50% 35%; }
-.hero-tag { animation: tag-in .7s .5s var(--ease-spring) both; transition: transform var(--dur-2) ease, box-shadow var(--dur-2) ease; }
+/* ---------- Hero motion (home, first screen only) ----------
+   Copy rises in; the frames settle onto the stage (the main one only moves, never fades, so it
+   still counts as painted for LCP), then float gently. Where the browser supports scroll-driven
+   animations the three frames also drift apart at different speeds as the page scrolls (parallax),
+   with no script. */
+.home-hero-copy > * { animation: rise .7s var(--ease-out) both; }
+.home-hero-copy > :nth-child(2) { animation-delay: .08s; }
+.home-hero-copy > :nth-child(3) { animation-delay: .16s; }
+.home-hero-copy > :nth-child(4) { animation-delay: .24s; }
+.hero-frame--main .ph { animation: settle 1.2s var(--ease-out) both, float 7s 1.2s ease-in-out infinite alternate; }
+.hero-frame--back .ph { animation: drop-in 1s .15s var(--ease-out) both, float 8s 1.2s ease-in-out infinite alternate-reverse; }
+.hero-frame--front .ph { animation: drop-in 1s .3s var(--ease-out) both, float 6.5s 1.3s ease-in-out infinite alternate; }
+.hero-tag { animation: tag-in .7s .6s var(--ease-spring) both; transition: transform var(--dur-2) ease, box-shadow var(--dur-2) ease; }
 .hero-tag:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
 @keyframes rise { from { opacity: 0.01; transform: translateY(14px); } }
-@keyframes settle { from { transform: scale(1.07); } }
+@keyframes settle { from { transform: translateY(10px) scale(0.96); } }
+@keyframes drop-in { from { opacity: 0; transform: translateY(-16px); } }
+@keyframes float { from { transform: translateY(0); } to { transform: translateY(-7px); } }
 @keyframes tag-in { from { opacity: 0; transform: translateY(12px) scale(.96); } }
+@supports (animation-timeline: scroll()) {
+  .hero-frame { animation: parallax linear both; animation-timeline: scroll(root); animation-range: 0 700px; }
+  .hero-frame--back { --px: -60px; }
+  .hero-frame--main { --px: -24px; }
+  .hero-frame--front { --px: 40px; }
+  @keyframes parallax { to { translate: 0 var(--px); } }
+}
 
 /* ---------- Reveal on scroll (once) ----------
    Mark an element with data-reveal (it rises in) or data-reveal="stagger" (its children rise in
@@ -46,10 +62,8 @@ html.js.reveal [data-reveal="stagger"] > * { transition-delay: calc(var(--i, 0) 
 @media (hover: hover) {
   .lift:hover, .card:hover .card-media { transform: translateY(var(--lift)); box-shadow: var(--shadow-md); }
   .card:hover .ph--product img { transform: scale(1.04); }
-  .tile:hover .ph img { transform: scale(1.04); }
 }
 .lift:active, .card:active .card-media { transform: scale(0.985); }
-.tile .ph img { transition: transform .6s var(--ease-out); }
 
 /* ---------- Product gallery: crossfade on color change ---------- */
 .gallery.is-swap .gallery-track { animation: swap .45s var(--ease-out); }
@@ -67,5 +81,7 @@ html.js.reveal [data-reveal="stagger"] > * { transition-delay: calc(var(--i, 0) 
   .ph img.ph-wait { opacity: 1; }
   .done-check circle, .done-check path, .btn-add-done path { stroke-dashoffset: 0; }
   .lift:hover, .card:hover .card-media, .card:hover .ph--product img, .tile:hover .ph img { transform: none; }
+  .hero-frame { translate: none !important; }
+  .lb-slab { animation: none !important; }
   .btn-primary.is-loading::after, .btn-primary[aria-busy="true"]::after { animation: spin 1.4s linear infinite !important; }
 }

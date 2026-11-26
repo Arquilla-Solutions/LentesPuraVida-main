@@ -1,23 +1,45 @@
 ---
+// Site header: a static announcement line, the sticky bar (logo, categories, Cómo funciona,
+// WhatsApp number on wide screens, cart) and the phone menu (a full-height sheet).
+// Categories come from activeCategories(), so an empty one (Niños while it has no photos)
+// never shows up. The cart icon keeps the drawer hooks (data-cart-open, data-cart-count).
 import { Icon } from "astro-icon/components";
 import QuoteButton from "./QuoteButton.astro";
+import Photo from "./Photo.astro";
+import WaIcon from "./WaIcon.astro";
 import { WHATSAPP_DISPLAY } from "@/lib/contact";
 import { MESSAGES } from "@/lib/whatsapp";
+import { CATEGORY_FRAME, activeCategories, modelCount, productsIn } from "@/lib/catalog";
+import { colorPhotos, mainView, scanFramePhotos } from "@/lib/photos";
 
 interface Props {
-  /** Current section, for aria-current. */
+  /** Current section, for aria-current on the secondary links. */
   current?: "lentes" | "como-funciona" | "tratamientos" | "nosotros";
   /** Checkout: logo and a way back to the cart, nothing else to pull attention away. */
   minimal?: boolean;
 }
 const { current, minimal = false } = Astro.props;
+const path = Astro.url.pathname.replace(/\/$/, "") || "/";
 
-const NAV = [
-  { id: "lentes", href: "/lentes", label: "Lentes" },
+const photos = scanFramePhotos();
+// One frame-only photo per category for the phone menu (same frames as the home tiles).
+const cats = activeCategories().map((c) => {
+  const pick = CATEGORY_FRAME[c.id];
+  const name = pick && photos[pick.frame] ? pick.frame : productsIn(c.id)[0]?.name;
+  const img = name ? mainView(colorPhotos(photos[name], pick?.color)?.photos) : null;
+  return { ...c, count: productsIn(c.id).length, img };
+});
+const SHOP = [...cats.map((c) => ({ href: c.path, label: c.label })), { href: "/lentes", label: "Todos" }];
+const MORE = [
   { id: "como-funciona", href: "/como-funciona", label: "Cómo funciona" },
   { id: "tratamientos", href: "/lentes-y-tratamientos", label: "Tipos de lentes" },
-  { id: "nosotros", href: "/sobre-nosotros", label: "Nosotros" },
+  { id: "envios", href: "/envios-y-garantia", label: "Envíos y garantía" },
+  { id: "nosotros", href: "/sobre-nosotros", label: "Sobre nosotros" },
 ] as const;
+const isHere = (href: string) => (path === href ? "page" : undefined);
+const isSection = (id: string, href: string) => (path === href ? "page" : current === id ? "true" : undefined);
+
+const cartIcon = `<svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 10V7a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>`;
 ---
 
 {minimal ? (
@@ -31,88 +53,136 @@ const NAV = [
   </div>
 </header>
 ) : (<>
-<p class="announce">Envío gratis en pedidos de $300 o más</p>
+<div class="announce">
+  <div class="wrap announce-inner">
+    <p>Envío gratis en pedidos de $300 o más</p>
+    <p class="announce-2">Le mandamos el precio total por WhatsApp el mismo día</p>
+  </div>
+</div>
 
-<header class="site-header">
+<header class="site-header" data-header>
   <div class="wrap site-header-inner">
+    <button
+      type="button"
+      class="icon-btn menu-btn"
+      aria-label="Abrir menú"
+      aria-expanded="false"
+      aria-controls="menu"
+      data-menu-open
+    >
+      <Icon name="lucide:menu" size={24} aria-hidden="true" />
+    </button>
+
     <a href="/" class="wordmark" aria-label="Lentes Pura Vida, inicio"><img src="/logo.svg" alt="Lentes Pura Vida" width="148" height="40" class="logo-img" /></a>
 
     <nav class="nav-desktop" aria-label="Principal">
-      {NAV.map((l) => (
-        <a href={l.href} aria-current={current === l.id ? "page" : undefined}>{l.label}</a>
-      ))}
+      <ul class="nav-shop">
+        {SHOP.map((l) => <li><a href={l.href} aria-current={isHere(l.href)}>{l.label}</a></li>)}
+      </ul>
+      <ul class="nav-more">
+        <li><a href="/como-funciona" aria-current={isSection("como-funciona", "/como-funciona")}>Cómo funciona</a></li>
+      </ul>
     </nav>
 
     <div class="header-actions">
       <QuoteButton variant="tertiary" label={WHATSAPP_DISPLAY} message={MESSAGES.general} place="header-phone" class="header-phone" />
-      <QuoteButton label="Cotizar" variant="secondary" place="header" size="sm" class="header-quote" />
       <a href="/carrito" class="icon-btn cart-btn" data-cart-open data-cart-label aria-label="Carrito">
-        <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 10V7a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+        <Fragment set:html={cartIcon} />
         <span class="cart-badge" data-cart-count hidden>0</span>
       </a>
-      <button
-        type="button"
-        class="menu-btn"
-        aria-label="Abrir menú"
-        aria-expanded="false"
-        aria-controls="menu"
-        data-menu-open
-      >
-        <Icon name="lucide:menu" size={24} aria-hidden="true" />
-      </button>
     </div>
   </div>
 </header>
 
-<div id="menu" class="menu" hidden data-menu>
-  <div class="menu-backdrop" data-menu-close></div>
-  <div class="menu-panel" role="dialog" aria-modal="true" aria-label="Menú">
+<dialog id="menu" class="menu" data-menu aria-label="Menú">
+  <div class="menu-sheet">
     <div class="menu-top">
       <a href="/" class="wordmark" aria-label="Lentes Pura Vida, inicio"><img src="/logo.svg" alt="Lentes Pura Vida" width="148" height="40" class="logo-img" /></a>
-      <button type="button" class="menu-btn" aria-label="Cerrar menú" data-menu-close>
+      <button type="button" class="icon-btn" aria-label="Cerrar menú" data-menu-close autofocus>
         <Icon name="lucide:x" size={24} aria-hidden="true" />
       </button>
     </div>
-    <ul class="menu-links">
-      <li><a href="/">Inicio</a></li>
-      {NAV.map((l) => (
-        <li><a href={l.href} aria-current={current === l.id ? "page" : undefined}>{l.label}</a></li>
-      ))}
-      <li><a href="/envios-y-garantia">Envíos y garantía</a></li>
-      <li><a href="/carrito">Carrito <span class="menu-count" data-cart-count hidden>0</span></a></li>
-    </ul>
-    <QuoteButton place="menu" variant="secondary" block />
-    <p class="menu-note">Le respondemos por WhatsApp. Sin compromiso.</p>
-    <p class="menu-note">WhatsApp <QuoteButton variant="tertiary" label={WHATSAPP_DISPLAY} message={MESSAGES.general} place="menu-phone" class="menu-phone" /></p>
+
+    <nav class="menu-body" aria-label="Menú principal">
+      <p class="menu-label" id="menu-shop">Lentes</p>
+      <ul class="menu-cats" aria-labelledby="menu-shop">
+        {cats.map((c) => (
+          <li>
+            <a href={c.path} aria-current={isHere(c.path)}>
+              <span class="menu-cat-name">{c.label}<small>{c.count} modelos</small></span>
+              {c.img && <Photo img={c.img} alt="" ratio="2 / 1" sizes="112px" widths={[112, 224]} class="menu-cat-ph ph--bare" />}
+            </a>
+          </li>
+        ))}
+        <li class="menu-all">
+          <a href="/lentes" aria-current={isHere("/lentes")}>
+            <span class="menu-cat-name">Todos los lentes<small>{modelCount} modelos</small></span>
+            <Icon name="lucide:arrow-right" size={22} aria-hidden="true" />
+          </a>
+        </li>
+      </ul>
+
+      <ul class="menu-links">
+        {MORE.map((l) => <li><a href={l.href} aria-current={isSection(l.id, l.href)}>{l.label}</a></li>)}
+        <li>
+          <a href="/carrito" aria-current={isHere("/carrito")}>Carrito <span class="menu-count" data-cart-count hidden>0</span></a>
+        </li>
+      </ul>
+    </nav>
+
+    <div class="menu-foot">
+      <p class="menu-foot-title">¿Dudas? Escríbanos.</p>
+      <p class="menu-foot-text">Le atiende una persona por WhatsApp, sin compromiso.</p>
+      <QuoteButton variant="secondary" label={`WhatsApp ${WHATSAPP_DISPLAY}`} message={MESSAGES.general} place="menu" block class="menu-wa" />
+    </div>
   </div>
-</div>
+</dialog>
 </>)}
 
 <script>
-  const menu = document.querySelector<HTMLElement>("[data-menu]");
+  // Compact header: once the page scrolls, the bar gets a shadow and the logo shrinks a little.
+  // Only transform and opacity change, so nothing below it moves.
+  const header = document.querySelector<HTMLElement>("[data-header]");
+  if (header) {
+    let on = false;
+    const tick = () => {
+      const now = scrollY > 24;
+      if (now !== on) { on = now; header.classList.toggle("is-compact", on); }
+    };
+    addEventListener("scroll", tick, { passive: true });
+    tick();
+  }
+
+  // Phone menu: a native <dialog>, so focus stays inside and Escape closes it.
+  const menu = document.querySelector<HTMLDialogElement>("dialog[data-menu]");
   const openBtn = document.querySelector<HTMLButtonElement>("[data-menu-open]");
-  if (menu && openBtn) {
+  if (menu && openBtn && typeof menu.showModal === "function") {
+    const reduce = () => matchMedia("(prefers-reduced-motion: reduce)").matches;
+    let timer = 0;
     const open = () => {
-      menu.hidden = false;
-      requestAnimationFrame(() => menu.classList.add("is-open"));
+      clearTimeout(timer);
+      menu.showModal();
+      document.documentElement.classList.add("is-locked");
       openBtn.setAttribute("aria-expanded", "true");
-      document.body.style.overflow = "hidden";
-      menu.querySelector<HTMLElement>("[data-menu-close]:not(.menu-backdrop)")?.focus();
+      requestAnimationFrame(() => menu.classList.add("is-open"));
     };
     const close = () => {
+      if (!menu.open) return;
       menu.classList.remove("is-open");
+      document.documentElement.classList.remove("is-locked");
       openBtn.setAttribute("aria-expanded", "false");
-      document.body.style.overflow = "";
-      setTimeout(() => (menu.hidden = true), 200);
-      openBtn.focus();
+      timer = window.setTimeout(() => { menu.close(); openBtn.focus(); }, reduce() ? 0 : 320);
     };
     openBtn.addEventListener("click", open);
-    menu.querySelectorAll("[data-menu-close]").forEach((el) => el.addEventListener("click", close));
-    menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => {
-      document.body.style.overflow = "";
-    }));
-    document.addEventListener("keydown", (e) => {
-      if (e.key === "Escape" && !menu.hidden) close();
+    menu.addEventListener("cancel", (e) => { e.preventDefault(); close(); });
+    menu.addEventListener("click", (e) => {
+      if (e.target === menu || (e.target as HTMLElement).closest("[data-menu-close]")) close();
     });
+    // Links leave the page: let it scroll again in case the browser restores it from cache.
+    menu.querySelectorAll("a").forEach((a) => a.addEventListener("click", () => {
+      document.documentElement.classList.remove("is-locked");
+    }));
+    addEventListener("pageshow", () => { if (menu.open) { menu.classList.remove("is-open"); menu.close(); openBtn.setAttribute("aria-expanded", "false"); } });
+    addEventListener("resize", () => { if (innerWidth >= 1024) close(); });
   }
 </script>

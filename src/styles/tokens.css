@@ -28,6 +28,12 @@
   --focus-on-dark: #ffffff;
   --scrim: rgba(19, 22, 42, 0.42);
   --wa: #25d366;              /* inside the WhatsApp glyph only, never a fill */
+  /* Warm panel tones for big frame tiles (home categories). Frames sit on them with multiply.
+     Ink text passes AA on all three (>= 14:1). */
+  --tone-rose: #f3e5de;
+  --tone-stone: #e7e6e0;
+  --tone-sage: #e3eadf;
+  --stage: radial-gradient(120% 95% at 50% 38%, #f8f4ec 0%, #f2ede4 55%, #e9e1d3 100%); /* hero / builder stage */
 
   /* ---------- Type ---------- */
   --font-display: "Fraunces Soft", "Fraunces Fallback", Georgia, "Times New Roman", serif;
@@ -85,6 +91,7 @@
   --grid-cols: 4;
   --grid-gap: 16px;
   --header-h: 60px;
+  --announce-h: 36px;
 
   /* ---------- Shape ---------- */
   --radius-sm: 6px;

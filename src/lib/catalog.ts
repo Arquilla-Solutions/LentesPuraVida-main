@@ -80,6 +80,14 @@ export const productCategories = (p: Product): CategoryId[] => {
 export const productsIn = (id: CategoryId) =>
   visibleProducts.filter((p) => productCategories(p).includes(id));
 
+/** The frame (and English color folder) that represents each category in photo tiles
+ * (home "Busque por estilo", phone menu). Missing ones fall back to the category's first frame. */
+export const CATEGORY_FRAME: Partial<Record<CategoryId, { frame: string; color: string }>> = {
+  mujer: { frame: "District", color: "matte pink" },
+  hombre: { frame: "Warren", color: "matte navy" },
+  unisex: { frame: "Delaware", color: "tortoise" },
+};
+
 /** Categories that have at least one visible frame. Empty ones (Niños while Bound has no photos) stay out of menus. */
 export const activeCategories = () => CATEGORIES.filter((c) => productsIn(c.id).length > 0);
 

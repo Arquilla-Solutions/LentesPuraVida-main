@@ -1,59 +1,108 @@
 ---
+// Store footer: brand, link columns (accordions on phones, open columns from 768px),
+// contact, payment line, the shared trust phrases and the legal row.
+// Column headings are <summary> elements: accordions on phones, fixed open columns from 768px.
 import { WHATSAPP_DISPLAY } from "@/lib/contact";
 import { MESSAGES } from "@/lib/whatsapp";
 import QuoteButton from "./QuoteButton.astro";
 import TrustList from "./TrustList.astro";
-import { activeCategories } from "@/lib/catalog";
+import { activeCategories, modelCount } from "@/lib/catalog";
+import { STORE_RATING, ratingText } from "@/data/trust";
 
 const year = new Date().getFullYear();
+
+const COLS = [
+  {
+    id: "lentes",
+    title: "Lentes",
+    links: [
+      ...activeCategories().map((c) => ({ href: c.path, label: c.label })),
+      { href: "/lentes", label: `Todos los modelos (${modelCount})` },
+      { href: "/lentes-y-tratamientos", label: "Tipos de lentes y extras" },
+    ],
+  },
+  {
+    id: "ayuda",
+    title: "Ayuda",
+    links: [
+      { href: "/como-funciona", label: "Cómo funciona" },
+      { href: "/como-funciona#preguntas", label: "Preguntas frecuentes" },
+      { href: "/envios-y-garantia", label: "Envíos y garantía" },
+      { href: "/carrito", label: "Su carrito" },
+    ],
+  },
+  {
+    id: "tienda",
+    title: "La tienda",
+    links: [
+      { href: "/sobre-nosotros", label: "Sobre nosotros" },
+      { href: "/privacidad", label: "Privacidad" },
+    ],
+  },
+];
 ---
 
 <footer class="site-footer" id="contacto">
-  <div class="wrap footer-grid">
-    <div class="footer-brand">
-      <a href="/" aria-label="Lentes Pura Vida, inicio">
-        <img src="/logo.svg" alt="" width="185" height="50" class="footer-logo" loading="lazy" />
-      </a>
-      <p>
-        Lentes recetados hechos en Estados Unidos, con envío a toda Costa Rica. 🇨🇷
-      </p>
+  <div class="wrap">
+    <div class="footer-top">
+      <div class="footer-brand">
+        <a href="/" aria-label="Lentes Pura Vida, inicio" class="footer-logo-link">
+          <img src="/logo.svg" alt="" width="185" height="50" class="footer-logo" loading="lazy" />
+        </a>
+        <p>Lentes recetados hechos en Estados Unidos, con envío a las 7 provincias de Costa Rica.</p>
+        <p class="footer-rating">
+          <span class="stars" aria-hidden="true">★★★★★</span>
+          <span><strong>{ratingText(STORE_RATING.score)} de 5</strong> en opiniones de clientes</span>
+        </p>
+      </div>
+
+      <div class="footer-contact">
+        <h2 class="footer-h">Escríbanos</h2>
+        <p class="footer-contact-text">Le atiende una persona, no un robot. Tienda 100% en línea.</p>
+        <QuoteButton variant="secondary" label={`WhatsApp ${WHATSAPP_DISPLAY}`} message={MESSAGES.general} place="footer" class="footer-wa" />
+      </div>
     </div>
 
-    <nav class="footer-col" aria-label="Lentes">
-      <h2>Lentes</h2>
-      <ul>
-        <li><a href="/lentes">Todos los modelos</a></li>
-        {activeCategories().map((c) => <li><a href={c.path}>{c.label}</a></li>)}
-      </ul>
-    </nav>
-
-    <nav class="footer-col" aria-label="Ayuda">
-      <h2>Ayuda</h2>
-      <ul>
-        <li><a href="/como-funciona">Cómo funciona</a></li>
-        <li><a href="/lentes-y-tratamientos">Tipos de lentes</a></li>
-        <li><a href="/envios-y-garantia">Envíos y garantía</a></li>
-        <li><a href="/sobre-nosotros">Sobre nosotros</a></li>
-        <li><a href="/privacidad">Privacidad</a></li>
-      </ul>
-    </nav>
-
-    <div class="footer-col">
-      <h2>Contacto</h2>
-      <ul>
-        <li><QuoteButton variant="tertiary" label={`WhatsApp ${WHATSAPP_DISPLAY}`} message={MESSAGES.general} place="footer" /></li>
-        <li>Respondemos en minutos</li>
-        <li>Tienda 100% online</li>
-      </ul>
-      <h2 class="footer-h-gap">Compre con confianza</h2>
-      <TrustList class="trust-list footer-trust" size={16} />
-      <p class="footer-small">Optómetras certificados · Envío con guía rastreable</p>
+    <div class="footer-cols">
+      {COLS.map((col) => (
+        <details class="footer-col" data-footer-col open>
+          <summary class="footer-h">{col.title}</summary>
+          <ul>
+            {col.links.map((l) => <li><a href={l.href}>{l.label}</a></li>)}
+          </ul>
+        </details>
+      ))}
+      <div class="footer-col footer-col--trust">
+        <h2 class="footer-h">Compre con confianza</h2>
+        <TrustList class="trust-list footer-trust" size={18} />
+      </div>
     </div>
-  </div>
 
-  <div class="wrap footer-bottom">
-    <span>© {year} Lentes Pura Vida · Costa Rica</span>
-    <span>Precios y disponibilidad sujetos a cambio</span>
-    <span>Marketing por <a href="https://arquillasolutions.com" target="_blank" rel="noopener">Arquilla Solutions</a></span>
+    <div class="footer-pay">
+      <span class="footer-pay-label">Formas de pago</span>
+      <span class="pay-mark">SINPE Móvil</span>
+      <span class="pay-mark">Transferencia bancaria</span>
+      <span class="footer-pay-note">Paga cuando ya tiene el precio total por WhatsApp.</span>
+    </div>
+
+    <div class="footer-bottom">
+      <span>© {year} Lentes Pura Vida · Costa Rica</span>
+      <span>Precios y disponibilidad sujetos a cambio</span>
+      <span class="footer-credit">Marketing por <a href="https://arquillasolutions.com" target="_blank" rel="noopener">Arquilla Solutions</a></span>
+    </div>
   </div>
 </footer>
+
+<script>
+  // Columns are accordions on phones only (they render open, so nothing hides without JS).
+  // From 768px every column stays open and the headings stop toggling.
+  const cols = document.querySelectorAll<HTMLDetailsElement>("[data-footer-col]");
+  const wide = matchMedia("(min-width: 768px)");
+  const sync = () => cols.forEach((d) => {
+    d.open = wide.matches;
+    d.querySelector("summary")?.setAttribute("tabindex", wide.matches ? "-1" : "0");
+  });
+  sync();
+  wide.addEventListener("change", sync);
+  cols.forEach((d) => d.querySelector("summary")?.addEventListener("click", (e) => { if (wide.matches) e.preventDefault(); }));
+</script>

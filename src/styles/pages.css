@@ -1,111 +1,6 @@
 /* Page sections and flows: header, hero, catalog, product page, cart, checkout, confirmation, footer.
    Built on tokens.css and components.css. Later redesign sessions rebuild these per page. */
 
-/* ---------- Header ---------- */
-.announce {
-  margin: 0; padding: 8px var(--gutter); background: var(--surface-alt); color: var(--ink);
-  font-size: 14px; text-align: center; border-bottom: 1px solid var(--line);
-}
-.site-header {
-  background: rgba(255, 255, 255, 0.94); border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 30;
-  -webkit-backdrop-filter: saturate(1.4) blur(10px); backdrop-filter: saturate(1.4) blur(10px);
-  view-transition-name: site-header;
-}
-.site-header-inner { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: var(--header-h); }
-.wordmark { display: inline-flex; align-items: center; flex: none; padding: 4px 0; text-decoration: none; }
-.logo-img { display: block; width: 140px; height: auto; }
-@media (min-width: 1024px) { .logo-img { width: 184px; } }
-.nav-desktop { display: none; gap: 28px; }
-.nav-desktop a { text-decoration: none; font-size: 16px; color: var(--ink-muted); padding: 8px 0; border-bottom: 2px solid transparent; }
-.nav-desktop a:hover, .nav-desktop a[aria-current="page"] { color: var(--ink); border-bottom-color: var(--brand); }
-.header-actions { display: flex; align-items: center; gap: 4px; }
-.header-quote { display: none; }
-/* WhatsApp number: quiet text beside Cotizar on wide screens; phones get it in the menu and the bottom bar. */
-.header-phone { display: none; margin-right: 12px; font-weight: 400; font-size: 15px; color: var(--ink-muted); text-decoration: none; white-space: nowrap; font-variant-numeric: tabular-nums; }
-.header-phone:hover { color: var(--ink); }
-@media (min-width: 1180px) { .header-phone { display: inline-flex; align-items: center; } }
-.menu-phone { white-space: nowrap; font-variant-numeric: tabular-nums; }
-.menu-btn {
-  display: inline-flex; align-items: center; justify-content: center; width: 44px; height: 44px;
-  margin-right: -10px; background: none; border: 0; color: var(--ink); cursor: pointer; border-radius: 8px;
-}
-@media (min-width: 1024px) {
-  .nav-desktop { display: flex; }
-  .header-quote { display: inline-flex; }
-  .header-actions .menu-btn { display: none; }
-}
-.menu { position: fixed; inset: 0; z-index: 60; }
-.menu[hidden] { display: none; }
-.menu-backdrop { position: absolute; inset: 0; background: rgba(19, 22, 42, 0.4); opacity: 0; transition: opacity .2s ease; }
-.menu-panel {
-  position: absolute; top: 0; right: 0; bottom: 0; width: min(88vw, 380px);
-  background: var(--surface); padding: 12px 24px 32px; display: flex; flex-direction: column; gap: 20px;
-  transform: translateX(100%); transition: transform .2s ease; overflow-y: auto;
-}
-.menu.is-open .menu-backdrop { opacity: 1; }
-.menu.is-open .menu-panel { transform: none; }
-.menu-top { display: flex; align-items: center; justify-content: space-between; min-height: 48px; }
-.menu-links { list-style: none; margin: 0; padding: 0; border-top: 1px solid var(--line); }
-.menu-links a {
-  display: block; padding: 14px 0; font-size: 19px; text-decoration: none; border-bottom: 1px solid var(--line);
-}
-.menu-links a[aria-current="page"] { font-weight: 600; }
-.menu-note { margin: 0; font-size: 14px; color: var(--ink-muted); text-align: center; }
-
-/* ---------- Hero (home) ---------- */
-.hero { padding: 32px 0 0; }
-.hero-grid { display: grid; gap: 28px; }
-.hero h1 { max-width: 15ch; }
-.hero .lead { margin: 16px 0 24px; max-width: 34em; }
-.hero-actions { display: flex; flex-direction: column; align-items: stretch; gap: 16px; }
-.hero-actions .btn-tertiary { align-self: center; }
-.hero-media { position: relative; margin: 0 calc(var(--gutter) * -1); }
-.hero-media .ph { border-radius: 0; }
-.hero-tag {
-  position: absolute; left: var(--gutter); bottom: 16px; background: rgba(255, 255, 255, 0.94);
-  padding: 8px 14px; border-radius: 8px; font-size: 14px; text-decoration: none; color: var(--ink);
-  box-shadow: 0 1px 2px rgba(19, 22, 42, 0.08);
-}
-.hero-tag strong { font-weight: 600; }
-@media (min-width: 768px) {
-  .hero-actions { flex-direction: row; align-items: center; }
-  .hero-actions .btn-tertiary { align-self: auto; }
-}
-@media (min-width: 768px) and (max-width: 1023px) {
-  .hero { padding-top: 40px; }
-  .hero-grid { grid-template-columns: 1.1fr 1fr; align-items: center; gap: 32px; }
-  .hero h1 { font-size: 40px; }
-  .hero-actions { flex-direction: column; align-items: flex-start; }
-  .hero-media { margin: 0; }
-  .hero-media .ph { border-radius: var(--radius-md); }
-  .hero-tag { left: 12px; bottom: 12px; }
-}
-@media (min-width: 1024px) {
-  .hero { padding: 0; }
-  .hero-grid { grid-template-columns: 1fr 1fr; align-items: center; gap: 56px; min-height: 600px; }
-  .hero-copy { padding: 56px 0; }
-  .hero-media { margin: 0 calc((100vw - min(100vw, var(--wrap) + var(--gutter) * 2)) / -2 - var(--gutter)) 0 0; height: 100%; }
-  .hero-media .ph { height: 100%; aspect-ratio: auto; min-height: 600px; }
-  .hero-tag { left: 24px; bottom: 24px; }
-}
-
-/* ---------- Trust line ---------- */
-/* Shared trust phrases (src/data/trust.ts, TrustList.astro). */
-.trust { border-bottom: 1px solid var(--line); }
-.trust .trust-strip {
-  padding: 18px 0 0; grid-template-columns: 1fr 1fr;
-  gap: 10px 16px; font-size: 15px; color: var(--ink-muted);
-}
-.trust .trust-rating { grid-column: 1 / -1; justify-content: center; color: var(--ink); }
-.trust .trust-rating strong { font-weight: 600; }
-.trust-fit { margin: 14px auto 0; padding: 0 0 18px; max-width: 40em; font-size: 14px; color: var(--ink-muted); text-align: center; }
-@media (min-width: 768px) {
-  .trust .trust-strip { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 0; padding: 20px 0 0; }
-  .trust .trust-strip li { padding: 0 20px; }
-  .trust .trust-strip li + li { border-left: 1px solid var(--line); }
-  .trust-fit { padding-bottom: 20px; }
-}
-
 /* ---------- Steps ---------- */
 .steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 20px; counter-reset: step; }
 .steps li {
@@ -126,13 +21,6 @@
   .steps:not(.steps--stack) li::before { display: block; font-size: 40px; margin-bottom: 14px; }
 }
 .steps--stack { margin-top: 32px; }
-
-/* ---------- Category tiles ---------- */
-.tiles { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
-.tile { text-decoration: none; color: var(--ink); }
-.tile > span { display: block; margin-top: 10px; font-weight: 600; font-size: 16px; }
-.tile:hover > span { text-decoration: underline; text-underline-offset: 4px; }
-@media (min-width: 768px) { .tiles { gap: 20px; } .tile span { font-size: 19px; } }
 
 /* ---------- Two-column blocks ---------- */
 .split { display: grid; gap: 32px; align-items: start; }
@@ -277,32 +165,6 @@
 @media (min-width: 768px) { .facts strong { font-size: 26px; } }
 .facts strong { display: block; font-family: var(--font-display); font-weight: 500; font-size: 22px; color: var(--ink); line-height: 1.1; margin-bottom: 4px; }
 
-/* ---------- Footer ---------- */
-.site-footer { background: var(--surface-alt); border-top: 1px solid var(--line); padding: 56px 0 24px; font-size: 15px; }
-.footer-grid { display: grid; gap: 32px; grid-template-columns: 1fr 1fr; }
-.footer-brand { grid-column: 1 / -1; max-width: 360px; }
-.footer-brand p { color: var(--ink-muted); margin: 14px 0 0; }
-.footer-logo { display: block; width: 185px; height: auto; }
-.footer-col h2 { font-family: var(--font-text); font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; margin: 0 0 12px; color: var(--ink); }
-.footer-col ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
-.footer-col li { color: var(--ink-muted); }
-.footer-col a { color: var(--ink); text-decoration: none; display: inline-block; padding: 6px 0; }
-.footer-col a:hover { text-decoration: underline; }
-.footer-col .btn-tertiary { font-weight: 400; min-height: 0; padding: 6px 0; }
-.footer-h-gap { margin-top: 20px !important; }
-.footer-small { color: var(--ink-muted); margin: 0; }
-.footer-col .footer-trust { gap: 6px; margin-bottom: 10px; }
-.footer-col:last-child { grid-column: 1 / -1; }
-@media (min-width: 768px) {
-  .footer-grid { grid-template-columns: 1.4fr 1fr 1fr 1.3fr; gap: 40px; }
-  .footer-brand, .footer-col:last-child { grid-column: auto; }
-}
-.footer-bottom {
-  display: flex; flex-wrap: wrap; gap: 6px 20px; margin-top: 40px; padding-top: 20px; border-top: 1px solid var(--line);
-  font-size: 13px; color: var(--ink-muted);
-}
-.footer-bottom a { color: var(--ink-muted); }
-
 /* ---------- Phone sticky bar ---------- */
 .sticky-bar {
   position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; align-items: center; justify-content: space-between; gap: 12px;
@@ -324,23 +186,6 @@
 .nf { padding: 72px 0 var(--section-y); text-align: center; }
 .nf h1 { margin-bottom: 12px; }
 .nf .cta-row { justify-content: center; margin-top: 24px; }
-
-/* ---------- Header cart ---------- */
-.cart-btn { margin-left: 4px; }
-.cart-badge.is-bump { animation: bump .5s var(--ease-spring); }
-.cart-badge.is-bump::after {
-  content: ""; position: absolute; inset: -2px; border-radius: inherit; border: 2px solid var(--brand);
-  animation: ring .6s ease-out forwards;
-}
-@keyframes bump { 0% { transform: scale(1); } 30% { transform: scale(1.45); } 100% { transform: scale(1); } }
-@keyframes ring { from { opacity: 1; transform: scale(1); } to { opacity: 0; transform: scale(2.2); } }
-.menu-count {
-  display: inline-block; margin-left: 6px; min-width: 22px; padding: 0 6px; border-radius: 999px; background: var(--brand);
-  color: #fff; font-size: 13px; text-align: center;
-}
-.site-header--min .site-header-inner { min-height: 60px; }
-.back-link { display: inline-flex; align-items: center; gap: 6px; font-size: 15px; color: var(--ink-muted); text-decoration: none; padding: 10px 0; }
-.back-link:hover { color: var(--ink); text-decoration: underline; text-underline-offset: 4px; }
 
 /* ---------- Product page: buy box ---------- */
 .buy { margin-top: 4px; }

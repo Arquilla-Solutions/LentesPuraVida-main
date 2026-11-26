@@ -158,6 +158,7 @@ const websiteJsonLd = {
     )}
 
     <link rel="preload" href="/fonts/fraunces-soft-latin-470-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <slot name="head" />
     <script is:inline>
       // "js" turns on the enhanced bits; "has-cart" lets the cart and checkout pages draw the
       // right layout on the first paint (no jump when the saved cart loads).

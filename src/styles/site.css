@@ -1,9 +1,12 @@
 /* Lentes Pura Vida: the one stylesheet entry (imported by BaseLayout).
-   Order matters: tokens, then fonts, base, components, page sections, motion.
+   Order matters: tokens, then fonts, base, components, page sections, header/footer (chrome),
+   home, motion.
    Design rules and the why behind them: DESIGN_SYSTEM.md in the repo root. */
 @import "./tokens.css";
 @import "./fonts.css";
 @import "./base.css";
 @import "./components.css";
 @import "./pages.css";
+@import "./chrome.css";
+@import "./home.css";
 @import "./motion.css";

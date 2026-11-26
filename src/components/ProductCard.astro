@@ -1,7 +1,11 @@
 ---
+// Product card for the home rail and the catalog grid. Frame-only shots: the front view,
+// and on hover (desktop) the 3/4 view of the same color. Name, frame price ("solo montura"),
+// the photographed colors and the frame's rating when it has one.
 import type { Product } from "@/data/products";
 import { getSwatch } from "@/data/products";
-import { onFaceThumb, photographedColors, primaryThumb, scanFramePhotos } from "@/lib/photos";
+import { altView, mainView, photographedColors, scanFramePhotos } from "@/lib/photos";
+import { ratingText } from "@/data/trust";
 import Photo from "./Photo.astro";
 
 interface Props {
@@ -15,20 +19,22 @@ const { product, sizes = "(min-width: 1280px) 290px, (min-width: 1024px) 30vw, (
   Astro.props;
 
 const frame = scanFramePhotos()[product.name];
-const thumb = primaryThumb(frame);
-const face = onFaceThumb(frame, "onWoman");
+const first = frame?.colors[0]?.photos;
+const thumb = mainView(first);
+const alt = altView(first);
 const colors = photographedColors(frame);
 const shown = colors.slice(0, 5);
 const more = colors.length - shown.length;
+const colorWord = colors.length === 1 ? "1 color" : `${colors.length} colores`;
 ---
 
 <a href={`/lentes/${product.slug}`} class="card" {...filterAttrs}>
   <div class="card-media" data-vt={product.slug}>
     {thumb && (
-      <Photo img={thumb} alt={`Lentes ${product.name}, vista de frente`} kind="product" sizes={sizes} eager={eager} />
+      <Photo img={thumb} alt={`Lentes ${product.name}, vista de frente`} kind="product" sizes={sizes} eager={eager} class="card-main" />
     )}
-    {face && (
-      <Photo img={face} alt="" kind="person" sizes={sizes} widths={[320, 500]} class="card-alt" />
+    {alt && (
+      <Photo img={alt} alt="" kind="product" sizes={sizes} widths={[320, 480, 640]} class="card-alt" />
     )}
   </div>
   <div class="card-body">
@@ -37,7 +43,7 @@ const more = colors.length - shown.length;
       <span class="card-price">${product.framePrice}</span>
     </div>
     <div class="card-row card-row--meta">
-      <span class="dots" aria-label={`${colors.length} ${colors.length === 1 ? "color" : "colores"}`}>
+      <span class="dots" role="img" aria-label={colorWord}>
         {shown.map((c) => {
           const sw = getSwatch(c.spanish);
           return <span class="dot" style={`--sw: ${sw.bg}`} title={c.spanish}></span>;
@@ -46,5 +52,11 @@ const more = colors.length - shown.length;
       </span>
       <span class="card-note">solo montura</span>
     </div>
+    {product.rating && (
+      <p class="card-rating">
+        <span class="card-star" aria-hidden="true">★</span>
+        <span><strong>{ratingText(product.rating.score)}</strong><span class="sr-only"> de 5</span> <span class="card-count">({product.rating.count.toLocaleString("es-CR")} opiniones)</span></span>
+      </p>
+    )}
   </div>
 </a>
