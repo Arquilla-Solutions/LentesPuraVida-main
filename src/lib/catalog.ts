@@ -80,6 +80,9 @@ export const productCategories = (p: Product): CategoryId[] => {
 export const productsIn = (id: CategoryId) =>
   visibleProducts.filter((p) => productCategories(p).includes(id));
 
+/** Categories that have at least one visible frame. Empty ones (Niños while Bound has no photos) stay out of menus. */
+export const activeCategories = () => CATEGORIES.filter((c) => productsIn(c.id).length > 0);
+
 export const categoryLabel = (p: Product) =>
   p.kids ? "Niños" : p.gender === "Mujer" ? "Mujer" : "Unisex";
 

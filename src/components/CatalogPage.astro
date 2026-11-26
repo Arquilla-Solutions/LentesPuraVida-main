@@ -8,6 +8,7 @@ import { SITE_URL } from "@/lib/seo";
 import { MESSAGES } from "@/lib/whatsapp";
 import {
   CATEGORIES,
+  activeCategories,
   productsIn,
   shapeGroup,
   visibleProducts,
@@ -84,7 +85,7 @@ const jsonLd: Record<string, unknown>[] = [
       <div class="filters">
         <nav class="chips" aria-label="Categorías">
           <a class="chip" href="/lentes" aria-current={!category ? "page" : undefined}>Todos <small>{visibleProducts.length}</small></a>
-          {CATEGORIES.map((c) => (
+          {activeCategories().map((c) => (
             <a class="chip" href={c.path} aria-current={category?.id === c.id ? "page" : undefined}>
               {c.label} <small>{productsIn(c.id).length}</small>
             </a>

@@ -3,6 +3,7 @@ import { WHATSAPP_DISPLAY } from "@/lib/contact";
 import { MESSAGES } from "@/lib/whatsapp";
 import QuoteButton from "./QuoteButton.astro";
 import TrustList from "./TrustList.astro";
+import { activeCategories } from "@/lib/catalog";
 
 const year = new Date().getFullYear();
 ---
@@ -22,10 +23,7 @@ const year = new Date().getFullYear();
       <h2>Lentes</h2>
       <ul>
         <li><a href="/lentes">Todos los modelos</a></li>
-        <li><a href="/lentes/mujer">Mujer</a></li>
-        <li><a href="/lentes/hombre">Hombre</a></li>
-        <li><a href="/lentes/unisex">Unisex</a></li>
-        <li><a href="/lentes/ninos">Niños</a></li>
+        {activeCategories().map((c) => <li><a href={c.path}>{c.label}</a></li>)}
       </ul>
     </nav>
 

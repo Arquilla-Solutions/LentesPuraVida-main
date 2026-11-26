@@ -1,6 +1,9 @@
 ---
 import CatalogPage from "@/components/CatalogPage.astro";
-import { CATEGORIES } from "@/lib/catalog";
+import { CATEGORIES, productsIn } from "@/lib/catalog";
 const category = CATEGORIES.find((c) => c.id === "ninos")!;
+// While no kids frame has photos, this page sends visitors to all models
+// (also a 302 in public/_redirects). Remove both once Bound has photos.
+if (productsIn("ninos").length === 0) return Astro.redirect("/lentes");
 ---
 <CatalogPage category={category} />

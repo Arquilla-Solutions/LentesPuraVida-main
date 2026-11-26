@@ -1,1 +1,4 @@
 # No catch-all rewrite: unknown URLs get the real 404 page (404.html) instead of the home page.
+
+# Niños has no visible frames yet (Bound has no photos). Remove this line once it does.
+/lentes/ninos /lentes 302
