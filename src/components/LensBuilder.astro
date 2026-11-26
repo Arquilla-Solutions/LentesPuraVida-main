@@ -128,6 +128,19 @@ const MIRROR = "translate(440 0) scale(-1 1)";
     </figure>
   </div>
 
+  {variant === "full" && (
+    <p class="lb-chip" data-lb-chip hidden>
+      <svg class="lb-chip-icon" viewBox="0 0 440 200" aria-hidden="true">
+        <g fill="none" stroke="currentColor" stroke-width="16" stroke-linejoin="round" stroke-linecap="round">
+          <path d={LENS} />
+          <path d={LENS} transform={MIRROR} />
+          <path d="M197 62 Q220 46 243 62" />
+        </g>
+      </svg>
+      <span class="lb-chip-text" data-lb-chip-text>Visión sencilla</span>
+    </p>
+  )}
+
   <div class="lb-controls">
     <fieldset class="lb-group">
       <legend class="lb-legend">Tipo de lente</legend>
@@ -208,6 +221,10 @@ const MIRROR = "translate(440 0) scale(-1 1)";
     const box = (v: string) => root.querySelector<HTMLInputElement>(`input[type=checkbox][value="${v}"]`);
     let noteTimer = 0;
 
+    const chip = root.querySelector<HTMLElement>("[data-lb-chip]");
+    const chipText = root.querySelector<HTMLElement>("[data-lb-chip-text]");
+    const stage = root.querySelector<HTMLElement>(".lb-stage");
+
     const update = () => {
       const type = root.querySelector<HTMLInputElement>("input[type=radio]:checked");
       const extras = [...root.querySelectorAll<HTMLInputElement>("input[type=checkbox]:checked")].map((i) => i.dataset.word);
@@ -217,7 +234,29 @@ const MIRROR = "translate(440 0) scale(-1 1)";
         link.dataset.msg = msg;
         link.href = waHref(msg);
       }
+      if (chipText) {
+        const typeName = type?.closest("label")?.querySelector(".lb-type-name")?.textContent?.trim() ?? "";
+        const extraNames = [...root.querySelectorAll<HTMLInputElement>("input[type=checkbox]:checked")].map((i) =>
+          i.closest("label")?.querySelector(".lb-layer-name")?.textContent?.trim() ?? ""
+        ).filter(Boolean);
+        chipText.textContent = [typeName, ...extraNames].filter(Boolean).join(" · ");
+      }
     };
+
+    const pinChip = () => {
+      if (!chip || !stage) return;
+      const phone = window.matchMedia("(max-width: 1023px)").matches;
+      if (!phone) { chip.hidden = true; chip.classList.remove("is-on"); return; }
+      const header = parseFloat(getComputedStyle(document.documentElement).getPropertyValue("--header-h")) || 72;
+      const on = stage.getBoundingClientRect().bottom <= header + 8;
+      chip.hidden = !on;
+      chip.classList.toggle("is-on", on);
+    };
+    if (chip && stage) {
+      window.addEventListener("scroll", pinChip, { passive: true });
+      window.addEventListener("resize", pinChip, { passive: true });
+      pinChip();
+    }
 
     root.addEventListener("change", (e) => {
       const input = e.target as HTMLInputElement;

@@ -1,6 +1,6 @@
 ---
 // Product card for the home rail and the catalog grid. Frame-only shots: the front view,
-// and on hover (desktop) the 3/4 view of the same color. Name, frame price ("solo montura"),
+// and on hover (desktop) the 3/4 view of the same color. Name, frame price ("sin graduación"),
 // the photographed colors and the frame's rating when it has one.
 import type { Product } from "@/data/products";
 import { getSwatch } from "@/data/products";
@@ -50,7 +50,7 @@ const colorWord = colors.length === 1 ? "1 color" : `${colors.length} colores`;
         })}
         {more > 0 && <span class="dots-more">+{more}</span>}
       </span>
-      <span class="card-note">solo montura</span>
+      <span class="card-note">sin graduación</span>
     </div>
     {product.rating && (
       <p class="card-rating">

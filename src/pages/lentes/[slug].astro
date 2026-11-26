@@ -69,8 +69,8 @@ const idx = visibleProducts.findIndex((p) => p.slug === product.slug);
 const quotes = [0, 1, 2].map((k) => REVIEWS[(idx * 3 + k) % REVIEWS.length]);
 const size = product.sizes.find((s) => s.label === product.primarySize) ?? product.sizes[0];
 
-const seoTitle = `Lentes ${product.name} de ${materialLabel}, $${product.framePrice} | Lentes Pura Vida`;
-const seoDescription = `Lentes ${product.name}, ${product.shape.toLowerCase()} de ${materialLabel}: $${product.framePrice} la montura. Envío a toda Costa Rica. Escriba su receta y le cotizamos el mismo día.`;
+const seoTitle = `Lentes ${product.name} de ${materialLabel}, hasta 60% menos | Lentes Pura Vida`;
+const seoDescription = `Lentes ${product.name}, ${product.shape.toLowerCase()} de ${materialLabel}. Hasta 60% menos que en la óptica. Envío a toda Costa Rica. Escriba su receta y le cotizamos el mismo día.`;
 
 const url = `${SITE_URL}/lentes/${product.slug}`;
 const productJsonLd: Record<string, unknown>[] = [
@@ -146,7 +146,7 @@ const productJsonLd: Record<string, unknown>[] = [
   ogDescription={`Lentes ${product.name}, ${product.shape.toLowerCase()} de ${materialLabel}. Le cotizamos los lentes graduados según su receta por WhatsApp, con envío a toda Costa Rica.`}
   imageAlt={`Lentes ${product.name}, ${product.alt.toLowerCase()}`}
   ogType="product"
-  keywords={`lentes ${product.name}, montura ${product.name}, lentes ${materialLabel} ${product.shape.toLowerCase()}, lentes recetados Costa Rica`}
+  keywords={`lentes ${product.name}, lentes ${materialLabel} ${product.shape.toLowerCase()}, lentes recetados Costa Rica`}
   jsonLd={productJsonLd}
   sticky={{ name: product.name, price: product.framePrice, thumb: stickyThumb, frame: product.name, addToCart: true }}
 >
@@ -209,7 +209,7 @@ const productJsonLd: Record<string, unknown>[] = [
           <h1>{product.name}</h1>
           {product.rating && (
             <p class="pdp-rating">
-              <Icon name="lucide:star" size={16} aria-hidden="true" class="ti" />
+              <span class="stars" aria-hidden="true">★★★★★</span>
               <span><strong>{ratingText(product.rating.score)} de 5</strong> · <a href="#opiniones">{product.rating.count.toLocaleString("es-CR")} opiniones</a></span>
             </p>
           )}
@@ -217,7 +217,7 @@ const productJsonLd: Record<string, unknown>[] = [
           <div class="pdp-price">
             <div class="price">
               <span class="price-amount">${product.framePrice}</span>
-              <span class="price-note">solo montura</span>
+              <span class="price-note">sin graduación</span>
             </div>
             <p class="price-compare">
               En una óptica local, desde <s>${product.comparePrice}</s>. Usted ahorra <strong>${savings}</strong>.

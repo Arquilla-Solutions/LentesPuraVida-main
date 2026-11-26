@@ -156,7 +156,7 @@ export function orderMessage(o: Order): string {
     L.push(`Color: ${i.color}`);
     L.push(`Lente: ${describeLens(i)}`);
     if (i.extras.length) L.push(`Extras: ${describeExtras(i)}`);
-    L.push(`Montura: ${money(i.price)}${i.qty > 1 ? ` c/u` : ""}`);
+    L.push(`Sin graduación: ${money(i.price)}${i.qty > 1 ? ` c/u` : ""}`);
     const p = own[i.id];
     if (p) {
       const head = `Receta de este par${p.for ? ` (${p.for})` : ""}`;
@@ -168,7 +168,7 @@ export function orderMessage(o: Order): string {
   // With pairs on their own receta, say which pairs the main receta is for.
   const forPairs = onDefault.length < o.items.length && onDefault.length
     ? ` (${onDefault.length === 1 ? "par" : "pares"} ${onDefault.join(onDefault.length === 2 ? " y " : ", ")})` : "";
-  L.push(`*Subtotal monturas: ${money(frameSubtotal(o.items))}*`);
+  L.push(`*Subtotal sin graduación: ${money(frameSubtotal(o.items))}*`);
   L.push("Los lentes y extras me los cotizan según mi receta.");
   L.push("");
   L.push(`Nombre: ${o.name.trim()}`);
@@ -282,7 +282,7 @@ function itemRow(i: CartItem, opts: { open?: boolean; fresh?: boolean; n?: numbe
       ),
       h("p", { class: "ci-meta", text: `${i.color} · ${describeLens(i)}` }),
       extras ? h("p", { class: "ci-meta", text: `Extras: ${extras}` }) : null,
-      h("p", { class: "ci-quote", text: i.qty > 1 ? `${money(i.price)} c/u, solo montura. Los lentes se cotizan por WhatsApp` : "Solo montura. Los lentes se cotizan por WhatsApp" }),
+      h("p", { class: "ci-quote", text: i.qty > 1 ? `${money(i.price)} c/u, sin graduación. Los lentes se cotizan por WhatsApp` : "Sin graduación. Los lentes se cotizan por WhatsApp" }),
       h("p", { class: "ci-rx" }, h("span", { class: "ci-rx-dot", "aria-hidden": "true" }),
         h("span", { text: (opts.n ?? 0) === 0
           ? "Receta: la indica al continuar"
@@ -436,14 +436,14 @@ export function summaryRows(items: CartItem[]): HTMLElement[] {
 }
 
 /** Free shipping progress from the frame subtotal. Lenses also count toward the real total,
- *  so under the line the copy says "en monturas" and that lenses add to it. */
+ *  so under the line the copy says the subtotal is without the prescription lenses, which also count. */
 export function shipProgress(subtotal: number) {
   const left = Math.max(0, FREE_SHIP - subtotal);
   return {
     done: left === 0,
     pct: Math.min(1, subtotal / FREE_SHIP),
     text: left === 0 ? "Su pedido tiene envío gratis" : `Envío gratis desde ${money(FREE_SHIP)}`,
-    note: left === 0 ? "Las monturas ya pasan de " + money(FREE_SHIP) + "." : `Lleva ${money(subtotal)} en monturas. Los lentes también suman al total.`,
+    note: left === 0 ? "El subtotal ya pasa de " + money(FREE_SHIP) + "." : `Lleva ${money(subtotal)} sin graduación. Los lentes graduados también suman al total.`,
   };
 }
 

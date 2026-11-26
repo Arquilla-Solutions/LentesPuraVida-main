@@ -469,12 +469,30 @@
 .lb:has(input[value="delgados"]:checked) .lb-slab[data-for="delgados"] { display: flex; animation: slab-in .5s var(--ease-spring) both; }
 @keyframes slab-in { from { opacity: 0; transform: translateY(-14px) scale(0.97); } }
 
-/* Full (home): the drawing stays in view on phones while the options scroll under it. */
-.lb--full .lb-stage { position: sticky; top: calc(var(--header-h) + 8px); z-index: 2; box-shadow: 0 10px 24px -20px rgba(19, 22, 42, 0.5); }
-@media (max-width: 1023px) { .lb--full .lb-stage { padding: var(--space-s) var(--space-s) var(--space-l); } .lb--full .lb-art { max-width: 340px; } }
+/* Full (home): on phones the big drawing scrolls away and a compact chip (max 64px)
+   sticks under the header with the current selections. On desktop the drawing stays in view. */
+.lb-chip { display: none; }
+@media (max-width: 1023px) {
+  .lb--full .lb-stage { padding: var(--space-s) var(--space-s) var(--space-l); }
+  .lb--full .lb-art { max-width: 340px; }
+  .js .lb--full .lb-chip {
+    display: flex; position: fixed; top: calc(var(--header-h) + 8px); left: var(--gutter); right: var(--gutter);
+    z-index: 15; align-items: center; gap: 10px; height: 56px; max-height: 64px; margin: 0; padding: 0 14px;
+    border-radius: var(--radius-pill); background: var(--surface); border: var(--border);
+    box-shadow: 0 8px 20px -8px rgba(19, 22, 42, 0.28);
+    opacity: 0; pointer-events: none; transform: translateY(-6px);
+    transition: opacity var(--dur-2) ease, transform var(--dur-2) ease;
+  }
+  .js .lb--full .lb-chip.is-on { opacity: 1; pointer-events: auto; transform: none; }
+  .lb-chip-icon { flex: none; width: 48px; height: 22px; color: var(--ink); }
+  .lb-chip-text { min-width: 0; font-size: var(--fs-small); font-weight: var(--fw-semibold); line-height: 1.25; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .js .lb--full .lb-chip { transition: none; transform: none; }
+}
 @media (min-width: 1024px) {
   .lb--full { grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr); gap: var(--space-3xl); align-items: start; }
-  .lb--full .lb-stage { top: calc(var(--header-h) + var(--space-l)); min-height: 460px; box-shadow: none; }
+  .lb--full .lb-stage { position: sticky; top: calc(var(--header-h) + var(--space-l)); min-height: 460px; }
   .lb--full .lb-stack { order: 0; }
 }
 /* Compact (product page, lens guide): small drawing, options in two columns, no stack. */

@@ -31,14 +31,14 @@ const { category } = Astro.props;
 const base = category ? productsIn(category.id) : visibleProducts;
 const list = [...base].sort((a, b) => (b.rating ? 1 : 0) - (a.rating ? 1 : 0));
 const path = category ? category.path : "/lentes";
-const title = category ? category.title : "Lentes recetados y monturas en Costa Rica | Lentes Pura Vida";
+const title = category ? category.title : "Lentes recetados en Costa Rica | Lentes Pura Vida";
 const description = category
   ? category.description
   : `Los ${visibleProducts.length} modelos de lentes recetados de Lentes Pura Vida, hasta 60% menos que en la óptica. Envío a toda Costa Rica y precio total por WhatsApp.`;
 const h1 = category ? category.h1 : "Todos los lentes";
 const intro = category
   ? category.intro
-  : "Monturas de $30 y $45 para mujer, hombre y unisex. Escoja la que le guste y le cotizamos los lentes según su receta.";
+  : "De $30 o $45, sin graduación, para mujer, hombre y unisex. Escoja los que le gusten y le cotizamos los lentes graduados según su receta.";
 
 const tally = (values: string[]) => {
   const m = new Map<string, number>();
@@ -129,7 +129,7 @@ const jsonLd: Record<string, unknown>[] = [
       <div class="wrap">
         <div class="empty">
           <h2>Pronto agregaremos lentes en esta categoría</h2>
-          <p>Mientras tanto, escríbanos y le ayudamos a encontrar una montura que le sirva.</p>
+          <p>Mientras tanto, escríbanos y le ayudamos a encontrar unos lentes que le sirvan.</p>
           <QuoteButton variant="primary" label="Preguntar por WhatsApp" message={MESSAGES.kids} place="catalog-empty" primary />
         </div>
       </div>

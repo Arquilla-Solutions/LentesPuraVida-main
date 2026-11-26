@@ -98,7 +98,7 @@ const homeJsonLd: Record<string, unknown>[] = [
   title="Lentes recetados en Costa Rica | Lentes Pura Vida"
   description="Lentes recetados con envío a toda Costa Rica. Ahorre hasta 60%, escriba su receta o mándela por WhatsApp y le cotizamos el mismo día."
   canonical="/"
-  keywords="lentes recetados Costa Rica, anteojos graduados Costa Rica, monturas Costa Rica, óptica online Costa Rica, lentes baratos Costa Rica, lentes con receta, lentes para hombre, lentes para mujer"
+  keywords="lentes recetados Costa Rica, anteojos graduados Costa Rica, óptica online Costa Rica, lentes baratos Costa Rica, lentes con receta, lentes para hombre, lentes para mujer"
   imageAlt="Lentes Pura Vida: lentes recetados con envío a toda Costa Rica"
   jsonLd={homeJsonLd}
 >
@@ -123,7 +123,7 @@ const homeJsonLd: Record<string, unknown>[] = [
           {heroProduct && (
             <a class="hero-tag" href={`/lentes/${heroProduct.slug}`}>
               <span>Modelo <strong>{heroProduct.name}</strong></span>
-              <span class="hero-tag-price">${heroProduct.framePrice} <small>solo montura</small></span>
+              <span class="hero-tag-price">${heroProduct.framePrice} <small>sin graduación</small></span>
             </a>
           )}
         </div>
@@ -131,7 +131,7 @@ const homeJsonLd: Record<string, unknown>[] = [
         <div class="home-hero-copy">
           <h1 id="h-hero" class="display">Lentes recetados de calidad, hasta 60% menos que en la óptica.</h1>
           <p class="lead">
-            Escoja la montura, mándenos su receta y le enviamos el precio total por WhatsApp el mismo día.
+            Escoja sus lentes, mándenos su receta y le enviamos el precio total por WhatsApp el mismo día.
             Se los llevamos a la casa.
           </p>
           <div class="home-hero-actions">
@@ -190,7 +190,7 @@ const homeJsonLd: Record<string, unknown>[] = [
         <div class="section-head section-head--row">
           <div>
             <h2 id="h-modelos">Modelos favoritos</h2>
-            <p>Monturas de $30 y $45. Los lentes graduados se cotizan según su receta.</p>
+            <p>De $30 o $45, sin graduación. Los lentes graduados se cotizan según su receta.</p>
           </div>
           <a class="btn-secondary head-btn-desk" href="/lentes">Ver los {modelCount} modelos</a>
         </div>
@@ -226,7 +226,7 @@ const homeJsonLd: Record<string, unknown>[] = [
       <div class="wrap">
         <div class="builder-head" data-reveal>
           <h2 id="h-builder">Arme sus lentes</h2>
-          <p class="lead">Cualquier montura lleva la base. Toque para agregar capas y vea cómo cambia el lente.</p>
+          <p class="lead">Cualquier modelo lleva la base. Toque para agregar capas y vea cómo cambia el lente.</p>
         </div>
         <LensBuilder variant="full" place="home-builder" labelledby="h-builder" primary />
       </div>
@@ -271,7 +271,7 @@ const homeJsonLd: Record<string, unknown>[] = [
         </div>
 
         <figure class="compare-card" data-reveal>
-          <figcaption class="compare-title">Precio de la montura</figcaption>
+          <figcaption class="compare-title">Precio sin graduación</figcaption>
           <div class="compare-bars">
             <div class="cbar cbar--them" style={`--from: ${pct(80)}; --to: 100%`}>
               <span class="cbar-label">En una óptica local</span>
@@ -287,8 +287,8 @@ const homeJsonLd: Record<string, unknown>[] = [
               <span style="--at: 0%">$0</span><span style={`--at: ${pct(50)}`}>$50</span><span style={`--at: ${pct(100)}`}>$100</span>
             </div>
           </div>
-          <p class="compare-save"><strong>Hasta 60% menos</strong> en la montura</p>
-          <p class="compare-fine">Solo la montura. Los lentes graduados se cotizan según su receta, sin paquetes cerrados.</p>
+          <p class="compare-save"><strong>Hasta 60% menos</strong>, sin graduación</p>
+          <p class="compare-fine">El precio que ve es sin graduación. Los lentes graduados se cotizan según su receta, sin paquetes cerrados.</p>
         </figure>
       </div>
     </section>

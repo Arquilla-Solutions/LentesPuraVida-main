@@ -15,8 +15,8 @@ export const FAQ: Record<string, FaqItem> = {
   },
   precio: {
     id: "precio",
-    q: "¿El precio de la montura incluye los lentes graduados?",
-    a: "No. Los $30 o $45 son solo de la montura. Los lentes graduados dependen de su receta y de los extras que escoja. Con su receta le mandamos el precio total por WhatsApp el mismo día, sin paquetes cerrados.",
+    q: "¿El precio incluye los lentes graduados?",
+    a: "No. Los $30 o $45 son sin graduación. Los lentes graduados dependen de su receta y de los extras que escoja. Con su receta le mandamos el precio total por WhatsApp el mismo día, sin paquetes cerrados.",
   },
   envio: {
     id: "envio",
@@ -31,7 +31,7 @@ export const FAQ: Record<string, FaqItem> = {
   defecto: {
     id: "defecto",
     q: "¿Qué pasa si los lentes llegan con un defecto?",
-    a: "Tiene garantía de fábrica. Si la montura o los lentes llegan con un defecto de fabricación, se los reemplazamos sin costo. Y antes de pedirlos revisamos con usted la talla y la receta.",
+    a: "Tiene garantía de fábrica. Si los lentes llegan con un defecto de fabricación, se los reemplazamos sin costo. Y antes de pedirlos revisamos con usted la talla y la receta.",
   },
   tipos: {
     id: "tipos",
@@ -50,7 +50,7 @@ export const FAQ: Record<string, FaqItem> = {
   },
   talla: {
     id: "talla",
-    q: "¿Cómo sé si la montura me va a quedar?",
+    q: "¿Cómo sé si me van a quedar?",
     a: "Vea por dentro de la patilla de sus lentes actuales: traen tres números, por ejemplo 52-18-140 (lente, puente y patilla, en milímetros). Compárelos con las medidas de cada modelo. Si están a 2 mm o menos, le va a quedar parecido. Si no los encuentra, mándenos una foto y le ayudamos.",
   },
   dp: {

@@ -245,7 +245,7 @@
 .pdp-info h1 { font-size: clamp(2.25rem, 1.9rem + 1.4vw, 3.25rem); }
 .pdp-rating { display: flex; align-items: center; gap: 6px; margin: var(--space-2xs) 0 0; font-size: var(--fs-small); color: var(--ink-muted); }
 .pdp-rating strong { color: var(--ink); font-weight: var(--fw-semibold); }
-.pdp-rating .ti { color: var(--accent); }
+.pdp-rating .stars { font-size: 0.875rem; letter-spacing: 1px; }
 .pdp-rating a { color: inherit; text-underline-offset: 3px; }
 .pdp-price { margin-top: var(--space-s); padding-bottom: var(--space-m); border-bottom: var(--border); }
 .pdp-price .price-compare s { color: var(--ink-subtle); }

@@ -29,7 +29,7 @@ export const CATEGORIES: Category[] = [
     title: "Lentes recetados para mujer en Costa Rica | Lentes Pura Vida",
     h1: "Lentes recetados para mujer",
     intro:
-      "Monturas de plástico y metal en formas clásicas y modernas. Escoja la que le guste y le cotizamos los lentes según su receta.",
+      "Lentes de plástico y metal en formas clásicas y modernas. Escoja los que le gusten y le cotizamos los lentes graduados según su receta.",
     description:
       "Lentes recetados para mujer, hasta 60% menos que en la óptica, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
   },
@@ -40,7 +40,7 @@ export const CATEGORIES: Category[] = [
     title: "Lentes recetados para hombre en Costa Rica | Lentes Pura Vida",
     h1: "Lentes recetados para hombre",
     intro:
-      "Monturas sobrias y livianas para usar todos los días. Escoja la que le guste y le cotizamos los lentes según su receta.",
+      "Lentes sobrios y livianos para usar todos los días. Escoja los que le gusten y le cotizamos los lentes graduados según su receta.",
     description:
       "Lentes recetados para hombre, hasta 60% menos que en la óptica, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
   },
@@ -62,9 +62,9 @@ export const CATEGORIES: Category[] = [
     title: "Lentes recetados para niños en Costa Rica | Lentes Pura Vida",
     h1: "Lentes recetados para niños",
     intro:
-      "Monturas resistentes y livianas para los más pequeños de la casa.",
+      "Lentes resistentes y livianos para los más pequeños de la casa.",
     description:
-      "Lentes recetados para niños con envío a toda Costa Rica. Escríbanos por WhatsApp y le ayudamos a escoger la montura y cotizar los lentes.",
+      "Lentes recetados para niños con envío a toda Costa Rica. Escríbanos por WhatsApp y le ayudamos a escoger el modelo y cotizar los lentes.",
   },
 ];
 
