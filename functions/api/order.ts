@@ -4,10 +4,11 @@ import type { Env } from "../_lib/env.ts";
 import { fail, isJson, json, readCapped, sameOrigin } from "../_lib/http.ts";
 import { sha256Hex, turnstileOk, underLimit } from "../_lib/guards.ts";
 import { Invalid, validateOrder } from "../_lib/validate.ts";
+import { buildLeadEvent, sendLead } from "../_lib/capi.ts";
 
 const MAX_BODY = 16 * 1024;
 
-export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
+export const onRequest: PagesFunction<Env> = async ({ request, env, waitUntil }) => {
   if (request.method !== "POST") return fail(405, "method");
   if (!sameOrigin(request)) return fail(403, "origin");
   if (!isJson(request)) return fail(415, "json only");
@@ -73,5 +74,9 @@ export const onRequest: PagesFunction<Env> = async ({ request, env }) => {
     if (String(e).includes("UNIQUE")) return json({ ok: true, ref: order.ref }); // lost a race with its own twin
     return fail(500, "save failed");
   }
+  // New order only: tell Meta in the background (Conversions API). Never changes this answer.
+  try {
+    if (env.META_CAPI_TOKEN) waitUntil(sendLead(env, buildLeadEvent(order, request)));
+  } catch {}
   return json({ ok: true, ref: order.ref }, 201);
 };
