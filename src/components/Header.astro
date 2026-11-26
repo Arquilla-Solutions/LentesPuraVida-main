@@ -1,6 +1,8 @@
 ---
 import { Icon } from "astro-icon/components";
 import QuoteButton from "./QuoteButton.astro";
+import { WHATSAPP_DISPLAY } from "@/lib/contact";
+import { MESSAGES } from "@/lib/whatsapp";
 
 interface Props {
   /** Current section, for aria-current. */
@@ -42,6 +44,7 @@ const NAV = [
     </nav>
 
     <div class="header-actions">
+      <QuoteButton variant="link" label={WHATSAPP_DISPLAY} message={MESSAGES.general} place="header-phone" class="header-phone" />
       <QuoteButton label="Cotizar" variant="secondary" place="header" class="btn--sm header-quote" />
       <a href="/carrito" class="icon-btn cart-btn" data-cart-open data-cart-label aria-label="Carrito">
         <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 8h12l-1 12H7L6 8z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 10V7a3 3 0 0 1 6 0v3" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
@@ -80,6 +83,7 @@ const NAV = [
     </ul>
     <QuoteButton place="menu" variant="secondary" block />
     <p class="menu-note">Le respondemos por WhatsApp. Sin compromiso.</p>
+    <p class="menu-note">WhatsApp <QuoteButton variant="link" label={WHATSAPP_DISPLAY} message={MESSAGES.general} place="menu-phone" class="menu-phone" /></p>
   </div>
 </div>
 </>)}

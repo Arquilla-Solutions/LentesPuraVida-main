@@ -14,6 +14,9 @@ import { shareJpeg } from "@/lib/images";
 import { getImage } from "astro:assets";
 import { EXTRAS, LENSES } from "@/lib/store";
 import { STEPS } from "@/data/steps";
+import TrustList from "@/components/TrustList.astro";
+import { FIT, SHIP_NOTICE, ratingText } from "@/data/trust";
+import { INCLUDES, INCLUDES_EXTRAS_NOTE, INCLUDES_TITLE } from "@/data/includes";
 
 export async function getStaticPaths() {
   const { visibleProducts } = await import("@/lib/catalog");
@@ -190,6 +193,12 @@ const productJsonLd: Record<string, unknown>[] = [
         <div class="pdp-info">
           <p class="pdp-kicker">{cat} · {product.material} · {product.shape}</p>
           <h1>{product.name}</h1>
+          {product.rating && (
+            <p class="pdp-rating">
+              <Icon name="lucide:star" size={16} aria-hidden="true" class="ti" />
+              <span><strong>{ratingText(product.rating.score)} de 5</strong> · {product.rating.count.toLocaleString("es-CR")} opiniones</span>
+            </p>
+          )}
 
           <div class="price">
             <span class="price-amount">${product.framePrice}</span>
@@ -256,19 +265,19 @@ const productJsonLd: Record<string, unknown>[] = [
             </button>
           </form>
           <QuoteButton frame={product.name} color={firstColor} place="product" label="Preguntar por WhatsApp" variant="secondary" block class="btn-ask" />
+          <ul class="trust-list pdp-fit">
+            <li><Icon name="lucide:search" size={18} aria-hidden="true" class="ti" />{FIT[0]}</li>
+            <li><Icon name="lucide:message-circle" size={18} aria-hidden="true" class="ti" />{FIT[1]}</li>
+          </ul>
           <p class="pdp-norx"><a class="link" href="/como-funciona#receta">¿No tiene receta? Le explicamos cómo hacer</a></p>
           <p class="pdp-desc">{product.desc}</p>
 
           <div class="includes">
-            <h2>Su cotización incluye</h2>
+            <h2>{INCLUDES_TITLE}</h2>
             <ul>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Lentes graduados hechos con su receta exacta</li>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Tratamiento anti-rayones y protección UV</li>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Estuche y paño</li>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Envío a su casa, en todo el país</li>
-              <li><Icon name="lucide:check" size={16} aria-hidden="true" /> Ayuda por WhatsApp antes y después del pedido</li>
+              {INCLUDES.map((t) => <li><Icon name="lucide:check" size={16} aria-hidden="true" /> {t}</li>)}
             </ul>
-            <p class="small">Los extras (antirreflejo, filtro de luz azul, fotocromáticos, polarizados) se cotizan aparte, si los quiere. <a class="link" href="/lentes-y-tratamientos">¿Qué es cada uno?</a></p>
+            <p class="small">{INCLUDES_EXTRAS_NOTE} <a class="link" href="/lentes-y-tratamientos">¿Qué es cada uno?</a></p>
           </div>
 
           <div class="folds faq">
@@ -320,12 +329,9 @@ const productJsonLd: Record<string, unknown>[] = [
             <details class="faq-item">
               <summary>Envío y garantía</summary>
               <div>
-                <ul class="elist elist--tight" style="margin: 0 0 14px">
-                  <li><span class="e" aria-hidden="true">🚚</span><span>Envío a todo CR · Guía rastreable. Llega en 10 a 14 días hábiles.</span></li>
-                  <li><span class="e" aria-hidden="true">💚</span><span>Envío gratis en pedidos de $300 o más.</span></li>
-                  <li><span class="e" aria-hidden="true">✅</span><span>Garantía de fábrica: si llegan con un defecto, se los reemplazamos sin costo.</span></li>
-                  <li><span class="e" aria-hidden="true">📲</span><span>Pago por SINPE Móvil o transferencia.</span></li>
-                </ul>
+                <TrustList class="trust-list fold-trust" />
+                <p class="small">Llega en 10 a 14 días hábiles, con guía rastreable. {SHIP_NOTICE} Envío gratis en pedidos de $300 o más.</p>
+                <p class="small">Si llegan con un defecto de fábrica, se los reemplazamos sin costo.</p>
                 <p style="margin: 0"><a class="link" href="/envios-y-garantia">Más detalles</a></p>
               </div>
             </details>

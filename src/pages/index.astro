@@ -12,6 +12,9 @@ import { CATEGORIES, featuredProducts, modelCount, productsIn, visibleProducts }
 import { HOME_FAQ, faqJsonLd } from "@/data/faq";
 import { REVIEWS } from "@/data/reviews";
 import { STEPS } from "@/data/steps";
+import { Icon } from "astro-icon/components";
+import TrustList from "@/components/TrustList.astro";
+import { FIT, STORE_RATING, ratingText } from "@/data/trust";
 
 const photos = scanFramePhotos();
 // Pick a specific on-face photo; falls back to any on-face photo if the file is renamed.
@@ -35,7 +38,7 @@ const homeJsonLd: Record<string, unknown>[] = [
     "@type": "CollectionPage",
     "@id": `${SITE_URL}/#catalog`,
     name: "Lentes recetados en Costa Rica | Lentes Pura Vida",
-    description: "Lentes recetados con envío a toda Costa Rica. Monturas para mujer, hombre y unisex desde $30.",
+    description: "Lentes recetados con envío a toda Costa Rica. Lentes para mujer, hombre y unisex, hasta 60% menos que en la óptica.",
     url: `${SITE_URL}/`,
     inLanguage: "es-CR",
     isPartOf: { "@id": `${SITE_URL}/#website` },
@@ -57,7 +60,7 @@ const homeJsonLd: Record<string, unknown>[] = [
 
 <BaseLayout
   title="Lentes recetados en Costa Rica | Lentes Pura Vida"
-  description="Lentes recetados con envío a toda Costa Rica. Monturas desde $30, escriba su receta o mándela por WhatsApp y le cotizamos el mismo día."
+  description="Lentes recetados con envío a toda Costa Rica. Ahorre hasta 60%, escriba su receta o mándela por WhatsApp y le cotizamos el mismo día."
   canonical="/"
   keywords="lentes recetados Costa Rica, anteojos graduados Costa Rica, monturas Costa Rica, óptica online Costa Rica, lentes baratos Costa Rica, lentes con receta, lentes para hombre, lentes para mujer"
   imageAlt="Lentes Pura Vida: lentes recetados con envío a toda Costa Rica"
@@ -100,12 +103,13 @@ const homeJsonLd: Record<string, unknown>[] = [
 
     <div class="trust">
       <div class="wrap">
-        <ul aria-label="Por qué comprar aquí">
-          <li><span class="e" aria-hidden="true">👓</span>Hechos en EE.UU.</li>
-          <li><span class="e" aria-hidden="true">🇨🇷</span>Envío a todo CR</li>
-          <li><span class="e" aria-hidden="true">✅</span>Garantía de fábrica</li>
-          <li><span class="e" aria-hidden="true">📲</span>Pago por SINPE</li>
-        </ul>
+        <TrustList class="trust-list trust-strip" label="Por qué comprar aquí">
+          <li slot="before" class="trust-rating">
+            <Icon name="lucide:star" size={18} aria-hidden="true" class="ti ti--star" />
+            <span><strong>{ratingText(STORE_RATING.score)} de 5</strong> en opiniones de clientes</span>
+          </li>
+        </TrustList>
+        <p class="trust-fit">{FIT[0]} {FIT[1]}</p>
       </div>
     </div>
 
@@ -218,7 +222,7 @@ const homeJsonLd: Record<string, unknown>[] = [
         <ul class="elist" style="margin-bottom: 28px">
           <li><span class="e" aria-hidden="true">🔍</span><span>Revisamos su receta.</span></li>
           <li><span class="e" aria-hidden="true">💬</span><span>Le explicamos las opciones en palabras sencillas.</span></li>
-          <li><span class="e" aria-hidden="true">💚</span><span>Le acompañamos por WhatsApp hasta que sus lentes le queden bien.</span></li>
+          <li><span class="e" aria-hidden="true">💚</span><span>{FIT[1]}</span></li>
         </ul>
         <a class="link" href="/sobre-nosotros">Conozca quiénes somos</a>
       </div>
@@ -238,7 +242,7 @@ const homeJsonLd: Record<string, unknown>[] = [
       <div class="wrap">
         <hr class="rule" />
         <h2>Escoja sus lentes y le cotizamos hoy mismo</h2>
-        <p>{modelCount} modelos desde $30. Sin compromiso: le mandamos el precio total por WhatsApp.</p>
+        <p>{modelCount} modelos, hasta 60% menos que en la óptica. Sin compromiso: le mandamos el precio total por WhatsApp.</p>
         <a class="btn btn--light" href="/lentes" data-primary>Ver los {modelCount} modelos</a>
         <p class="band-alt"><QuoteButton variant="link" label="O escríbanos por WhatsApp" place="home-band" class="link--light" /></p>
       </div>

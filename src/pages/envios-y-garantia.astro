@@ -4,6 +4,7 @@ import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import QuoteButton from "@/components/QuoteButton.astro";
 import { CR_PROVINCES } from "@/lib/seo";
+import { FIT, SHIP_NOTICE } from "@/data/trust";
 
 // Shipping wording mirrors what the site already said. "Guía rastreable" stays
 // as written until Sebastian confirms how shipping works (CONTEXT.md FLAGS).
@@ -26,7 +27,7 @@ const provinces = `${CR_PROVINCES.slice(0, -1).join(", ")} y ${CR_PROVINCES[CR_P
         <h2>Envíos</h2>
         <ul class="elist">
           <li><span class="e" aria-hidden="true">🇨🇷</span><span>Enviamos a las 7 provincias: {provinces}.</span></li>
-          <li><span class="e" aria-hidden="true">📦</span><span>Despachamos desde el laboratorio en EE.UU. con guía rastreable.</span></li>
+          <li><span class="e" aria-hidden="true">📦</span><span>Despachamos desde el laboratorio en EE.UU. con guía rastreable. {SHIP_NOTICE}</span></li>
           <li><span class="e" aria-hidden="true">🚚</span><span>Llega en 10 a 14 días hábiles a su casa, oficina o sucursal de Correos de Costa Rica.</span></li>
           <li><span class="e" aria-hidden="true">💚</span><span><strong>Envío gratis</strong> en pedidos de $300 o más.</span></li>
         </ul>
@@ -35,7 +36,8 @@ const provinces = `${CR_PROVINCES.slice(0, -1).join(", ")} y ${CR_PROVINCES[CR_P
         <ul class="elist">
           <li><span class="e" aria-hidden="true">✅</span><span>Si la montura o los lentes llegan con un defecto de fabricación, se los reemplazamos sin costo.</span></li>
           <li><span class="e" aria-hidden="true">📸</span><span>Escríbanos por WhatsApp con una foto del problema y lo resolvemos.</span></li>
-          <li><span class="e" aria-hidden="true">🔍</span><span>Antes de pedirlos revisamos con usted la receta, la talla y el color.</span></li>
+          <li><span class="e" aria-hidden="true">🔍</span><span>{FIT[0]}</span></li>
+          <li><span class="e" aria-hidden="true">💬</span><span>{FIT[1]}</span></li>
         </ul>
 
         <h2>Pago</h2>

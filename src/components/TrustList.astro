@@ -1,0 +1,15 @@
+---
+// The shared trust phrases (src/data/trust.ts) with lucide icons.
+import { Icon } from "astro-icon/components";
+import { TRUST } from "@/data/trust";
+
+interface Props { class?: string; size?: number; label?: string }
+const { class: className = "trust-list", size = 18, label } = Astro.props;
+---
+
+<ul class={className} aria-label={label}>
+  <slot name="before" />
+  {TRUST.map((t) => (
+    <li><Icon name={t.icon} size={size} aria-hidden="true" class="ti" />{t.text}</li>
+  ))}
+</ul>

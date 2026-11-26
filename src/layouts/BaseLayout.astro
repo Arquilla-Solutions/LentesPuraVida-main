@@ -4,6 +4,7 @@ import StickyBar from "@/components/StickyBar.astro";
 import CartDrawer from "@/components/CartDrawer.astro";
 import { QUOTE_LEAD_ENDPOINT, WHATSAPP_NUMBER } from "@/lib/contact";
 import { META_PIXEL_ID } from "@/lib/tracking";
+import { STORE_RATING } from "@/data/trust";
 import {
   DEFAULT_OG_IMAGE,
   SITE_LANG,
@@ -102,8 +103,8 @@ const organizationJsonLd = {
   ],
   aggregateRating: {
     "@type": "AggregateRating",
-    ratingValue: "4.9",
-    reviewCount: "127",
+    ratingValue: String(STORE_RATING.score),
+    reviewCount: String(STORE_RATING.count),
     bestRating: "5",
     worstRating: "1",
   },

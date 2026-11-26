@@ -3,6 +3,7 @@
 // button has scrolled away and hides again whenever another main button is on
 // screen, so there is never more than one "Cotizar" competing for the thumb.
 import QuoteButton from "./QuoteButton.astro";
+import { WHATSAPP_DISPLAY } from "@/lib/contact";
 
 interface Props {
   product?: { name: string; price: number; thumb?: string; frame?: string; addToCart?: boolean };
@@ -21,7 +22,10 @@ const { product } = Astro.props;
     </div>
   ) : (
     <div class="sticky-info">
-      <span class="sticky-name">Cotización sin compromiso</span>
+      <div>
+        <span class="sticky-name">Cotización sin compromiso</span>
+        <span class="sticky-price">WhatsApp {WHATSAPP_DISPLAY}</span>
+      </div>
     </div>
   )}
   {product?.addToCart ? (

@@ -13,6 +13,6 @@ export const LEAD_ENDPOINT = "/api/order";
 export const QUOTE_LEAD_ENDPOINT = "";
 
 // Cloudflare Turnstile site key (public by design) for the checkout bot check.
-// This is Cloudflare's invisible TEST key: it only works with the TEST secret in .dev.vars.
-// Before going live, replace it with the real site key (order-board SETUP.md, step 3).
-export const TURNSTILE_SITE_KEY = "1x00000000000000000000BB";
+// Real widget "Lentes checkout" (hostnames lentespuravida.com and www.lentespuravida.com).
+// It does not run on localhost or pages.dev; locally the test secret in .dev.vars accepts any token.
+export const TURNSTILE_SITE_KEY = "0x4AAAAAAGToILnqb02P0HY0";

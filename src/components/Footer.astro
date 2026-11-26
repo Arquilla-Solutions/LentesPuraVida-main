@@ -2,6 +2,7 @@
 import { WHATSAPP_DISPLAY } from "@/lib/contact";
 import { MESSAGES } from "@/lib/whatsapp";
 import QuoteButton from "./QuoteButton.astro";
+import TrustList from "./TrustList.astro";
 
 const year = new Date().getFullYear();
 ---
@@ -44,12 +45,11 @@ const year = new Date().getFullYear();
       <ul>
         <li><QuoteButton variant="link" label={`WhatsApp ${WHATSAPP_DISPLAY}`} message={MESSAGES.general} place="footer" /></li>
         <li>Respondemos en minutos</li>
-        <li>Tienda 100% online · Envío a todo CR</li>
+        <li>Tienda 100% online</li>
       </ul>
-      <h2 class="footer-h-gap">Formas de pago</h2>
-      <p class="footer-small">SINPE Móvil · Transferencia</p>
-      <h2 class="footer-h-gap">Garantías</h2>
-      <p class="footer-small">Optómetras certificados · Envío rastreable · Garantía de fábrica</p>
+      <h2 class="footer-h-gap">Compre con confianza</h2>
+      <TrustList class="trust-list footer-trust" size={16} />
+      <p class="footer-small">Optómetras certificados · Envío con guía rastreable</p>
     </div>
   </div>
 

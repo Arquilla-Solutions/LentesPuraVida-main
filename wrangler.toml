@@ -7,16 +7,15 @@ pages_build_output_dir = "dist"
 compatibility_date = "2026-07-01"
 
 [vars]
-# Cloudflare Access (Zero Trust). Fill both after creating the Access application.
+# Cloudflare Access (Zero Trust), application "Pedidos".
 # Empty = every admin request is refused (deny by default).
-ACCESS_TEAM_DOMAIN = ""
-ACCESS_AUD = ""
+ACCESS_TEAM_DOMAIN = "arquillasolutions.cloudflareaccess.com"
+ACCESS_AUD = "e54d5df3e726ebbf0d62912cf7a6f75c10877318ac8651940016ae0b0fb7e217"
 # Comma-separated list of emails allowed on the board, checked again inside the code.
-ADMIN_EMAILS = ""
+ADMIN_EMAILS = "sebastian@arquillasolutions.com"
 
 [[d1_databases]]
 binding = "DB"
 database_name = "lentes_orders"
-# Replace with the real id from `wrangler d1 create lentes_orders` before the first deploy.
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "020170d5-21f5-4396-bedd-531c2c838035"
 migrations_dir = "migrations"

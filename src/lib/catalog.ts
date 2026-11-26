@@ -31,7 +31,7 @@ export const CATEGORIES: Category[] = [
     intro:
       "Monturas de plástico y metal en formas clásicas y modernas. Escoja la que le guste y le cotizamos los lentes según su receta.",
     description:
-      "Lentes recetados para mujer desde $30 la montura, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
+      "Lentes recetados para mujer, hasta 60% menos que en la óptica, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
   },
   {
     id: "hombre",
@@ -42,7 +42,7 @@ export const CATEGORIES: Category[] = [
     intro:
       "Monturas sobrias y livianas para usar todos los días. Escoja la que le guste y le cotizamos los lentes según su receta.",
     description:
-      "Lentes recetados para hombre desde $30 la montura, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
+      "Lentes recetados para hombre, hasta 60% menos que en la óptica, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
   },
   {
     id: "unisex",
@@ -53,7 +53,7 @@ export const CATEGORIES: Category[] = [
     intro:
       "Modelos que se ven bien en cualquier cara. Escoja el suyo y le cotizamos los lentes según su receta.",
     description:
-      "Lentes recetados unisex desde $30 la montura, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
+      "Lentes recetados unisex, hasta 60% menos que en la óptica, con envío a toda Costa Rica. Escoja el modelo y le cotizamos los lentes según su receta.",
   },
   {
     id: "ninos",
