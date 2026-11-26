@@ -256,7 +256,7 @@ const productJsonLd: Record<string, unknown>[] = [
               </div>
             </fieldset>
             <p class="buy-note">Los lentes y extras se cotizan según su receta. Aquí no se cobra nada.</p>
-            <button type="submit" class="btn btn--primary btn--block btn-add" data-primary data-add>
+            <button type="submit" class="btn-primary btn-block btn-add" data-primary data-add>
               <span class="btn-add-label">Agregar al carrito</span>
               <span class="btn-add-done" aria-hidden="true">
                 <svg width="20" height="20" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -269,7 +269,7 @@ const productJsonLd: Record<string, unknown>[] = [
             <li><Icon name="lucide:search" size={18} aria-hidden="true" class="ti" />{FIT[0]}</li>
             <li><Icon name="lucide:message-circle" size={18} aria-hidden="true" class="ti" />{FIT[1]}</li>
           </ul>
-          <p class="pdp-norx"><a class="link" href="/como-funciona#receta">¿No tiene receta? Le explicamos cómo hacer</a></p>
+          <p class="pdp-norx"><a class="btn-tertiary" href="/como-funciona#receta">¿No tiene receta? Le explicamos cómo hacer</a></p>
           <p class="pdp-desc">{product.desc}</p>
 
           <div class="includes">
@@ -277,7 +277,7 @@ const productJsonLd: Record<string, unknown>[] = [
             <ul>
               {INCLUDES.map((t) => <li><Icon name="lucide:check" size={16} aria-hidden="true" /> {t}</li>)}
             </ul>
-            <p class="small">{INCLUDES_EXTRAS_NOTE} <a class="link" href="/lentes-y-tratamientos">¿Qué es cada uno?</a></p>
+            <p class="small">{INCLUDES_EXTRAS_NOTE} <a class="btn-tertiary" href="/lentes-y-tratamientos">¿Qué es cada uno?</a></p>
           </div>
 
           <div class="folds faq">
@@ -323,7 +323,7 @@ const productJsonLd: Record<string, unknown>[] = [
                 <ol class="fold-steps">
                   {STEPS.map((st) => <li><strong>{st.h}.</strong> {st.p}</li>)}
                 </ol>
-                <p style="margin: 0"><a class="link" href="/como-funciona">Ver el proceso completo</a></p>
+                <p style="margin: 0"><a class="btn-tertiary" href="/como-funciona">Ver el proceso completo</a></p>
               </div>
             </details>
             <details class="faq-item">
@@ -332,7 +332,7 @@ const productJsonLd: Record<string, unknown>[] = [
                 <TrustList class="trust-list fold-trust" />
                 <p class="small">Llega en 10 a 14 días hábiles, con guía rastreable. {SHIP_NOTICE} Envío gratis en pedidos de $300 o más.</p>
                 <p class="small">Si llegan con un defecto de fábrica, se los reemplazamos sin costo.</p>
-                <p style="margin: 0"><a class="link" href="/envios-y-garantia">Más detalles</a></p>
+                <p style="margin: 0"><a class="btn-tertiary" href="/envios-y-garantia">Más detalles</a></p>
               </div>
             </details>
           </div>
@@ -344,7 +344,7 @@ const productJsonLd: Record<string, unknown>[] = [
       <div class="wrap">
         <div class="section-head section-head--row">
           <h2 id="h-related">También le pueden gustar</h2>
-          <a class="link" href={mainCat.path}>Ver más modelos</a>
+          <a class="btn-tertiary" href={mainCat.path}>Ver más modelos</a>
         </div>
         <div class="rail">
           {related.map((p) => <ProductCard product={p} sizes="(min-width: 1280px) 290px, (min-width: 768px) 30vw, 68vw" />)}

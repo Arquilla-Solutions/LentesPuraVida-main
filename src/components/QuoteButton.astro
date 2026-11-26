@@ -1,5 +1,6 @@
 ---
-// The site's one primary action: "Cotizar por WhatsApp".
+// Every "Cotizar por WhatsApp" link. Button classes follow DESIGN_SYSTEM.md: WhatsApp is
+// "secondary" unless it is the screen's single main action ("primary"); "tertiary" is a text link.
 // The link works with no JavaScript; BaseLayout's script adds a reference code on tap.
 import WaIcon from "./WaIcon.astro";
 import { quoteMessage, waHref } from "@/lib/whatsapp";
@@ -10,8 +11,10 @@ interface Props {
   color?: string;
   message?: string;
   place: string;
-  variant?: "primary" | "secondary" | "compact" | "light" | "link";
-  block?: boolean;
+  variant?: "primary" | "secondary" | "tertiary";
+  size?: "sm" | "md" | "lg";
+  /** Full width always (true) or on phones only ("phone"). */
+  block?: boolean | "phone";
   /** Marks the page's main button, so the phone sticky bar hides while it is on screen. */
   primary?: boolean;
   class?: string;
@@ -23,17 +26,19 @@ const {
   color,
   message,
   place,
-  variant = "primary",
+  variant = "secondary",
+  size = "md",
   block = false,
   primary = false,
   class: className = "",
 } = Astro.props;
 
 const msg = message ?? quoteMessage(frame, color);
+const blockCls = block === "phone" ? " btn-block-phone" : block ? " btn-block" : "";
 const cls =
-  variant === "link"
-    ? `link link--wa ${className}`
-    : `btn btn--${variant}${block ? " btn--block" : ""} ${className}`;
+  variant === "tertiary"
+    ? `btn-tertiary ${className}`
+    : `btn-${variant}${size === "md" ? "" : ` btn-${size}`}${blockCls} ${className}`;
 ---
 
 <a
@@ -48,6 +53,6 @@ const cls =
   data-place={place}
   data-primary={primary ? "" : undefined}
 >
-  {variant !== "link" && <WaIcon size={variant === "compact" ? 16 : 18} />}
+  {variant !== "tertiary" && <WaIcon size={size === "sm" ? 16 : 18} />}
   <span>{label}</span>
 </a>

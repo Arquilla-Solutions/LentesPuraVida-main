@@ -38,7 +38,7 @@ const suggestions = featuredProducts(4);
           <div class="sum-row"><span>Monturas <span class="muted" data-cart-n></span></span><strong data-cart-subtotal></strong></div>
           <div class="sum-row sum-row--soft"><span>Lentes y extras</span><span>Se cotizan según su receta</span></div>
           <div class="sum-row sum-row--soft"><span>Envío</span><span>Se incluye en su cotización</span></div>
-          <a class="btn btn--primary btn--block" href="/checkout">Continuar con el pedido</a>
+          <a class="btn-primary btn-block" href="/checkout">Continuar con el pedido</a>
           <ul class="summary-perks">
             <li><span class="e" aria-hidden="true">🔒</span>No se cobra nada aquí</li>
             <li><span class="e" aria-hidden="true">💬</span>Precio total por WhatsApp el mismo día</li>
@@ -50,7 +50,7 @@ const suggestions = featuredProducts(4);
       <div class="cart-empty cart-empty--page" data-cart-empty>
         <p class="cart-empty-title">Su carrito está vacío</p>
         <p class="muted">Escoja la montura que le guste, con su color y tipo de lente, y aparece aquí.</p>
-        <a class="btn btn--primary" href="/lentes">Ver los lentes</a>
+        <a class="btn-primary" href="/lentes">Ver los lentes</a>
       </div>
     </div>
 
@@ -58,7 +58,7 @@ const suggestions = featuredProducts(4);
       <div class="wrap">
         <div class="section-head section-head--row">
           <h2 id="h-sug">Le pueden gustar</h2>
-          <a class="link" href="/lentes">Ver todos los modelos</a>
+          <a class="btn-tertiary" href="/lentes">Ver todos los modelos</a>
         </div>
         <div class="rail">
           {suggestions.map((p) => <ProductCard product={p} sizes="(min-width: 1280px) 290px, (min-width: 768px) 30vw, 68vw" />)}

@@ -1,0 +1,126 @@
+/* Design tokens. Every other stylesheet reads these; change values here, not in the rules.
+   Contrast (WCAG): ink 17.9:1, ink-muted 7.7:1, ink-subtle 5.1:1 on white, brand 7.4:1 on white,
+   white on brand 7.4:1. Every text pair below passes AA on bg, surface-alt and photo.
+   See DESIGN_SYSTEM.md in the repo root for when to use what. */
+
+:root {
+  /* ---------- Color roles ---------- */
+  --bg: #ffffff;              /* page */
+  --surface: #ffffff;         /* cards, drawers, inputs */
+  --surface-alt: #f6f2ea;     /* alternate sections, summary boxes */
+  --surface-photo: #f2ede4;   /* the warm panel every frame photo sits on */
+  --ink: #13162a;             /* headings, body, icons */
+  --ink-muted: #4f5263;       /* secondary text */
+  --ink-subtle: #6b6d7c;      /* captions, meta (AA on bg and surface-alt only) */
+  --line: #e6e0d6;            /* hairlines, card borders (decorative) */
+  --line-strong: #8c8373;     /* input and control borders (3:1 for UI) */
+  --brand: #06633c;           /* the logo green: primary buttons, selected states */
+  --brand-hover: #054e2f;
+  --brand-press: #043d25;
+  --brand-ink: #ffffff;       /* text on brand */
+  --brand-tint: #ebf3ee;      /* selected card background */
+  --accent: #b8913a;          /* stars and tiny marks only, never text */
+  --accent-ink: #8a6a1f;      /* accent when it has to be text (rare) */
+  --success: #1d6b45;
+  --warn: #8a5300;
+  --error: #a63a22;
+  --focus: #06633c;
+  --focus-on-dark: #ffffff;
+  --scrim: rgba(19, 22, 42, 0.42);
+  --wa: #25d366;              /* inside the WhatsApp glyph only, never a fill */
+
+  /* ---------- Type ---------- */
+  --font-display: "Fraunces Soft", "Fraunces Fallback", Georgia, "Times New Roman", serif;
+  --font-text: "Figtree", "Figtree Fallback", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+
+  /* Fluid sizes: phone value at 390px, desktop value at 1440px, linear between. */
+  --fs-display: clamp(2.5rem, 1.757rem + 3.048vw, 4.5rem);    /* 40 → 72 */
+  --fs-h1: clamp(2.125rem, 1.614rem + 2.095vw, 3.5rem);       /* 34 → 56 */
+  --fs-h2: clamp(1.75rem, 1.471rem + 1.143vw, 2.5rem);        /* 28 → 40 */
+  --fs-h3: clamp(1.1875rem, 1.118rem + 0.286vw, 1.375rem);    /* 19 → 22 */
+  --fs-body-lg: clamp(1.125rem, 1.079rem + 0.19vw, 1.25rem);  /* 18 → 20 */
+  --fs-body: clamp(1.0625rem, 1.039rem + 0.095vw, 1.125rem);  /* 17 → 18 */
+  --fs-small: 0.9375rem;                                      /* 15 */
+  --fs-caption: 0.8125rem;                                    /* 13 */
+  --fs-eyebrow: 0.75rem;                                      /* 12 */
+
+  --lh-display: 1.02;
+  --lh-h1: 1.06;
+  --lh-h2: 1.12;
+  --lh-h3: 1.25;
+  --lh-body: 1.55;
+  --lh-small: 1.45;
+
+  --tr-display: -0.025em;
+  --tr-h1: -0.02em;
+  --tr-h2: -0.012em;
+  --tr-h3: -0.005em;
+  --tr-eyebrow: 0.08em;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --measure: 68ch;
+
+  /* ---------- Space (4px base) ---------- */
+  --space-3xs: 4px;
+  --space-2xs: 8px;
+  --space-xs: 12px;
+  --space-s: 16px;
+  --space-m: 24px;
+  --space-l: 32px;
+  --space-xl: 48px;
+  --space-2xl: 64px;
+  --space-3xl: 96px;
+  --space-4xl: 128px;
+  --section-y: clamp(56px, 2.5rem + 4.57vw, 112px);           /* 56 → 112 */
+  --stack: clamp(24px, 1.2rem + 1.5vw, 44px);                 /* heading block → content */
+
+  /* ---------- Grid ---------- */
+  --wrap: 1200px;             /* content max width at 1440 */
+  --wrap-narrow: 680px;       /* long reading column */
+  --gutter: 20px;             /* page side padding: 20 phone, 32 tablet, 40 desktop */
+  --grid-cols: 4;
+  --grid-gap: 16px;
+  --header-h: 60px;
+
+  /* ---------- Shape ---------- */
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 16px;
+  --radius-pill: 999px;
+  --border-w: 1px;
+  --border-w-strong: 1.5px;
+  --border: var(--border-w) solid var(--line);
+  --shadow-sm: 0 1px 2px rgba(19, 22, 42, 0.06), 0 1px 1px rgba(19, 22, 42, 0.04);
+  --shadow-md: 0 12px 28px -14px rgba(19, 22, 42, 0.32);
+  --shadow-lg: 0 24px 60px -12px rgba(19, 22, 42, 0.28);
+
+  /* ---------- Motion ---------- */
+  --dur-1: 120ms;             /* press, color */
+  --dur-2: 200ms;             /* hover, small UI */
+  --dur-3: 320ms;             /* drawers, folds */
+  --dur-4: 600ms;             /* reveals */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-spring: cubic-bezier(0.32, 1.25, 0.5, 1);
+  --stagger: 60ms;
+  --lift: -4px;
+}
+@supports (transition-timing-function: linear(0, 1)) {
+  :root {
+    /* A soft spring: overshoots a hair, settles. */
+    --ease-spring: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017 19.4%, 1.067, 1.099 24.3%, 1.108 26%, 1.104, 1.085 31.2%, 1.014 38.6%, 0.995 42.3%, 0.991 46.5%, 0.998 60.8%, 1);
+  }
+}
+@media (min-width: 768px) {
+  :root { --gutter: 32px; --grid-cols: 8; --grid-gap: 24px; }
+}
+@media (min-width: 1024px) {
+  :root { --header-h: 68px; }
+}
+@media (min-width: 1280px) {
+  :root { --gutter: 40px; --grid-cols: 12; }
+}

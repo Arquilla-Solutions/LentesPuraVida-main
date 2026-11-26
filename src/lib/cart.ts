@@ -249,7 +249,7 @@ function editPanel(i: CartItem): HTMLElement {
   form.append(ef);
   form.append(
     h("div", { class: "ci-edit-actions" },
-      h("button", { type: "submit", class: "btn btn--primary btn--sm", text: "Guardar cambios", "data-focus": `${i.id}:save` }),
+      h("button", { type: "submit", class: "btn-primary btn-sm", text: "Guardar cambios", "data-focus": `${i.id}:save` }),
       h("button", { type: "button", class: "ci-link", text: "Cancelar", "data-act": "cancel", "data-id": i.id }),
     ),
   );

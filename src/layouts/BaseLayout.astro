@@ -157,8 +157,7 @@ const websiteJsonLd = {
       </>
     )}
 
-    <link rel="preload" href="/fonts/newsreader-latin-500-normal.woff2" as="font" type="font/woff2" crossorigin />
-    <link rel="preload" href="/fonts/instrument-sans-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin />
+    <link rel="preload" href="/fonts/fraunces-soft-latin-470-normal.woff2" as="font" type="font/woff2" crossorigin />
     <script is:inline>
       // "js" turns on the enhanced bits; "has-cart" lets the cart and checkout pages draw the
       // right layout on the first paint (no jump when the saved cart loads).
@@ -285,25 +284,30 @@ const websiteJsonLd = {
       });
     </script>
     <script>
-      // Small, once-only motion: sections below the first screen rise into place as they
-      // arrive, and lazy photos fade in when they finish loading. Nothing on the first
-      // screen moves (no delay to the main photo), and reduced motion turns it all off.
+      // Reveal on scroll, once. Anything marked data-reveal (or data-reveal="stagger" for its
+      // children) rises in as it arrives; the common section blocks below are tagged here so
+      // pages get it without markup. Elements already on screen are shown at once, so the first
+      // screen never waits. Hiding only starts after this runs (html.reveal), so content never
+      // stays invisible if scripts fail, and reduced motion skips all of it.
       if (!matchMedia("(prefers-reduced-motion: reduce)").matches && "IntersectionObserver" in window) {
-        const SEL = "main .section-head, main .grid, main .rail, main .steps, main .tiles, main .split, main .reviews, main .faq, main .band > .wrap, main .lens-list, main .facts";
+        const AUTO = "main .section-head, main .split, main .faq, main .band > .wrap, main .lens-list, main .facts";
+        const STAGGER = "main .grid, main .rail, main .steps, main .tiles, main .reviews";
+        document.querySelectorAll<HTMLElement>(AUTO).forEach((el) => { if (!el.closest("[data-reveal]")) el.dataset.reveal = ""; });
+        document.querySelectorAll<HTMLElement>(STAGGER).forEach((el) => { if (!el.closest("[data-reveal]")) el.dataset.reveal = "stagger"; });
         const io = new IntersectionObserver((entries) => {
           for (const e of entries) {
             if (!e.isIntersecting) continue;
-            e.target.classList.add("rv-in");
+            e.target.classList.add("is-in");
             io.unobserve(e.target);
           }
         }, { rootMargin: "0px 0px -6% 0px" });
-        document.querySelectorAll<HTMLElement>(SEL).forEach((el) => {
-          if (el.closest(".rv") || el.getBoundingClientRect().top < innerHeight) return;
-          el.classList.add("rv");
-          if (el.matches(".grid, .rail, .steps, .tiles, .reviews"))
+        document.querySelectorAll<HTMLElement>("[data-reveal]").forEach((el) => {
+          if (el.getBoundingClientRect().top < innerHeight) { el.classList.add("is-in"); return; }
+          if (el.dataset.reveal === "stagger")
             Array.from(el.children).forEach((c, i) => (c as HTMLElement).style.setProperty("--i", String(i % 8)));
           io.observe(el);
         });
+        document.documentElement.classList.add("reveal");
         document.querySelectorAll<HTMLImageElement>(".ph img[loading='lazy']").forEach((img) => {
           if (img.complete) return;
           img.classList.add("ph-wait");

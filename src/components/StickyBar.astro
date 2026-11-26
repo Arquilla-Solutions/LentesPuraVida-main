@@ -29,11 +29,12 @@ const { product } = Astro.props;
     </div>
   )}
   {product?.addToCart ? (
-    <button type="button" class="btn btn--compact sticky-btn" data-sticky-add>Agregar al carrito</button>
+    <button type="button" class="btn-primary btn-sm sticky-btn" data-sticky-add>Agregar al carrito</button>
   ) : (
     <QuoteButton
       label="Cotizar"
-      variant="compact"
+      variant="primary"
+      size="sm"
       frame={product?.frame}
       place="sticky-bar"
       class="sticky-btn"

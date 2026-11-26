@@ -1,0 +1,35 @@
+/* Two self-hosted files, Latin subset, both SIL OFL 1.1 (licenses in public/fonts).
+   Fraunces Soft: a static cut of Fraunces made for this site (opsz 60, wght 470, SOFT 100, WONK 1),
+   18 KB. Figtree: variable weight 300 to 900 in one 20 KB file.
+   The display face is preloaded in BaseLayout. The fallbacks below are metric-matched
+   (capsize xWidthAvg against Georgia and Arial) so the swap does not move anything. */
+@font-face {
+  font-family: "Fraunces Soft";
+  src: url("/fonts/fraunces-soft-latin-470-normal.woff2") format("woff2");
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Figtree";
+  src: url("/fonts/figtree-latin-wght-normal.woff2") format("woff2");
+  font-weight: 300 900;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: "Fraunces Fallback";
+  src: local("Georgia"), local("Times New Roman");
+  size-adjust: 100.83%;
+  ascent-override: 97%;
+  descent-override: 25.29%;
+  line-gap-override: 0%;
+}
+@font-face {
+  font-family: "Figtree Fallback";
+  src: local("Arial"), local("Helvetica"), local("Liberation Sans");
+  size-adjust: 99.6%;
+  ascent-override: 95.39%;
+  descent-override: 25.1%;
+  line-gap-override: 0%;
+}
