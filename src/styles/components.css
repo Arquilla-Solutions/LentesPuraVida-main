@@ -357,10 +357,6 @@
 .trust-list li { display: flex; align-items: center; gap: 10px; margin: 0; }
 .trust-list .ti { flex: none; color: var(--brand); }
 
-/* Card rating line (frames with a rating only). */
-.card-rating { display: flex; align-items: center; gap: 5px; margin: 6px 0 0; font-size: var(--fs-caption); color: var(--ink-muted); }
-.card-rating strong { color: var(--ink); font-weight: var(--fw-semibold); }
-.card-star { color: var(--accent); font-size: 0.9375rem; line-height: 1; }
 .card-main, .card-alt { transition: opacity var(--dur-3) ease; }
 @media (hover: hover) and (min-width: 1024px) { .card:hover .card-media:has(.card-alt) .card-main { opacity: 0; } }
 

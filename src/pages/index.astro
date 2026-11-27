@@ -5,62 +5,43 @@ import Footer from "@/components/Footer.astro";
 import Photo from "@/components/Photo.astro";
 import ProductCard from "@/components/ProductCard.astro";
 import QuoteButton from "@/components/QuoteButton.astro";
-import LensBuilder from "@/components/LensBuilder.astro";
 import Faq from "@/components/Faq.astro";
 import { Icon } from "astro-icon/components";
 import { SITE_URL } from "@/lib/seo";
 import { responsive } from "@/lib/images";
-import { altView, colorPhotos, mainView, scanFramePhotos } from "@/lib/photos";
-import { CATEGORY_FRAME, activeCategories, featuredProducts, modelCount, productsIn, visibleProducts } from "@/lib/catalog";
+import { colorPhotos, mainView, scanFramePhotos } from "@/lib/photos";
+import { activeCategories, featuredProducts, modelCount, visibleProducts } from "@/lib/catalog";
 import { MESSAGES } from "@/lib/whatsapp";
 import { HOME_FAQ, faqJsonLd } from "@/data/faq";
 import { REVIEWS } from "@/data/reviews";
 import { STEPS } from "@/data/steps";
 import { TRUST, FIT, STORE_RATING, ratingText } from "@/data/trust";
-import { INCLUDES } from "@/data/includes";
 
 // Frame-only photos everywhere (no people). A missing frame or color falls back to the
 // frame's first color, then to the first visible frame, so a renamed folder never breaks the build.
 const photos = scanFramePhotos();
 const shot = (frame: string, color: string) => colorPhotos(photos[frame], color)?.photos ?? photos[visibleProducts[0].name].colors[0].photos;
-const findProduct = (name: string) => visibleProducts.find((p) => p.name === name);
 
-// Hero: three frames on a warm stage. The first one is the LCP image (preloaded below).
-const HERO_MAIN = { frame: "November", color: "tortoise", alt: "Lentes November color carey, de frente" };
+// Hero: a flat lay of six frames on the cream stage, slightly tilted and overlapping.
+// The center one is the LCP image (preloaded below); it only moves, never fades in.
+const HERO_MAIN = { frame: "November", color: "tortoise", alt: "Lentes November color carey y otros modelos sobre la mesa" };
 const heroMain = mainView(shot(HERO_MAIN.frame, HERO_MAIN.color))!;
-const heroBack = altView(shot("Central", "matte green")) ?? mainView(shot("Central", "matte green"))!;
-const heroFront = mainView(shot("Potter", "matte black"))!;
-const heroProduct = findProduct(HERO_MAIN.frame);
-const HERO_SIZES = "(min-width: 1024px) 560px, 84vw";
-const HERO_WIDTHS = [400, 640];
+const HERO_SIZES = "(min-width: 1024px) 340px, (min-width: 768px) 300px, 58vw";
+const HERO_WIDTHS = [240, 400, 640];
 const heroPreload = await responsive(heroMain, HERO_WIDTHS);
+const HERO_REST = [
+  { frame: "District", color: "matte pink", pos: "nw" },
+  { frame: "Warren", color: "matte navy", pos: "ne" },
+  { frame: "Milo", color: "mint", pos: "n" },
+  { frame: "Central", color: "matte green", pos: "sw" },
+  { frame: "Potter", color: "matte black", pos: "se" },
+].map((f) => ({ ...f, img: mainView(shot(f.frame, f.color))! }));
 
-// Category tiles: one frame per category, front view with the 3/4 view on hover.
-const tiles = activeCategories()
-  .filter((c) => c.id !== "ninos")
-  .map((c) => {
-    const pick = CATEGORY_FRAME[c.id];
-    const frame = pick && photos[pick.frame] ? pick.frame : productsIn(c.id)[0].name;
-    const color = pick?.color ?? "";
-    const p = shot(frame, color);
-    return { cat: c, count: productsIn(c.id).length, front: mainView(p)!, alt: altView(p), frame };
-  });
+// Category chips right under the hero (Niños only while it has visible frames).
+const chips = activeCategories();
+const HELP_MSG = "Hola, no sé qué lentes me quedan bien. ¿Me ayudan a escoger?";
 
 const featured = featuredProducts(8);
-
-const STATS = [
-  { big: "Hasta 60%", small: "menos que en la óptica" },
-  { big: `${ratingText(STORE_RATING.score)} de 5`, small: "en opiniones de clientes" },
-  { big: "7 de 7", small: "provincias: enviamos a todo Costa Rica" },
-];
-const WHY = [
-  { h: "Revisamos su receta con usted", p: FIT[0] },
-  { h: "Le acompañamos hasta que le queden bien", p: INCLUDES[4] + "." },
-  { h: "Hechos en EE.UU.", p: "En un laboratorio óptico certificado, con su receta exacta." },
-  { h: "Garantía de fábrica", p: "Si llegan con un defecto de fabricación, se los reemplazamos sin costo." },
-  { h: "Pago por SINPE Móvil o transferencia", p: "Paga cuando ya tiene el precio total, por escrito en su chat." },
-  { h: "Envío gratis desde $300", p: "Con guía rastreable. Le avisamos cuando esté en camino." },
-];
 
 // Price scale for the comparison: $0 to $120, frame only.
 const SCALE = 120;
@@ -107,90 +88,56 @@ const homeJsonLd: Record<string, unknown>[] = [
   <Header />
 
   <main id="contenido">
-    <!-- 1. Hero: the frames, the promise, one button. -->
+    <!-- 1. Hero: the frames, the promise, one button, then trust and a way in by category. -->
     <section class="home-hero" aria-labelledby="h-hero">
       <div class="wrap home-hero-grid">
         <div class="home-hero-stage">
-          <div class="hero-frame hero-frame--back" aria-hidden="true">
-            <Photo img={heroBack} alt="" ratio="2 / 1" sizes="(min-width: 1024px) 300px, 46vw" widths={[320, 480]} class="ph--bare" eager />
-          </div>
+          {HERO_REST.map((f, i) => (
+            <div class={`hero-frame hero-frame--${f.pos}`} style={`--d: ${120 + i * 70}ms`} aria-hidden="true">
+              <Photo img={f.img} alt="" ratio="2 / 1" sizes="(min-width: 1024px) 260px, (min-width: 768px) 220px, 44vw" widths={[240, 400]} class="ph--bare" eager />
+            </div>
+          ))}
           <div class="hero-frame hero-frame--main">
             <Photo img={heroMain} alt={HERO_MAIN.alt} ratio="2 / 1" sizes={HERO_SIZES} widths={HERO_WIDTHS} class="ph--bare" eager />
           </div>
-          <div class="hero-frame hero-frame--front" aria-hidden="true">
-            <Photo img={heroFront} alt="" ratio="2 / 1" sizes="(min-width: 1024px) 280px, 42vw" widths={[320, 480]} class="ph--bare" eager />
-          </div>
-          {heroProduct && (
-            <a class="hero-tag" href={`/lentes/${heroProduct.slug}`}>
-              <span>Modelo <strong>{heroProduct.name}</strong></span>
-              <span class="hero-tag-price">${heroProduct.framePrice} <small>sin graduación</small></span>
-            </a>
-          )}
         </div>
 
         <div class="home-hero-copy">
-          <h1 id="h-hero" class="display">Lentes recetados de calidad, hasta 60% menos que en la óptica.</h1>
-          <p class="lead">
-            Escoja sus lentes, mándenos su receta y le enviamos el precio total por WhatsApp el mismo día.
-            Se los llevamos a la casa.
-          </p>
+          <p class="home-hero-eyebrow">A domicilio en todo Costa Rica</p>
+          <h1 id="h-hero" class="home-hero-title">Lentes recetados hasta 60% más baratos que en la óptica.</h1>
+          <p class="home-hero-sub">Escoja el estilo, mándenos su receta y hoy mismo le pasamos el precio total por WhatsApp.</p>
           <div class="home-hero-actions">
-            <a class="btn-primary btn-block-phone" href="/lentes" data-primary>Ver los {modelCount} modelos</a>
-            <QuoteButton place="home-hero" variant="tertiary" />
+            <a class="btn-primary btn-block-phone" href="/lentes" data-primary>Ver los lentes</a>
+            <QuoteButton place="home-hero" variant="tertiary" label="o cotice por WhatsApp" />
           </div>
+          <ul class="hero-trust" aria-label="Por qué comprar aquí">
+            {TRUST.map((t) => (
+              <li><Icon name={t.icon} size={18} aria-hidden="true" class="ti" /><span>{t.short}</span></li>
+            ))}
+          </ul>
           <p class="home-hero-rating">
             <span class="stars" aria-hidden="true">★★★★★</span>
             <span><strong>{ratingText(STORE_RATING.score)} de 5</strong> en opiniones de clientes</span>
+          </p>
+          <nav class="hero-cats" aria-label="Lentes por categoría">
+            <ul class="chips hero-chips">
+              {chips.map((c) => <li><a class="chip" href={c.path}>{c.label}</a></li>)}
+            </ul>
+          </nav>
+          <p class="hero-help">
+            ¿No sabe cuál le queda? <QuoteButton place="home-help" variant="tertiary" label="Le ayudamos" message={HELP_MSG} />
           </p>
         </div>
       </div>
     </section>
 
-    <!-- 2. Trust strip. -->
-    <div class="trustbar">
-      <ul class="wrap trustbar-list" aria-label="Por qué comprar aquí">
-        {TRUST.map((t) => (
-          <li><Icon name={t.icon} size={20} aria-hidden="true" class="ti" /><span>{t.text}</span></li>
-        ))}
-      </ul>
-    </div>
-
-    <!-- 3. Shop by category. -->
-    {tiles.length > 0 && (
-      <section class="section cats" aria-labelledby="h-cats">
-        <div class="wrap">
-          <div class="cats-head" data-reveal>
-            <h2 id="h-cats">Busque por estilo</h2>
-            <a class="btn-tertiary" href="/lentes">Ver todos los lentes</a>
-          </div>
-          <ul class="cats-list" data-reveal="stagger">
-            {tiles.map((t, i) => (
-              <li>
-                <a class={`cat-tile cat-tile--${i + 1}`} href={t.cat.path}>
-                  <span class="cat-tile-text">
-                    <span class="cat-tile-name">{t.cat.label}</span>
-                    <span class="cat-tile-count">{t.count} modelos</span>
-                  </span>
-                  <span class="cat-tile-media">
-                    <Photo img={t.front} alt={`Lentes ${t.frame}, categoría ${t.cat.label.toLowerCase()}`} ratio="2 / 1" sizes="(min-width: 1024px) 360px, (min-width: 768px) 30vw, 52vw" widths={[320, 480, 640]} class="ph--bare cat-tile-main" />
-                    {t.alt && <Photo img={t.alt} alt="" ratio="2 / 1" sizes="(min-width: 1024px) 360px, 30vw" widths={[320, 480, 640]} class="ph--bare cat-tile-alt" />}
-                  </span>
-                  <span class="cat-tile-go" aria-hidden="true"><Icon name="lucide:arrow-right" size={20} /></span>
-                </a>
-              </li>
-            ))}
-          </ul>
-        </div>
-      </section>
-    )}
-
-    <!-- 4. Featured frames. -->
+    <!-- 2. Featured frames. -->
     <section class="section featured" id="catalogo" aria-labelledby="h-modelos">
       <div class="wrap">
         <div class="section-head section-head--row">
           <div>
             <h2 id="h-modelos">Modelos favoritos</h2>
-            <p>De $30 o $45, sin graduación. Los lentes graduados se cotizan según su receta.</p>
+            <p>Desde $30, sin graduación. Los lentes graduados se cotizan según su receta.</p>
           </div>
           <a class="btn-secondary head-btn-desk" href="/lentes">Ver los {modelCount} modelos</a>
         </div>
@@ -201,60 +148,7 @@ const homeJsonLd: Record<string, unknown>[] = [
       </div>
     </section>
 
-    <!-- 5. Why us: three numbers, six promises. -->
-    <section class="section section--alt why" aria-labelledby="h-why">
-      <div class="wrap">
-        <div class="why-head" data-reveal>
-          <h2 id="h-why">Por qué Lentes Pura Vida</h2>
-          <p class="lead">Buenos lentes, un precio justo y una persona que le responde. Así de simple.</p>
-        </div>
-        <ul class="why-stats" data-reveal="stagger">
-          {STATS.map((s) => (
-            <li><span class="why-big">{s.big}</span><span class="why-small">{s.small}</span></li>
-          ))}
-        </ul>
-        <ul class="why-list" data-reveal="stagger">
-          {WHY.map((w) => (
-            <li><h3>{w.h}</h3><p>{w.p}</p></li>
-          ))}
-        </ul>
-      </div>
-    </section>
-
-    <!-- 6. Build your lenses. -->
-    <section class="section builder" aria-labelledby="h-builder">
-      <div class="wrap">
-        <div class="builder-head" data-reveal>
-          <h2 id="h-builder">Arme sus lentes</h2>
-          <p class="lead">Cualquier modelo lleva la base. Toque para agregar capas y vea cómo cambia el lente.</p>
-        </div>
-        <LensBuilder variant="full" place="home-builder" labelledby="h-builder" primary />
-      </div>
-    </section>
-
-    <!-- 7. How it works. -->
-    <section class="section section--alt how" id="como-funciona" aria-labelledby="h-como">
-      <div class="wrap">
-        <div class="how-head" data-reveal>
-          <h2 id="h-como">Así de fácil es pedir sus lentes</h2>
-          <div>
-            <p>Usted escoge aquí. Una persona le atiende por WhatsApp en cada paso.</p>
-            <a class="btn-tertiary" href="/como-funciona">Ver el proceso completo</a>
-          </div>
-        </div>
-        <ol class="how-steps" data-reveal="stagger">
-          {STEPS.map((st, i) => (
-            <li>
-              <span class="how-n" aria-hidden="true">{i + 1}</span>
-              <h3>{st.h}</h3>
-              <p>{st.p}</p>
-            </li>
-          ))}
-        </ol>
-      </div>
-    </section>
-
-    <!-- 8. Savings vs a local óptica. -->
+    <!-- 3. Savings vs a local óptica. -->
     <section class="section savings" aria-labelledby="h-precio">
       <div class="wrap savings-grid">
         <div class="savings-copy" data-reveal>
@@ -264,7 +158,7 @@ const homeJsonLd: Record<string, unknown>[] = [
             Sin local, sin vendedores a comisión, sin marcas de moda. Ese ahorro es suyo.
           </p>
           <ul class="perks">
-            <li><strong>Hechos en EE.UU.</strong> por optómetras certificados.</li>
+            <li><strong>Hechos en EE.UU.</strong> en un laboratorio óptico certificado.</li>
             <li><strong>Envío gratis</strong> en pedidos de $300 o más.</li>
             <li><strong>Hasta $10 de descuento</strong> si nos manda el recibo de su examen de la vista.</li>
           </ul>
@@ -293,7 +187,29 @@ const homeJsonLd: Record<string, unknown>[] = [
       </div>
     </section>
 
-    <!-- 9. Reviews. -->
+    <!-- 4. How it works. -->
+    <section class="section section--alt how" id="como-funciona" aria-labelledby="h-como">
+      <div class="wrap">
+        <div class="how-head" data-reveal>
+          <h2 id="h-como">Así de fácil es pedir sus lentes</h2>
+          <div>
+            <p>Usted escoge aquí. Una persona le atiende por WhatsApp en cada paso.</p>
+            <a class="btn-tertiary" href="/como-funciona">Ver el proceso completo</a>
+          </div>
+        </div>
+        <ol class="how-steps" data-reveal="stagger">
+          {STEPS.map((st, i) => (
+            <li>
+              <span class="how-n" aria-hidden="true">{i + 1}</span>
+              <h3>{st.h}</h3>
+              <p>{st.p}</p>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+
+    <!-- 5. Reviews. -->
     <section class="section section--alt voices" aria-labelledby="h-opiniones">
       <div class="wrap">
         <div class="voices-grid">
@@ -327,7 +243,7 @@ const homeJsonLd: Record<string, unknown>[] = [
       </div>
     </section>
 
-    <!-- 10. A real person. -->
+    <!-- 6. A real person. -->
     <section class="section human" aria-labelledby="h-nosotros">
       <div class="wrap human-grid">
         <div class="human-copy" data-reveal>
@@ -348,7 +264,7 @@ const homeJsonLd: Record<string, unknown>[] = [
       </div>
     </section>
 
-    <!-- 11. FAQ. -->
+    <!-- 7. FAQ. -->
     <section class="section section--alt faq-sec" aria-labelledby="h-faq">
       <div class="wrap faq-grid">
         <div class="faq-side" data-reveal>
@@ -360,7 +276,7 @@ const homeJsonLd: Record<string, unknown>[] = [
       </div>
     </section>
 
-    <!-- 12. Closing band: one action. -->
+    <!-- 8. Closing band: one action. -->
     <section class="band">
       <div class="wrap">
         <h2>Escoja sus lentes y le cotizamos hoy mismo</h2>

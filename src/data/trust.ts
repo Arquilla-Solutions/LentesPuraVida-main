@@ -1,12 +1,12 @@
 // Trust phrases shared by the home trust strip, the product page fold and the footer,
 // so the wording never drifts. Icons are lucide names for astro-icon.
-export interface TrustItem { icon: string; text: string }
+export interface TrustItem { icon: string; text: string; /** Short form for the home hero trust row. */ short: string }
 
 export const TRUST: TrustItem[] = [
-  { icon: "lucide:award", text: "Hechos en EE.UU." },
-  { icon: "lucide:map-pin", text: "Envío a las 7 provincias" },
-  { icon: "lucide:shield-check", text: "Garantía de fábrica" },
-  { icon: "lucide:smartphone", text: "Pago por SINPE Móvil o transferencia" },
+  { icon: "lucide:award", text: "Hechos en EE.UU.", short: "Hechos en EE.UU." },
+  { icon: "lucide:map-pin", text: "Envío a las 7 provincias", short: "Las 7 provincias" },
+  { icon: "lucide:shield-check", text: "Garantía de fábrica", short: "Garantía de fábrica" },
+  { icon: "lucide:smartphone", text: "Pago por SINPE Móvil o transferencia", short: "SINPE Móvil o transferencia" },
 ];
 
 // Store rating. The home trust strip shows it and BaseLayout puts the same numbers in the

@@ -1,11 +1,10 @@
 ---
 // Product card for the home rail and the catalog grid. Frame-only shots: the front view,
-// and on hover (desktop) the 3/4 view of the same color. Name, frame price ("sin graduación"),
-// the photographed colors and the frame's rating when it has one.
+// and on hover (desktop) the 3/4 view of the same color. Name, frame price ("sin graduación")
+// and the photographed colors. No per-frame rating: those counts are catalog data, not our reviews.
 import type { Product } from "@/data/products";
 import { getSwatch } from "@/data/products";
 import { altView, mainView, photographedColors, scanFramePhotos } from "@/lib/photos";
-import { ratingText } from "@/data/trust";
 import Photo from "./Photo.astro";
 
 interface Props {
@@ -52,11 +51,5 @@ const colorWord = colors.length === 1 ? "1 color" : `${colors.length} colores`;
       </span>
       <span class="card-note">sin graduación</span>
     </div>
-    {product.rating && (
-      <p class="card-rating">
-        <span class="card-star" aria-hidden="true">★</span>
-        <span><strong>{ratingText(product.rating.score)}</strong><span class="sr-only"> de 5</span> <span class="card-count">({product.rating.count.toLocaleString("es-CR")} opiniones)</span></span>
-      </p>
-    )}
   </div>
 </a>
